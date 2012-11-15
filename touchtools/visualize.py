@@ -81,6 +81,8 @@ def visualize_touches(fn, settings, t=0):
 
             if type in ('TOUCH_DOWN', 'TOUCH_MOVE'):
                 pts[id] = touch
+            elif type == 'TOUCH_UP':
+                del pts[id]
 
             try:
                 next_row = next(touch_rows)
