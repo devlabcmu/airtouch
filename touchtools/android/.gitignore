@@ -1,0 +1,12 @@
+# Java compiled stuff
+*.class
+bin
+obj
+
+# Android stuff
+gen
+libs
+
+# Eclipse stuff
+.settings
+.metadata
