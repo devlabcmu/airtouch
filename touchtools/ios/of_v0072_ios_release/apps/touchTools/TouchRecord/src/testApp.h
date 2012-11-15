@@ -6,9 +6,6 @@
 #include "ofxiPhoneExtras.h"
 #include "Ball.h"
 
-
-#define OUT_DIR "touchrecord"
-
 class testApp : public ofxiPhoneApp{
 	
     

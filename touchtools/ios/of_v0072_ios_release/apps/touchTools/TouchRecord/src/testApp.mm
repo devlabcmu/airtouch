@@ -27,13 +27,6 @@ void testApp::setup(){
     oss << [docsDir UTF8String] ;
     oss << "/";
     ofSetDataPathRoot(oss.str());
-    
-    ofDirectory dir(OUT_DIR);
-    // make directory
-    if(!dir.exists())
-    {
-        dir.create();
-    }
 }
 
 
@@ -46,7 +39,7 @@ void testApp::newTouchDir()
     ostringstream oss;
     // eg: %Y-%m-%d-%H-%M-%S-%i ( 2011-01-15-18-29-35-299 )
     oss<< ofGetTimestampString("%Y%m%d-%h%M%S%i") << "_" << cls;
-    string path = ofFilePath::join(OUT_DIR, oss.str());
+    string path = oss.str();
     if(!ofDirectory::doesDirectoryExist(path))
     {
         ofLog(OF_LOG_VERBOSE, "making dir %s...", path.c_str());
@@ -75,7 +68,7 @@ void testApp::newTouchDir()
 
 void testApp::writeTouchUpdated(ofTouchEventArgs & touch)
 {
-    ofLog(OF_LOG_VERBOSE, "tfp is %s", touch_file_path.c_str());
+    // ofLog(OF_LOG_VERBOSE, "tfp is %s", touch_file_path.c_str());
     ofFile tf = ofFile(touch_file_path, ofFile::Append, false);
     if(!tf.exists())
     {
