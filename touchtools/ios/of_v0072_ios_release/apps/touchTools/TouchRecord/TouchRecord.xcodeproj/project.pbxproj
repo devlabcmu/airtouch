@@ -12,6 +12,8 @@
 		288765FD0DF74451002DB57D /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 288765FC0DF74451002DB57D /* CoreGraphics.framework */; };
 		5326AEA810A23A0500278DE6 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5326AEA710A23A0500278DE6 /* CoreLocation.framework */; };
 		53F323EB10A20EDB00E0DAE4 /* OpenAL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 53F323EA10A20EDB00E0DAE4 /* OpenAL.framework */; };
+		6127889A16559C7B00225D6F /* touchrecord-logo-regular.png in Resources */ = {isa = PBXBuildFile; fileRef = 6127889916559C7B00225D6F /* touchrecord-logo-regular.png */; };
+		6127889C16559C9800225D6F /* touchrecord-logo-retina.png in Resources */ = {isa = PBXBuildFile; fileRef = 6127889B16559C9800225D6F /* touchrecord-logo-retina.png */; };
 		BB16EBD20F2B2A9500518274 /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB16EBD10F2B2A9500518274 /* OpenGLES.framework */; };
 		BB16EBD90F2B2AB500518274 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB16EBD80F2B2AB500518274 /* QuartzCore.framework */; };
 		BBE5EAB80F49AD8400F28951 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BBE5EAB70F49AD8400F28951 /* AudioToolbox.framework */; };
@@ -49,6 +51,8 @@
 		32CA4F630368D1EE00C91783 /* iPhone_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iPhone_Prefix.pch; sourceTree = "<group>"; };
 		5326AEA710A23A0500278DE6 /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
 		53F323EA10A20EDB00E0DAE4 /* OpenAL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenAL.framework; path = System/Library/Frameworks/OpenAL.framework; sourceTree = SDKROOT; };
+		6127889916559C7B00225D6F /* touchrecord-logo-regular.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "touchrecord-logo-regular.png"; sourceTree = "<group>"; };
+		6127889B16559C9800225D6F /* touchrecord-logo-retina.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "touchrecord-logo-retina.png"; sourceTree = "<group>"; };
 		613FCD181652C1420088FA5F /* iPhone_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iPhone_Prefix.pch; sourceTree = "<group>"; };
 		613FCD191652C1420088FA5F /* ofxiphone-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "ofxiphone-Info.plist"; sourceTree = "<group>"; };
 		613FCD1A1652C1420088FA5F /* Project.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Project.xcconfig; sourceTree = "<group>"; };
@@ -105,6 +109,8 @@
 		29B97314FDCFA39411CA2CEA /* CustomTemplate */ = {
 			isa = PBXGroup;
 			children = (
+				6127889B16559C9800225D6F /* touchrecord-logo-retina.png */,
+				6127889916559C7B00225D6F /* touchrecord-logo-regular.png */,
 				613FCD111652C1420088FA5F /* TouchRecord */,
 				E4D8936A11527B74007E1F53 /* src */,
 				BB24E1F710DAA51900E9C588 /* openFrameworks */,
@@ -269,6 +275,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6127889A16559C7B00225D6F /* touchrecord-logo-regular.png in Resources */,
+				6127889C16559C9800225D6F /* touchrecord-logo-retina.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
