@@ -2,19 +2,6 @@
 ._*
 .DS_Store
 
-# Java compiled stuff
-*.class
-bin
-obj
-
-# Android stuff
-gen
-libs
-
-# Eclipse stuff
-.settings
-.metadata
-
 *.py[cod]
 
 # C extensions
