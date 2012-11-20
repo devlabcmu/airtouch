@@ -16,11 +16,12 @@ class Settings:
 pygame.init()
 screen = pygame.display.set_mode(DISPLAY_SIZE)
 
-COLORS = [(0,0,255), (255,0,0), (0,255,0), (0,255,255)]
+def enlarge(touch, w):
+    return Touch(touch.pos, touch.major+w)
 
-def render_circles(pts):
+def render_circles(pts, colors):
     for id, touch in pts.items():
-        pygame.draw.circle(screen, COLORS[id%len(COLORS)], map(int, touch.pos), int(touch.major))
+        pygame.draw.circle(screen, colors[id%len(colors)], map(int, touch.pos), int(touch.major))
 
 def parse_row(row):
     # remove spaces from row keys
@@ -36,6 +37,7 @@ def visualize_touches(fn, settings, t=0):
     font = pygame.font.SysFont('Arial Unicode MS', 12)
     clock = pygame.time.Clock()
     pts = {}
+    downs = set()
     t0 = None
     next_row = next(touch_rows)
     pygame.key.set_repeat(300, 25)
@@ -44,6 +46,7 @@ def visualize_touches(fn, settings, t=0):
         tick = clock.tick(60)*settings.timescale # 60 fps
         if not settings.paused:
             t += tick
+            downs.clear()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
@@ -59,8 +62,10 @@ def visualize_touches(fn, settings, t=0):
                     settings.timescale /= 1.1
                 elif event.key == pygame.K_RIGHT:
                     t += 10
+                    downs.clear()
                 elif event.key == pygame.K_UP:
                     t += 100
+                    downs.clear()
                 elif event.key == pygame.K_HOME:
                     if t < 250:
                         return 'rewind'
@@ -79,8 +84,13 @@ def visualize_touches(fn, settings, t=0):
             if tm > t:
                 break # not yet
 
+            if type == 'TOUCH_DOWN':
+                downs.add(id)
+
             if type in ('TOUCH_DOWN', 'TOUCH_MOVE'):
                 pts[id] = touch
+            elif type == 'TOUCH_UP':
+                del pts[id]
 
             try:
                 next_row = next(touch_rows)
@@ -99,7 +109,9 @@ def visualize_touches(fn, settings, t=0):
             textsurf = font.render(line, 1, (0, 0, 0))
             screen.blit(textsurf, (x, y))
             y += 20
-        render_circles(pts)
+
+        render_circles({id: enlarge(pts[id], 5) for id in downs}, [(127, 127, 127)])
+        render_circles(pts, [(0,0,255), (255,0,0), (0,255,0), (0,255,255)])
         pygame.display.flip()
 
 if __name__ == '__main__':
@@ -112,7 +124,7 @@ if __name__ == '__main__':
     ind = 0
     settings = Settings()
     while 1:
-        action = visualize_touches(fns[ind], settings) # , t=100 (to start partway into the gesture)
+        action = visualize_touches(fns[ind], settings, t=100) # , t=100 (to start partway into the gesture)
         if action == 'stop':
             break
         elif action == 'rewind':
