@@ -5,6 +5,7 @@
 #include "ofxiPhone.h"
 #include "ofxiPhoneExtras.h"
 #include "Ball.h"
+#include "Button.h"
 
 class testApp : public ofxiPhoneApp{
 	
@@ -64,9 +65,17 @@ public:
     void writeTouchUpdated(ofTouchEventArgs & touch);
     void newTouchDir();
     
+    void deleteMostRecent();
+    
+    void deleteAll();
     
     ofImage arrow;
     vector<Ball> balls;
+    Button nextBtn;
+    Button prevBtn;
+    Button delBtn;
+    Button delLastBtn;
+    
     int numBallsDragging;
     
     
@@ -76,11 +85,12 @@ public:
         NSArray *dirPaths;
         dirPaths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,
                                                        NSUserDomainMask, YES);
-        docsDir = [dirPaths objectAtIndex:0];
+        docsDir = dirPaths[0];
     }
     NSFileManager *filemgr;
     NSString *docsDir;
     string touch_file_path;
+    
     unsigned int start_time;
     
     ToolClass currentClass;
@@ -90,4 +100,12 @@ public:
         if(currentClass >= ToolClassCount)
             currentClass = ToolClassFinger;
     }
+    void prevClass()
+    {
+        currentClass--;
+        if(currentClass < 0)
+            currentClass = ToolClassRuler;
+    }
+    
+    
 };

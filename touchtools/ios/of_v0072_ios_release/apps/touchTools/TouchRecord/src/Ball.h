@@ -15,6 +15,7 @@ public:
     ofColor touchCol;
     int typeDragged;
     bool bDragged;
+    bool bTouchDown;
 	
     //----------------------------------------------------------------
     void init(int id) {
@@ -33,6 +34,7 @@ public:
         }
         touchRadius = RADIUS;
         bDragged = false;
+        bTouchDown = false;
     }
 	
     //----------------------------------------------------------------
@@ -74,7 +76,7 @@ public:
     
     void drawSmallWhite(float divideBy) {
         ofSetColor(255, 0, 0);
-        ofCircle(pos.x / divideBy, pos.y / divideBy, touchRadius / divideBy / 10.0);
+        ofCircle(pos.x / divideBy, pos.y / divideBy, touchRadius / divideBy);
         
     }
 	

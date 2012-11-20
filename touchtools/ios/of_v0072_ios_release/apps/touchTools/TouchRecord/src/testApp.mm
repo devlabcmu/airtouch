@@ -1,6 +1,6 @@
 #include "testApp.h"
-#define TOUCH_AREA_MULTIPLIER 10
-
+#define TOUCH_AREA_MULTIPLIER 5.2
+#define TOUCH_INVALID_AREA 70
 
 
 //--------------------------------------------------------------
@@ -17,6 +17,15 @@ void testApp::setup(){
 		balls[i].init(i);
 	}
     
+    // init buttons
+    int w = ofGetWidth();
+    int btnW = 70;
+    int btnH = 30;
+    int btnP = 20;
+    nextBtn.init("next", w - (btnW + btnP), 10, btnW, btnH, ofColor(0,0,255));
+    prevBtn.init("prev", w - 2 * (btnW + btnP), 10, btnW, btnH, ofColor(0,0,255));
+    delBtn.init("del", w - 3 * (btnW + btnP), 10, btnW, btnH, ofColor(255,0,0));
+    delLastBtn.init("del last", w - 4 * (btnW + btnP), 10, btnW, btnH, ofColor(255,0,0));
     // file io setup
     NSArray *dirPaths;
     filemgr =[NSFileManager defaultManager];
@@ -24,8 +33,8 @@ void testApp::setup(){
     updateDocsDir();
     
     ostringstream oss;
-    oss << [docsDir UTF8String] ;
-    oss << "/";
+    oss << [docsDir UTF8String] << "/" ;
+
     ofSetDataPathRoot(oss.str());
 }
 
@@ -85,9 +94,40 @@ void testApp::writeTouchUpdated(ofTouchEventArgs & touch)
 
 //--------------------------------------------------------------
 void testApp::update() {
+    bool hit = false;
 	for(int i=0; i < balls.size(); i++){
 		balls[i].update();
+        if(balls[i].bTouchDown)
+        {
+            if(!hit && nextBtn.hitTest(balls[i].pos))
+            {
+                // go to next class
+                nextClass();
+                hit = true;
+                balls[i].bTouchDown = false;
+            }
+            if(!hit && prevBtn.hitTest(balls[i].pos))
+            {
+                // go to prev class
+                prevClass();
+                hit = true;
+                balls[i].bTouchDown = false;
+            }
+            if(!hit && delBtn.hitTest(balls[i].pos))
+            {
+                deleteAll();
+                hit = true;
+                balls[i].bTouchDown = false;
+            }
+            if(!hit && delLastBtn.hitTest(balls[i].pos))
+            {
+                deleteMostRecent();
+                hit = true;
+                balls[i].bTouchDown = false;
+            }
+        }
 	}
+    
 }
 
 
@@ -101,6 +141,10 @@ void testApp::draw() {
     oss << "num touches: " << numBallsDragging << endl;
     
 	ofPushStyle();
+    // draw disabled area
+    ofSetColor(100, 100, 100);
+    ofRect(0,0,ofGetWidth(), TOUCH_INVALID_AREA);
+    
     // ofEnableBlendMode(OF_BLENDMODE_MULTIPLY);
     for(int i = 0; i< balls.size(); i++){
         if(balls[i].bDragged){
@@ -123,9 +167,27 @@ void testApp::draw() {
     }
 	ofPopStyle();
     
+    nextBtn.draw();
+    prevBtn.draw();
+    delBtn.draw();
+    delLastBtn.draw();
 
     ofSetColor(54);
-    ofDrawBitmapString(oss.str(), 10 + ofGetWidth() / divideBy, 20);
+    ofDrawBitmapString(oss.str(), 10 + ofGetWidth() / divideBy, TOUCH_INVALID_AREA + 20);
+    
+    // draw info about number of files
+    oss.str("");
+    oss.clear();
+    updateDocsDir();
+    ofLog(OF_LOG_VERBOSE,"docs dir is %s", [docsDir UTF8String]);
+    oss << "files in directory" << endl;
+    NSArray *arr = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:docsDir error:nil];
+    for(NSString *path in arr)
+    {
+        oss << [path UTF8String] << endl;
+    }
+    
+    ofDrawBitmapString(oss.str(), ofGetWidth() - 300, TOUCH_INVALID_AREA + 20);
 }
 
 //--------------------------------------------------------------
@@ -135,7 +197,7 @@ void testApp::exit(){
 
 //--------------------------------------------------------------
 void testApp::touchDown(ofTouchEventArgs & touch){
-    if(numBallsDragging == 0)
+    if(numBallsDragging == 0 && touch.y > TOUCH_INVALID_AREA)
         newTouchDir();
     
     numBallsDragging++;
@@ -143,10 +205,42 @@ void testApp::touchDown(ofTouchEventArgs & touch){
 	balls[touch.id].moveTo(touch.x, touch.y);
     balls[touch.id].touchRadius = touch.majoraxis * TOUCH_AREA_MULTIPLIER;
 	balls[touch.id].bDragged = true;
+    balls[touch.id].bTouchDown = true;
     balls[touch.id].typeDragged = touch.type;
     
-    writeTouchUpdated(touch);
+    if(touch.y > TOUCH_INVALID_AREA)
+    {
+        writeTouchUpdated(touch);    
+    }
+    
 }
+
+// Delete most recently written file
+void testApp::deleteMostRecent()
+{
+    updateDocsDir();
+    NSArray *arr = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:docsDir error:nil];
+    if(arr.count > 0)
+    {
+        NSString *p = arr.lastObject;
+        NSString* abs = [docsDir stringByAppendingPathComponent:p];
+        [[NSFileManager defaultManager] removeItemAtPath:abs error:nil];
+    }
+}
+
+
+void testApp::deleteAll()
+{
+    updateDocsDir();
+    NSArray *arr = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:docsDir error:nil];
+    for(NSString *path in arr)
+    {
+        NSString* abs = [docsDir stringByAppendingPathComponent:path];
+        [[NSFileManager defaultManager] removeItemAtPath:abs error:nil];
+    }
+}
+
+
 
 //--------------------------------------------------------------
 void testApp::touchMoved(ofTouchEventArgs & touch){
@@ -157,20 +251,26 @@ void testApp::touchMoved(ofTouchEventArgs & touch){
 	balls[touch.id].bDragged = true;
     balls[touch.id].typeDragged = touch.type;
     
-    writeTouchUpdated(touch);
+    if(touch.y > TOUCH_INVALID_AREA)
+    {
+        writeTouchUpdated(touch);
+    }
 }
 
 //--------------------------------------------------------------
 void testApp::touchUp(ofTouchEventArgs & touch){
     numBallsDragging--;
-    if(numBallsDragging == 0)
-    {
-        nextClass();
-    }
+//    if(numBallsDragging == 0)
+//    {
+//        nextClass();
+//    }
     ofLog(OF_LOG_VERBOSE, "touch %d up at (%f,%f)", touch.id, touch.x, touch.y);
 	balls[touch.id].bDragged = false;
     
-    writeTouchUpdated(touch);
+    if(touch.y > TOUCH_INVALID_AREA)
+    {
+        writeTouchUpdated(touch);
+    }
 }
 
 //--------------------------------------------------------------
