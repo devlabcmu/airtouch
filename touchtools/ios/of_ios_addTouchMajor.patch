@@ -1,0 +1,36 @@
+diff -ur a/addons/ofxiPhone/src/core/ofxiOSEAGLView.mm b/addons/ofxiPhone/src/core/ofxiOSEAGLView.mm
+--- a/addons/ofxiPhone/src/core/ofxiOSEAGLView.mm    2012-10-20 21:40:22.000000000 -0400
++++ b/addons/ofxiPhone/src/core/ofxiOSEAGLView.mm    2012-11-15 14:13:23.000000000 -0500
+@@ -225,6 +225,11 @@
+                touchArgs.x = touchPoint.x;
+                touchArgs.y = touchPoint.y;
+                touchArgs.id = touchIndex;
++        touchArgs.type = ofTouchEventArgs::down;
++        float vf = 10.0;
++        id valFloat = [touch valueForKey:@"pathMajorRadius"];
++        if(valFloat != nil) { vf = [valFloat floatValue]; }
++        touchArgs.majoraxis = vf;
+                if([touch tapCount] == 2) ofNotifyEvent(ofEvents().touchDoubleTap,touchArgs);   // send doubletap
+                ofNotifyEvent(ofEvents().touchDown,touchArgs);  // but also send tap (upto app programmer to ignore this if doubletap came that frame)
+        }       
+@@ -258,6 +263,12 @@
+                touchArgs.x = touchPoint.x;
+                touchArgs.y = touchPoint.y;
+                touchArgs.id = touchIndex;
++        touchArgs.type = ofTouchEventArgs::move;
++        // set major axis here
++        float vf = 10.0;
++        id valFloat = [touch valueForKey:@"pathMajorRadius"];
++        if(valFloat != nil) { vf = [valFloat floatValue]; }
++        touchArgs.majoraxis = vf;
+                ofNotifyEvent(ofEvents().touchMoved, touchArgs);
+        }
+ }
+@@ -293,6 +304,7 @@
+                touchArgs.x = touchPoint.x;
+                touchArgs.y = touchPoint.y;
+                touchArgs.id = touchIndex;
++        touchArgs.type = ofTouchEventArgs::up;
+                ofNotifyEvent(ofEvents().touchUp, touchArgs);
+        }
+ }

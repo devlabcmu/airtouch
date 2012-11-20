@@ -1,3 +1,7 @@
+# Mac OS X detritus
+._*
+.DS_Store
+
 *.py[cod]
 
 # C extensions
