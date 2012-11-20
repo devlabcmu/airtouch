@@ -101,18 +101,31 @@ void testApp::draw() {
     oss << "num touches: " << numBallsDragging << endl;
     
 	ofPushStyle();
-    ofEnableBlendMode(OF_BLENDMODE_MULTIPLY);
+    // ofEnableBlendMode(OF_BLENDMODE_MULTIPLY);
     for(int i = 0; i< balls.size(); i++){
         if(balls[i].bDragged){
             balls[i].draw();
             oss << i << "("<< balls[i].pos.x << "," << balls[i].pos.y << "): " << balls[i].touchRadius <<endl;
         }
     }
+    
+    // draw rectangle in corner
+    float divideBy = 10.0;
+    ofSetColor(0,0,0);
+    ofRect(0, 0, ofGetWidth() / divideBy, ofGetHeight() / divideBy);
+    
+    // draw balls at reduced size
+    
+    for(int i = 0; i< balls.size(); i++){
+        if(balls[i].bDragged){
+            balls[i].drawSmallWhite(divideBy);
+        }
+    }
 	ofPopStyle();
     
 
     ofSetColor(54);
-    ofDrawBitmapString(oss.str(), 10, 20);
+    ofDrawBitmapString(oss.str(), 10 + ofGetWidth() / divideBy, 20);
 }
 
 //--------------------------------------------------------------

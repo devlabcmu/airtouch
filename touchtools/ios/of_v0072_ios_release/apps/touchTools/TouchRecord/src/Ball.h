@@ -71,6 +71,12 @@ public:
             ofCircle(pos.x, pos.y, RADIUS);
         }
     }
+    
+    void drawSmallWhite(float divideBy) {
+        ofSetColor(255, 0, 0);
+        ofCircle(pos.x / divideBy, pos.y / divideBy, touchRadius / divideBy / 10.0);
+        
+    }
 	
     //----------------------------------------------------------------
     void moveTo(int x, int y) {
