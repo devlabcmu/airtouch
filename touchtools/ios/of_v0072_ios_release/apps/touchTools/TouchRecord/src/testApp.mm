@@ -19,13 +19,14 @@ void testApp::setup(){
     
     // init buttons
     int w = ofGetWidth();
-    int btnW = 70;
+    int btnW = 80;
     int btnH = 30;
     int btnP = 20;
     nextBtn.init("next", w - (btnW + btnP), 10, btnW, btnH, ofColor(0,0,255));
     prevBtn.init("prev", w - 2 * (btnW + btnP), 10, btnW, btnH, ofColor(0,0,255));
-    delBtn.init("del", w - 3 * (btnW + btnP), 10, btnW, btnH, ofColor(255,0,0));
-    delLastBtn.init("del last", w - 4 * (btnW + btnP), 10, btnW, btnH, ofColor(255,0,0));
+    delBtn.init("rm all", w - 3 * (btnW + btnP), 10, btnW, btnH, ofColor(255,0,0));
+    delLastBtn.init("rm last", w - 4 * (btnW + btnP), 10, btnW, btnH, ofColor(255,0,0));
+    recBtn.init("record", w - 5 * (btnW + btnP), 10, btnW, btnH, ofColor(255,0,0));
     // file io setup
     NSArray *dirPaths;
     filemgr =[NSFileManager defaultManager];
@@ -125,6 +126,12 @@ void testApp::update() {
                 hit = true;
                 balls[i].bTouchDown = false;
             }
+            if(!hit && recBtn.hitTest(balls[i].pos))
+            {
+                record = !record;
+                hit = true;
+                balls[i].bTouchDown = false;
+            }
         }
 	}
     
@@ -171,6 +178,7 @@ void testApp::draw() {
     prevBtn.draw();
     delBtn.draw();
     delLastBtn.draw();
+    recBtn.draw();
 
     ofSetColor(54);
     ofDrawBitmapString(oss.str(), 10 + ofGetWidth() / divideBy, TOUCH_INVALID_AREA + 20);
@@ -188,6 +196,12 @@ void testApp::draw() {
     }
     
     ofDrawBitmapString(oss.str(), ofGetWidth() - 300, TOUCH_INVALID_AREA + 20);
+    
+    if(record)
+    {
+        ofSetColor(0,255,0);
+        ofDrawBitmapString("recording on", 10 + ofGetWidth() / divideBy, 20, 20);
+    }
 }
 
 //--------------------------------------------------------------
@@ -197,7 +211,7 @@ void testApp::exit(){
 
 //--------------------------------------------------------------
 void testApp::touchDown(ofTouchEventArgs & touch){
-    if(numBallsDragging == 0 && touch.y > TOUCH_INVALID_AREA)
+    if(numBallsDragging == 0 && record && touch.y > TOUCH_INVALID_AREA)
         newTouchDir();
     
     numBallsDragging++;
@@ -208,11 +222,9 @@ void testApp::touchDown(ofTouchEventArgs & touch){
     balls[touch.id].bTouchDown = true;
     balls[touch.id].typeDragged = touch.type;
     
-    if(touch.y > TOUCH_INVALID_AREA)
-    {
-        writeTouchUpdated(touch);    
-    }
+    if(touch.y < TOUCH_INVALID_AREA) return;
     
+    if(record)writeTouchUpdated(touch);
 }
 
 // Delete most recently written file
@@ -243,18 +255,16 @@ void testApp::deleteAll()
 
 
 //--------------------------------------------------------------
-void testApp::touchMoved(ofTouchEventArgs & touch){
-    
+void testApp::touchMoved(ofTouchEventArgs & touch){ 
     ofLog(OF_LOG_VERBOSE, "touch %d moved at (%f,%f)\n\t major %.2f minor %.2f angle %.2f\n\t width %.2f height %.2f)",touch.id, touch.x, touch.y, touch.minoraxis, touch.majoraxis, touch.angle, touch.width, touch.height);
 	balls[touch.id].moveTo(touch.x, touch.y);
     balls[touch.id].touchRadius = touch.majoraxis * TOUCH_AREA_MULTIPLIER;
 	balls[touch.id].bDragged = true;
     balls[touch.id].typeDragged = touch.type;
+
+    if(touch.y < TOUCH_INVALID_AREA) return;
     
-    if(touch.y > TOUCH_INVALID_AREA)
-    {
-        writeTouchUpdated(touch);
-    }
+    if(record) writeTouchUpdated(touch);
 }
 
 //--------------------------------------------------------------
@@ -267,10 +277,9 @@ void testApp::touchUp(ofTouchEventArgs & touch){
     ofLog(OF_LOG_VERBOSE, "touch %d up at (%f,%f)", touch.id, touch.x, touch.y);
 	balls[touch.id].bDragged = false;
     
-    if(touch.y > TOUCH_INVALID_AREA)
-    {
-        writeTouchUpdated(touch);
-    }
+    if(touch.y < TOUCH_INVALID_AREA) return;
+    
+    if(record && numBallsDragging > 0) writeTouchUpdated(touch);
 }
 
 //--------------------------------------------------------------

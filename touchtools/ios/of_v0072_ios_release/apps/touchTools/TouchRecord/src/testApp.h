@@ -17,19 +17,35 @@ public:
         ToolClassFinger=0,
         ToolClassMouse,
         ToolClassPen,
+        ToolClassTweezers,
+        ToulClassScissors,
+        ToolClassMagnify,
+        ToolClassCamera,
+        ToolClassTapeMeasure,
+        ToolClassWhiteboardEraser,
+        ToolClassSmallEraser,
         ToolClassRuler,
+        
         ToolClassCount
     } ToolClass;
     
-    string toolClassStrs[4];
+    string toolClassStrs[11];
     string touchTypeStrs[5];
+    bool record;
     
     testApp()
     {
         toolClassStrs[0] = "Finger";
         toolClassStrs[1] = "Mouse";
         toolClassStrs[2] = "Pen";
-        toolClassStrs[3] = "Ruler";
+        toolClassStrs[3] = "Tweezers";
+        toolClassStrs[4] = "Magnify";
+        toolClassStrs[5] = "Scissors";
+        toolClassStrs[6] = "Camera";
+        toolClassStrs[7] = "TapeMeasure";
+        toolClassStrs[8] = "WhiteboardEraser";
+        toolClassStrs[9] = "SmallEraser";
+        toolClassStrs[10] = "Ruler";
         
         touchTypeStrs[0] = "TOUCH_DOWN";
         touchTypeStrs[1] = "TOUCH_UP";
@@ -39,6 +55,7 @@ public:
         
         currentClass = ToolClassFinger;
         numBallsDragging = 0;
+        record = false;
         
     }
     
@@ -75,6 +92,7 @@ public:
     Button prevBtn;
     Button delBtn;
     Button delLastBtn;
+    Button recBtn;
     
     int numBallsDragging;
     

@@ -1,4 +1,4 @@
-import pygame
+#!/usr/bin/env python
 import os
 import csv
 from collections import namedtuple
@@ -66,4 +66,4 @@ if __name__ == '__main__':
             out += ['x{i},y{i},w{i}'.format(i=i)]
         print >>outf, ','.join(out)
         for dir in sys.argv[1:]:
-            write_touches(dir, outf, t=100)
+            write_touches(dir, outf, t=250)
