@@ -20,7 +20,7 @@ def parse_row(row):
     touch = Touch((float(row['x']), float(row['y'])), float(row['major_axis']))
     return row['type'], int(row['id']), touch, int(row['time_start'])
 
-def write_touches(dir, outf, t=0):
+def get_touches(dir, t=0):
     with open(os.path.join(dir, 'touches.csv')) as f:
         csvf = csv.DictReader(f)
         touch_rows = iter(list(csvf))
@@ -45,14 +45,24 @@ def write_touches(dir, outf, t=0):
     dirname = os.path.basename(dir)
     timestamp, classlabel = dirname.split('_')
 
-    out = [timestamp, classlabel]
-    for i in xrange(12):
-        if i in pts:
-            out += [pts[i].pos[0], pts[i].pos[1], pts[i].major]
-        else:
-            out += [-1, -1, -1]
+    return (timestamp, pts, classlabel)
 
-    print >>outf, ','.join(map(str, out))
+def write_touches(dirs, outf, t=0):
+    out = ['timestamp', 'classlabel']
+    for i in xrange(12):
+        out += ['x{i},y{i},w{i}'.format(i=i)]
+    print >>outf, ','.join(out)
+    for dir in dirs:
+        timestamp, pts, classlabel = get_touches(dir, t)
+
+        out = [timestamp, classlabel]
+        for i in xrange(12):
+            if i in pts:
+                out += [pts[i].pos[0], pts[i].pos[1], pts[i].major]
+            else:
+                out += [-1, -1, -1]
+
+        print >>outf, ','.join(map(str, out))
 
 if __name__ == '__main__':
     import sys
@@ -61,9 +71,4 @@ if __name__ == '__main__':
         sys.exit(-1)
 
     with open('output.csv', 'wb') as outf:
-        out = ['timestamp', 'classlabel']
-        for i in xrange(12):
-            out += ['x{i},y{i},w{i}'.format(i=i)]
-        print >>outf, ','.join(out)
-        for dir in sys.argv[1:]:
-            write_touches(dir, outf, t=250)
+        write_touches(sys.argv[1:], outf, t=250)
