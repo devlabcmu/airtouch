@@ -37,8 +37,6 @@ public class UDPCommunicatorMain extends Activity {
 	DatagramSocket _socket;
 	InputMethodManager _inputManager;
 
-	UDPTouchView _udpView;
-	
 	boolean _udpViewVisible = false;
 	int _serverPort;
 	    
@@ -59,7 +57,6 @@ public class UDPCommunicatorMain extends Activity {
         
         _inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 
-        _udpView = (UDPTouchView)findViewById(R.id.udpView);
     }
     
 
@@ -90,8 +87,7 @@ public class UDPCommunicatorMain extends Activity {
 			Log.v(TAG, e.getMessage());
 			return;
 		} 
-    	_udpView.initializeConnection(_socket, _serverPort, _serverAddr);
-    	
+
     	Log.v(TAG, "connection established to port " + portStr + " and ip " + ipStr);
     	new ReceiveStringTask().execute();
     	_statusTextView.setText("Connected");
