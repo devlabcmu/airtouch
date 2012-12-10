@@ -1,0 +1,9 @@
+<resources>
+
+    <string name="app_name">UDPCommunicator</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="menu_settings">Settings</string>
+    <string name="title_activity_udpcommunicator_main">UDP Communicator Main</string>
+    <string name="title_activity_touch_view">TouchViewActivity</string>
+
+</resources>
