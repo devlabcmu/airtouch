@@ -1,0 +1,44 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PMDUtils", "PMDUtils\PMDUtils.vcxproj", "{ADEB6233-FA5D-4C68-828E-12B88949635F}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CppTCPConsoleClient", "CppTCPConsoleClient\CppTCPEchoClient.vcxproj", "{BD6707E2-744A-4116-A5E6-ADCBF6793020}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CppTCPEchoServer", "CppTCPEchoServer\CppTCPEcho.vcxproj", "{D3050C42-25AD-41C2-9841-EDB20C7CBDCD}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CppPMDServer", "CppPMDServer\CppPMDServer.vcxproj", "{A35AF8D8-3DBD-40C2-BF0B-76BB82EB6C86}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CppPMDServerTest", "CppPMDServerTest\CppPMDServerTest.vcxproj", "{D6C9C05C-28B5-4A8E-BA73-D559A1B34812}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{ADEB6233-FA5D-4C68-828E-12B88949635F}.Debug|Win32.ActiveCfg = Debug|Win32
+		{ADEB6233-FA5D-4C68-828E-12B88949635F}.Debug|Win32.Build.0 = Debug|Win32
+		{ADEB6233-FA5D-4C68-828E-12B88949635F}.Release|Win32.ActiveCfg = Release|Win32
+		{ADEB6233-FA5D-4C68-828E-12B88949635F}.Release|Win32.Build.0 = Release|Win32
+		{BD6707E2-744A-4116-A5E6-ADCBF6793020}.Debug|Win32.ActiveCfg = Debug|Win32
+		{BD6707E2-744A-4116-A5E6-ADCBF6793020}.Debug|Win32.Build.0 = Debug|Win32
+		{BD6707E2-744A-4116-A5E6-ADCBF6793020}.Release|Win32.ActiveCfg = Release|Win32
+		{BD6707E2-744A-4116-A5E6-ADCBF6793020}.Release|Win32.Build.0 = Release|Win32
+		{D3050C42-25AD-41C2-9841-EDB20C7CBDCD}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D3050C42-25AD-41C2-9841-EDB20C7CBDCD}.Debug|Win32.Build.0 = Debug|Win32
+		{D3050C42-25AD-41C2-9841-EDB20C7CBDCD}.Release|Win32.ActiveCfg = Release|Win32
+		{D3050C42-25AD-41C2-9841-EDB20C7CBDCD}.Release|Win32.Build.0 = Release|Win32
+		{A35AF8D8-3DBD-40C2-BF0B-76BB82EB6C86}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A35AF8D8-3DBD-40C2-BF0B-76BB82EB6C86}.Debug|Win32.Build.0 = Debug|Win32
+		{A35AF8D8-3DBD-40C2-BF0B-76BB82EB6C86}.Release|Win32.ActiveCfg = Release|Win32
+		{A35AF8D8-3DBD-40C2-BF0B-76BB82EB6C86}.Release|Win32.Build.0 = Release|Win32
+		{D6C9C05C-28B5-4A8E-BA73-D559A1B34812}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D6C9C05C-28B5-4A8E-BA73-D559A1B34812}.Debug|Win32.Build.0 = Debug|Win32
+		{D6C9C05C-28B5-4A8E-BA73-D559A1B34812}.Release|Win32.ActiveCfg = Release|Win32
+		{D6C9C05C-28B5-4A8E-BA73-D559A1B34812}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

@@ -37,3 +37,12 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+
+# Visual Studio
+*.sdf
+*.opensdf
+*.suo
+*.v11.suo
+Debug/
+Release/
+*.vcxproj.user
