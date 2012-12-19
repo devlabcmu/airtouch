@@ -12,6 +12,8 @@
 #include <cctype>
 #include <locale>
 
+#define SSTR( x ) ( dynamic_cast< std::ostringstream & >( ( std::ostringstream() << std::dec << x ) ) ).str() 
+
 // from http://stackoverflow.com/questions/216823/whats-the-best-way-to-trim-stdstring
 
 // trim from start

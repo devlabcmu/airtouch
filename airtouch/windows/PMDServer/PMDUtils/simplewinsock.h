@@ -1,7 +1,5 @@
 #pragma once
 
-#include "targetver.h"
-
 #include <stdio.h>
 #include <tchar.h>
 
@@ -85,7 +83,7 @@ HRESULT getClientConnection(SOCKET* hSock, SOCKET* hClient)
 // data: data to send
 // len: length of data
 // flags: any flags to use.
-void sendData(SOCKET socket, const char* data, int len, int flags)
+int sendData(SOCKET socket, const char* data, int len, int flags)
 {
 	int iPos  = 0;
 	int nLeft = len;
@@ -95,11 +93,12 @@ void sendData(SOCKET socket, const char* data, int len, int flags)
 		nData = send( socket, &data[iPos], nLeft, 0 );
 		if( nData == SOCKET_ERROR ) { 
 			cout << "Error sending data" << endl;
-			break;
+			return -1;
 		} 
 		nLeft -= nData;
 		iPos  += nData;
 	} while( nLeft > 0 );
+	return 0;
 }
 
 // Receive data on a socket. Returns number of bits filled, or -1 if error
