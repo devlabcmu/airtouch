@@ -5,16 +5,22 @@
 #include "simplewinsock.h"
 #include "strutils.h"
 
-#define SSTR( x ) ( dynamic_cast< std::ostringstream & >( ( std::ostringstream() << std::dec << x ) ) ).str() 
+using namespace std;
+
+void welcomeMessage()
+{
+	cout << "I echo what the client sends me!" << endl;
+	cout << "--------------------------------" << endl;
+	cout << "To disconnect, send !disconnect" << endl;
+	cout << "To shutdown, send !shutdown" << endl;
+}
 
 // Waits for a client to connect,
 // then echos what client says until the client sends !disconnect
 // if client sends !shutdown, server shuts down
 int _tmain(int argc, _TCHAR* argv[])
 {
-	cout << "I echo what the client sends me!" << endl;
-	cout << "To disconnect, send !disconnect" << endl;
-	cout << "To shutdown, send !shutdown" << endl;
+	welcomeMessage();
 
 	HRESULT hr = 0;
 	WSADATA wsaData = {0};
@@ -100,16 +106,13 @@ int _tmain(int argc, _TCHAR* argv[])
 	// close server socket 
 	hr = closesocket( hSock );
 	hSock = 0;
-	if( hr == SOCKET_ERROR ) { 
-		cout << "Error failed to close socket" << endl;
-	}
+	if( hr == SOCKET_ERROR )  cout << "Error failed to close socket" << endl;
+
 
 	// Release WinSock DLL 
 	hr = WSACleanup();
-	if( hr == SOCKET_ERROR ) { 
-		cout << "Error cleaning up Winsock Library" << endl;
-		return -1;
-	} 
+	if( hr == SOCKET_ERROR ) cout << "Error cleaning up Winsock Library" << endl;
+	
 	return 0;
 }
 
