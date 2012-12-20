@@ -13,6 +13,7 @@ using namespace std;
 
 #define DEFAULT_BUFLEN 512 // Not currently used
 
+
 // information on how to use sockets for windows can be found at
 // http://msdn.microsoft.com/en-us/library/windows/desktop/ms738566(v=vs.85).aspx
 
@@ -91,6 +92,7 @@ int sendData(SOCKET socket, const char* data, int len, int flags)
 	do
 	{ 
 		nData = send( socket, &data[iPos], nLeft, 0 );
+		cout << "sent " << nData << " bytes" << endl;
 		if( nData == SOCKET_ERROR ) { 
 			cout << "Error sending data" << endl;
 			return -1;

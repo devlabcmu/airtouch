@@ -11,6 +11,7 @@
 #include <opencv/highgui.h>
 
 #define BUFSIZE 512
+#define BIT_DEBUG false
 
 PMDSendData _fromServer;
 PMDReceiveData _toServer;
@@ -121,7 +122,30 @@ int main(int argc, char* argv[])
 		if(numBytesReceived <= 0) break;
 		int c = cvWaitKey (1);
 		if (c == 'q' || c == 'Q' || c == 27) break;
-        
+
+        cout << _fromServer.fingerX << ", " << _fromServer.fingerY << ", " << _fromServer.fingerZ << endl;
+		
+		if(BIT_DEBUG){
+			byte* tmp = (byte*)&_fromServer;
+		
+			for (int i = 0; i < 3; i++)
+			{
+				ostringstream oss;
+				for(int j = 0; j < 4; j++, tmp++)
+				{
+					byte b = *tmp;
+					for (int k = 0; k < 8; k++)
+					{
+						unsigned int n = (b & (1 << k)) >> k;
+						oss << n;
+					}
+					oss << " " ;
+				}	
+				string outs = oss.str();
+				reverse(outs.begin(), outs.end());
+				cout << "i: " << i << ", bits:" << outs << endl;
+			}
+		}
 		// display the data in an opencv window
 		updateFrameWithNewData();
 	}
