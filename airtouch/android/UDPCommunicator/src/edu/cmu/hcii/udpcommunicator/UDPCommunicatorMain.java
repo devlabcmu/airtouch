@@ -22,9 +22,9 @@ import android.widget.TextView;
 
 public class UDPCommunicatorMain extends Activity {
 	// Constants
-	static final int DEFAULT_SERVER_PORT = 11111;
+	static final int DEFAULT_SERVER_PORT = 10000;
 	static final String DEFAULT_IP_STRING = "128.237.118.131";
-	static final int MAX_UDP_DATAGRAM_LEN = 1500;
+	static final int MAX_UDP_DATAGRAM_LEN = 1024;
 	static final String TAG = "UDPCommunicator"; 
 	
 	// Instance variables
