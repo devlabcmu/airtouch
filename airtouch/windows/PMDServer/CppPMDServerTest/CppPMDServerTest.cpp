@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
 		hr = sendData(hServer, _toServer.buffer, strlen(_toServer.buffer), 0);
 		if(!SUCCEEDED(hr)) break;
 		// parse and display data
-		int numBytesReceived = receiveData(hServer, (char*)&_fromServer, sizeof(PMDSendData), 0);
+		int numBytesReceived = receiveData(hServer, (char*)&_fromServer, sizeof(PMDSendData), true);
 		if(numBytesReceived <= 0) break;
 		int c = cvWaitKey (1);
 		if (c == 'q' || c == 'Q' || c == 27) break;

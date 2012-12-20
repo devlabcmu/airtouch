@@ -52,7 +52,8 @@
     <PostBuildEvent>
       <Command>copy $(SolutionDir)\lib\pmdaccess2.dll "$(OutDir)pmdaccess2.dll"
 copy $(SolutionDir)\lib\camboardnano* "$(OutDir)"
-</Command>
+copy $(SolutionDir)\lib\pmdfile* "$(OutDir)"
+copy $(SolutionDir)\recordings\*.pmd "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

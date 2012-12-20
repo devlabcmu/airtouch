@@ -32,6 +32,9 @@ bool communicateWithClient(SOCKET* hClient);
 void welcomeMessage()
 {
 	// add welcome here
+	cout << "PMDServer sends data from pmd camera or a file" << endl;
+	cout << "Usage: PMDServer.exe to read from camera" << endl;
+	cout << "Usage: PMDServer.exe [filename.pmd] to read from .pmd file" << endl;
 }
 
 //
@@ -48,7 +51,7 @@ HRESULT get3DData()
 	if (res != PMD_OK)
 	{
 		pmdGetLastError (_pmdHandle, _pmdErrorBuffer, 128);
-		cout << "Could transfer data:" <<  _pmdErrorBuffer << endl;
+		cout << "Could not transfer data:" <<  _pmdErrorBuffer << endl;
 		pmdClose (_pmdHandle);
 		return -1;
 	}
@@ -175,8 +178,9 @@ bool communicateWithClient(SOCKET* hClient)
 		memset(&_sendData, 0, sizeof(PMDSendData));
 		hr = get3DData();
 		if(!SUCCEEDED(hr)) return true;
-
+		cout << "sending " << sizeof(PMDSendData) << " bytes" << endl;
 		hr = sendData(*hClient, (char*)&_sendData, sizeof(PMDSendData), 0);	
+
 		if(!SUCCEEDED(hr)) return true;
 
 	}
@@ -191,9 +195,22 @@ int main(int argc, char* argv[])
 	// welcome message
 	welcomeMessage();
 	
-	initializePMD(&_pmdHandle, _pmdErrorBuffer, BUFSIZE);
-
 	HRESULT hr = 0;
+
+	// check if we have parameters, if so first param is filename
+	if(argc > 1)
+	{
+		char* filename = argv[1];
+		cout << "Reading data from file " << filename << endl;
+		hr = initializePMDFromFile(&_pmdHandle,filename, _pmdErrorBuffer, BUFSIZE);
+		if(!SUCCEEDED(hr)) return -1;
+	} else 
+	{
+		initializePMD(&_pmdHandle, _pmdErrorBuffer, BUFSIZE);
+	}
+	
+
+	
 	WSADATA wsaData = {0};
 	WORD wVer = MAKEWORD(2,2);
 

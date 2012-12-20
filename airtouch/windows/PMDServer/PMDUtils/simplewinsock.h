@@ -126,7 +126,7 @@ int receiveData(SOCKET socket, char* buffer, int len, bool mustFill)
 		
 		nLeft -= nData;
 		iPos  += nData;
-		cout << "received " << nData << " bits, " << nLeft << " left";
+		cout << "received " << nData << " bits, " << nLeft << " left" << endl;
 	} while( nLeft > 0 );
 	return len - nLeft;
 }

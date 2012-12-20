@@ -1,0 +1,1 @@
+Copy all files that you want to playback here. When you build PMDServer, these files will automatically be copied to the bin directory. Best not to commit these files to git though.
