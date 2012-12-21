@@ -122,7 +122,9 @@ public class AirTouchViewMain extends Activity {
 					_serverAddr = InetAddress.getByName(params[0]);
 					_clientSocket = new Socket();
 					_clientSocket.connect(new InetSocketAddress(_serverAddr, _serverPort), 2000);
-					
+					// When just receiving small packets (ie. just finger lcation, no depth, you will want to setTcpNoDelay(true)
+					// thiw will allow for immediate receiving of packets even when data sent is small
+					_clientSocket.setTcpNoDelay(true);
 					
 					Log.v(TAG, "getting input stream...");
 					_inFromServer = _clientSocket.getInputStream();
