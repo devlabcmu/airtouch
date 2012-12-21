@@ -6,12 +6,16 @@
 #include "strutils.h"
 #include"simplepmd.h"
 
+#include <opencv/cxcore.h>
+#include <opencv/highgui.h>
+
 using namespace std;
 
 #define BUFSIZE 512
 
-PMDSendData _sendData;
-PMDReceiveData _receiveData;
+PMDData _pmdData;
+PMDFingerData _fingerData;
+PMDRequest _fromClient;
 
 PMDDataDescription _pmdDataDescription;
 PMDHandle _pmdHandle;
@@ -20,13 +24,14 @@ char _pmdErrorBuffer[BUFSIZE];
 
 /* function declarations */
 // PMD
-HRESULT get3DData();
+HRESULT updateCameraData();
 
 // UI
 void welcomeMessage();
+IplImage* _ocvFrame;
+int _ocvFrameStep;
 
 // Networking
-void updateSendData();
 bool communicateWithClient(SOCKET* hClient);
 
 void welcomeMessage()
@@ -37,6 +42,43 @@ void welcomeMessage()
 	cout << "Usage: PMDServer.exe [filename.pmd] to read from .pmd file" << endl;
 }
 
+void updateUI()
+{
+	unsigned char * currentRow = 0;
+    unsigned char * imgPtr = (unsigned char *) _ocvFrame->imageData;
+	float * dataPtr = _pmdData.buffer;
+	int step = _ocvFrame->nChannels;
+	for (int y = 0; y < PMDNUMROWS; ++y)
+    {
+		currentRow = &imgPtr[y * _ocvFrameStep];
+		for (int x = 0; x < PMDNUMCOLS; ++x, currentRow += step, ++dataPtr)
+        {
+			unsigned char val;
+            // Clamp at 1 meters and scale the values in between to fit the image
+            if (*dataPtr > 1.0f)
+            {
+                val = 0;
+            }
+            else
+            {
+                val = 255 - (unsigned char) (*dataPtr * 255.0f);
+            }
+			currentRow[0] = val;
+			currentRow[1] = val;
+			currentRow[2] = val;
+        }
+    }
+
+    cvFlip (_ocvFrame, _ocvFrame, 0);
+	cvCircle(_ocvFrame, cvPoint(cvRound(_pmdData.fingerX), 
+		PMDNUMROWS - cvRound(_pmdData.fingerY)), 
+		10, 
+		CV_RGB(255,0,0));
+    // Display the image
+    cvShowImage ("Server", _ocvFrame);
+	
+}
+
 //
 // PMD
 //
@@ -45,7 +87,7 @@ void welcomeMessage()
 // returns error code
 
 
-HRESULT get3DData()
+HRESULT updateCameraData()
 {
 	int res = pmdUpdate (_pmdHandle);
 	if (res != PMD_OK)
@@ -77,7 +119,7 @@ HRESULT get3DData()
 	// make sure that the numrows and numcolumsn is same size as PMDIMAGESIZE
 	assert(_pmdDataDescription.img.numColumns * _pmdDataDescription.img.numRows == PMDIMAGESIZE);
 
-	res = pmdGetDistances (_pmdHandle, _sendData.buffer, _pmdDataDescription.img.numColumns * _pmdDataDescription.img.numRows * sizeof (float));
+	res = pmdGetDistances (_pmdHandle, _pmdData.buffer, _pmdDataDescription.img.numColumns * _pmdDataDescription.img.numRows * sizeof (float));
 	if (res != PMD_OK)
 	{
 		pmdGetLastError (_pmdHandle, _pmdErrorBuffer, 128);
@@ -97,9 +139,9 @@ HRESULT get3DData()
 
 
 	// find the x, y coordinate that has the highest value
-	_sendData.fingerX = 0;
-	_sendData.fingerY = 0;
-	_sendData.fingerZ = FLT_MAX;
+	_pmdData.fingerX = 0;
+	_pmdData.fingerY = 0;
+	_pmdData.fingerZ = FLT_MAX;
 
 	for(int y = 0; y < _pmdDataDescription.img.numRows; y++)
 	{
@@ -108,27 +150,24 @@ HRESULT get3DData()
 			int idx = y * _pmdDataDescription.img.numColumns + x;
 			if(_pmdFlags[idx] & PMD_FLAG_INVALID)
 			{
-				_sendData.buffer[idx] = 1;
-			} else if(_sendData.buffer[idx] < _sendData.fingerZ)
+				_pmdData.buffer[idx] = 1;
+			} else if(_pmdData.buffer[idx] < _pmdData.fingerZ)
 			{
-				_sendData.fingerX = x;
-				_sendData.fingerY = y;
-				_sendData.fingerZ = _sendData.buffer[idx];
+				_pmdData.fingerX = x;
+				_pmdData.fingerY = y;
+				_pmdData.fingerZ = _pmdData.buffer[idx];
 			}
 		}
 	}
+
+	_fingerData.fingerX = _pmdData.fingerX;
+	_fingerData.fingerY = _pmdData.fingerY;
+	_fingerData.fingerZ = _pmdData.fingerZ;
+
 	return 0;
 }
 
-//
-// Networking 
-//
 
-void updateSendData()
-{
-	// fill the data with data from the camera
-
-}
 
 // Initializes connection to client and sends data.
 // Returns when client disconnects
@@ -137,12 +176,12 @@ bool communicateWithClient(SOCKET* hClient)
 {
 	bool result = true;
 	// receive params about client 
-	memset(_sendData.buffer, 0, BUFSIZE);
-	memset(_receiveData.buffer, 0, BUFSIZE);
+	memset(_pmdData.buffer, 0, BUFSIZE);
+	memset(_fromClient.buffer, 0, BUFSIZE);
 
 	cout << "receiving initial handshake..." << endl;
 
-	int bytesReceived = receiveData(*hClient, _receiveData.buffer, 512, false);
+	int bytesReceived = receiveData(*hClient, _fromClient.buffer, 512, false);
 
 	// check input data
 	if(!SUCCEEDED(result))
@@ -151,11 +190,11 @@ bool communicateWithClient(SOCKET* hClient)
 		return true;
 	}
 	
-	cout << "client first message: " << _receiveData.buffer  << "echoing..." << endl;
+	cout << "client first message: " << _fromClient.buffer  << "echoing..." << endl;
 
 
 	// send a reply, simply echo for now
-	HRESULT hr = sendData(*hClient, _receiveData.buffer, BUFSIZE, 0);
+	HRESULT hr = sendData(*hClient, _fromClient.buffer, BUFSIZE, 0);
 	if(!SUCCEEDED(hr)) return true;
 
 	while(true)
@@ -163,23 +202,35 @@ bool communicateWithClient(SOCKET* hClient)
 		// receive data from client
 		// check first int, if 'd' then disconnect
 		// if 'q' then shutdown
-		bytesReceived = receiveData(*hClient, _receiveData.buffer, 512, false);
+		bytesReceived = receiveData(*hClient, _fromClient.buffer, 512, false);
 		if(bytesReceived == 0) return true;
 		// write the rest of the data send to the screen
-		cout << "received: " << (_receiveData.buffer) << endl;
+		cout << "received: " << (_fromClient.buffer) << endl;
 
-		char command = _receiveData.buffer[0];
+		char command = _fromClient.buffer[0];
 
 		if(command == 'q') return false;
 		if(command == 'd') return true;
 
+
 		// fill the current send data with data from the camera
 		// send the data
-		memset(&_sendData, 0, sizeof(PMDSendData));
-		hr = get3DData();
+		memset(&_pmdData, 0, sizeof(PMDData));
+		hr = updateCameraData();
+
 		if(!SUCCEEDED(hr)) return true;
-		cout << "sending " << sizeof(PMDSendData) << " bytes" << endl;
-		hr = sendData(*hClient, (char*)&_sendData, sizeof(PMDSendData), 0);	
+		if(command == 'f')
+		{
+			// only send the finger data
+			hr = sendData(*hClient, (char*)&_fingerData, sizeof(PMDFingerData), 0);	
+		} else
+		{
+			hr = sendData(*hClient, (char*)&_pmdData, sizeof(PMDData), 0);	
+		}
+		
+		// update the UI, just for kicks
+		updateUI();
+		cvWaitKey (1);
 
 		if(!SUCCEEDED(hr)) return true;
 
@@ -195,6 +246,10 @@ int main(int argc, char* argv[])
 	// welcome message
 	welcomeMessage();
 	
+	// initialize opencv frame
+	_ocvFrame = cvCreateImage(cvSize(PMDNUMCOLS,PMDNUMROWS), 8, 3);
+	_ocvFrameStep = _ocvFrame->widthStep / sizeof(unsigned char);
+
 	HRESULT hr = 0;
 
 	// check if we have parameters, if so first param is filename
@@ -251,6 +306,8 @@ int main(int argc, char* argv[])
 		closesocket( hClient );
 		hClient = 0;
 	}
+
+	cvReleaseImage (&_ocvFrame);
 
 	cout << "Shutting down the server" << endl;
 

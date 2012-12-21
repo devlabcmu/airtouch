@@ -1,7 +1,7 @@
 #pragma once
 
 #define PMDIMAGESIZE 19800
-#define PMDBUFSIZE 512
+#define PMDREQUESTSIZE 512
 #define PMDNUMCOLS 165
 #define PMDNUMROWS 120
 
@@ -10,8 +10,14 @@ typedef struct {
 	float fingerY;
 	float fingerZ;
 	float buffer[PMDIMAGESIZE];
-} PMDSendData;
+} PMDData;
 
 typedef struct {
-	char buffer[PMDBUFSIZE];
-} PMDReceiveData;
+	float fingerX;
+	float fingerY;
+	float fingerZ;
+} PMDFingerData;
+
+typedef struct {
+	char buffer[PMDREQUESTSIZE];
+} PMDRequest;

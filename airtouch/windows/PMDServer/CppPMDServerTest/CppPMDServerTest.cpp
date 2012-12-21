@@ -13,8 +13,8 @@
 #define BUFSIZE 512
 #define BIT_DEBUG false
 
-PMDSendData _fromServer;
-PMDReceiveData _toServer;
+PMDData _fromServer;
+PMDRequest _toServer;
 char _handShake[BUFSIZE];
 
 // OpenCV
@@ -57,7 +57,7 @@ void updateFrameWithNewData()
 		10, 
 		CV_RGB(255,0,0));
     // Display the image
-    cvShowImage ("Live image", _ocvFrame);
+    cvShowImage ("Client", _ocvFrame);
 }
 
 int main(int argc, char* argv[])
@@ -103,9 +103,9 @@ int main(int argc, char* argv[])
 	cout << "Connected to server" << endl;
 	
 	// send device info
-	memset(_handShake, 0, PMDBUFSIZE);
-	memset(_toServer.buffer, 0, sizeof(PMDReceiveData));
-	strcpy_s(_handShake, PMDBUFSIZE, "device info\n");
+	memset(_handShake, 0, PMDREQUESTSIZE);
+	memset(_toServer.buffer, 0, sizeof(PMDRequest));
+	strcpy_s(_handShake, PMDREQUESTSIZE, "device info\n");
 
 	sendData(hServer, _handShake,strlen(_handShake), 0);
 	receiveData(hServer, _handShake, BUFSIZE, 0);
@@ -118,7 +118,7 @@ int main(int argc, char* argv[])
 		hr = sendData(hServer, _toServer.buffer, strlen(_toServer.buffer), 0);
 		if(!SUCCEEDED(hr)) break;
 		// parse and display data
-		int numBytesReceived = receiveData(hServer, (char*)&_fromServer, sizeof(PMDSendData), true);
+		int numBytesReceived = receiveData(hServer, (char*)&_fromServer, sizeof(PMDData), true);
 		if(numBytesReceived <= 0) break;
 		int c = cvWaitKey (1);
 		if (c == 'q' || c == 'Q' || c == 27) break;
