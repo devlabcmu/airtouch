@@ -31,6 +31,7 @@ public class AirTouchView extends View {
 	static final int PMD_NUM_COLS = 165;
 	static final int PMD_NUM_ROWS = 120;
 	static final int PMD_SEND_DATA_SIZE = 79212;
+	static final int PMD_FINGER_ONLY_DATA_SIZE = 12;
 	static final boolean OUTPUT_BITS_DEBUG = false;
 
 	static String TAG = "AirTouchViewView";
@@ -53,6 +54,7 @@ public class AirTouchView extends View {
 	InputStream _fromServer;
 	PMDSendData _dataFromServer;
 	boolean _stopNetworkConnection = false;
+	boolean _getOnlyFingerData = false;
 
 	// UI
 	private Map<Integer, AirTouchPoint> _touchMap = new HashMap<Integer, AirTouchPoint>();
@@ -103,6 +105,10 @@ public class AirTouchView extends View {
 		super(context, attrs, defStyle);
 	}
 
+	public void shouldIGetOnlyFingerData(boolean shouldIGetFingerData)
+	{
+		_getOnlyFingerData = shouldIGetFingerData;
+	}
 	public void setupServerConnection(InputStream fromServer, DataOutputStream toServer)
 	{
 		_fromServer = fromServer;
@@ -135,8 +141,8 @@ public class AirTouchView extends View {
 
 
 
-		// draw a bitmap with the bytes
-		canvas.drawBitmap(_pmdDepth, _depthMatrix, null);
+		// draw a bitmap with the bytes if we are not just showing finger data.
+		if(!_getOnlyFingerData) canvas.drawBitmap(_pmdDepth, _depthMatrix, null);
 		// draw a circle at Finger loc
 		canvas.drawCircle(_dataFromServer.fingerX, PMD_NUM_ROWS * 2 - _dataFromServer.fingerY * 2, 20, paintBrushes.get(TouchType.AIR_MOVE));
 
@@ -255,11 +261,16 @@ public class AirTouchView extends View {
 		_dataFromServer.fingerY = getFloatInByteArray(in, 4);
 		_dataFromServer.fingerZ = getFloatInByteArray(in, 8);
 
-		for (int i = 0; i < PMD_IMAGE_SIZE; i++) {
-			_dataFromServer.buffer[i] = getFloatInByteArray(in, 12 + i * 4);
+		if(!_getOnlyFingerData)
+		{
+			for (int i = 0; i < PMD_IMAGE_SIZE; i++) {
+				_dataFromServer.buffer[i] = getFloatInByteArray(in, 12 + i * 4);
+			}	
 		}
+		
 
 		if(OUTPUT_BITS_DEBUG){
+			// if we want we can output the raw bits of the finger x, y, z positions.
 			for (int i = 0; i < 3; i++) {
 				StringBuilder sb = new StringBuilder();
 
@@ -275,10 +286,8 @@ public class AirTouchView extends View {
 			}
 		}
 		//Log.v(TAG, String.format("%.2f, %.2f, %.2f", _dataFromServer.fingerX, _dataFromServer.fingerY, _dataFromServer.fingerZ));
-
-
 	}
-
+	
 	/**
 	 * Gets a float at a specified offset from a byte array.
 	 * This should be a general utility
@@ -332,9 +341,16 @@ public class AirTouchView extends View {
 				// send 'gimme'
 				// receive data
 				// update PMDSendData
-				_toServer.writeBytes("gimme");
+				if(_getOnlyFingerData)
+				{
+					_toServer.writeBytes("finger");
+				} else 
+				{
+					_toServer.writeBytes("gimme");
+				}
 				byte[] lMsg = new byte[PMD_SEND_DATA_SIZE];
 				int nleft = PMD_SEND_DATA_SIZE;
+				if(_getOnlyFingerData) nleft = PMD_FINGER_ONLY_DATA_SIZE;
 				int totalReceived = 0;
 
 				do{
@@ -347,10 +363,7 @@ public class AirTouchView extends View {
 					nleft -= nReceived;
 					//					Log.v(TAG, String.format("recevied %d bytes, total received %d, %d left", nReceived, totalReceived, nleft));
 				} while (true);
-				if(totalReceived < PMD_SEND_DATA_SIZE){
-					Log.v(TAG, "data received less than expected: " + totalReceived);
-					return false;
-				}
+				
 				updatePMDData(lMsg);
 
 			} catch (IOException e) {

@@ -22,7 +22,7 @@ import android.widget.TextView;
 public class AirTouchViewMain extends Activity {
 	// Constants
 		static final int DEFAULT_SERVER_PORT = 10000;
-		static final String DEFAULT_IP_STRING = "128.237.205.139";
+		static final String DEFAULT_IP_STRING = "128.237.230.246";
 		static final String TAG = "AirTouchView"; 
 		static final int MAX_TCP_DATAGRAM_LEN = 1024;
 		
@@ -99,6 +99,17 @@ public class AirTouchViewMain extends Activity {
 	    	new ConnectTask().execute(_ipEditText.getText().toString());
 	    }
 	    
+	    public void viewFingerDataClicked(View v)
+	    {
+	    	if(!_canStart){
+	    		
+	    		_statusTextView.setText("you must first connect!");
+	    		return;
+	    	}
+	    	_airTouchView.shouldIGetOnlyFingerData(true);
+	    	setContentView(_airTouchView);
+	    }
+	    
 	    public void viewRawClicked(View v)
 	    {
 	    	if(!_canStart){
@@ -106,6 +117,7 @@ public class AirTouchViewMain extends Activity {
 	    		_statusTextView.setText("you must first connect!");
 	    		return;
 	    	}
+	    	_airTouchView.shouldIGetOnlyFingerData(false);
 	    	setContentView(_airTouchView);
 	    }
 	    
