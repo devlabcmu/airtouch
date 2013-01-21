@@ -11,16 +11,24 @@
 
 using namespace std;
 
+#define SSTR( x ) ( dynamic_cast< std::ostringstream & >( ( std::ostringstream() << std::dec << x ) ) ).str() 
+
 #define BUFSIZE 512
 
+/* Globar vars */
+// Sent over network
 PMDData _pmdData;
 PMDFingerData _fingerData;
 PMDRequest _fromClient;
 
+// PMD
 PMDDataDescription _pmdDataDescription;
 PMDHandle _pmdHandle;
 unsigned int _pmdFlags[PMDIMAGESIZE];
 char _pmdErrorBuffer[BUFSIZE];
+
+// Image processing
+
 
 /* function declarations */
 // PMD
@@ -33,6 +41,14 @@ int _ocvFrameStep;
 
 // Networking
 bool communicateWithClient(SOCKET* hClient);
+
+void error(string msg)
+{
+	cout << msg << endl; 
+	exit(EXIT_FAILURE);
+}
+
+
 
 void welcomeMessage()
 {
@@ -102,12 +118,10 @@ HRESULT updateCameraData()
 	if (res != PMD_OK)
 	{
 		pmdGetLastError (_pmdHandle, _pmdErrorBuffer, BUFSIZ);
-		cout << "Could get data description:" << _pmdErrorBuffer << endl;
+		cout << "Could not get data description:" << _pmdErrorBuffer << endl;
 		pmdClose (_pmdHandle);
 		return -1;
 	}
-
-	cout << "retrieved source data description" << endl;  
 
 	if (_pmdDataDescription.subHeaderType != PMD_IMAGE_DATA)
 	{
@@ -190,8 +204,7 @@ bool communicateWithClient(SOCKET* hClient)
 		return true;
 	}
 	
-	cout << "client first message: " << _fromClient.buffer  << "echoing..." << endl;
-
+	cout << "client first message: " << _fromClient.buffer << endl;
 
 	// send a reply, simply echo for now
 	HRESULT hr = sendData(*hClient, _fromClient.buffer, BUFSIZE, 0);
@@ -205,7 +218,10 @@ bool communicateWithClient(SOCKET* hClient)
 		bytesReceived = receiveData(*hClient, _fromClient.buffer, 512, false);
 		if(bytesReceived == 0) return true;
 		// write the rest of the data send to the screen
+
+#ifdef NETWORK_DEBUG
 		cout << "received: " << (_fromClient.buffer) << endl;
+#endif
 
 		char command = _fromClient.buffer[0];
 
@@ -258,13 +274,12 @@ int main(int argc, char* argv[])
 		char* filename = argv[1];
 		cout << "Reading data from file " << filename << endl;
 		hr = initializePMDFromFile(&_pmdHandle,filename, _pmdErrorBuffer, BUFSIZE);
-		if(!SUCCEEDED(hr)) return -1;
+		if(!SUCCEEDED(hr)) error("Error: failed to initialize from file");
 	} else 
 	{
-		initializePMD(&_pmdHandle, _pmdErrorBuffer, BUFSIZE);
+		hr = initializePMD(&_pmdHandle, _pmdErrorBuffer, BUFSIZE);
+		if(!SUCCEEDED(hr)) error("Error: failed to initialize PMD camera");
 	}
-	
-
 	
 	WSADATA wsaData = {0};
 	WORD wVer = MAKEWORD(2,2);
@@ -278,8 +293,7 @@ int main(int argc, char* argv[])
 	SOCKET hSock  = {0};
 	hSock = socket( AF_INET, SOCK_STREAM, IPPROTO_IP );
 	if( hSock == INVALID_SOCKET ) { 
-		cout << "Invalid socket, failed to create socket" << endl;
-		return -1;
+		error("Invalid socket, failed to create socket");
 	}
 
 	// step 3: bind socket
@@ -300,7 +314,7 @@ int main(int argc, char* argv[])
 		// step 4: listen for a client 
 		SOCKET hClient;
 		hr = getClientConnection(&hSock, &hClient);
-		if(!SUCCEEDED(hr)) return -1;
+		if(!SUCCEEDED(hr)) error("Error: Failed to get client connection");
 
 		stayAlive = communicateWithClient(&hClient);
 		closesocket( hClient );
@@ -314,10 +328,10 @@ int main(int argc, char* argv[])
 	// close server socket 
 	hr = closesocket( hSock );
 	hSock = 0;
-	if( hr == SOCKET_ERROR )  cout << "Error failed to close socket" << endl;
+	if( hr == SOCKET_ERROR )  cout << "Error: failed to close socket" << endl;
 
 
 	// Release WinSock DLL 
 	hr = WSACleanup();
-	if( hr == SOCKET_ERROR ) cout << "Error cleaning up Winsock Library" << endl;
+	if( hr == SOCKET_ERROR ) cout << "Error: cleaning up Winsock Library" << endl;
 }

@@ -45,3 +45,4 @@ HRESULT initializePMDFromFile(PMDHandle* handle, char* filename, char* err, int 
 
 	return 0;
 }
+
