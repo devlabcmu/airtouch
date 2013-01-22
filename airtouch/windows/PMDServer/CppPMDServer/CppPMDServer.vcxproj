@@ -43,15 +43,15 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(SolutionDir)/include;$(SolutionDir)\PMDUtils\;$(OPENCVDIR)\include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)/include;$(SolutionDir)\PMDUtils\;$(OPENCVDIR)\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>ws2_32.lib;opencv_core242.lib;opencv_highgui242.lib;$(SolutionDir)/lib/pmdaccess2.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opencv_imgproc242.lib;ws2_32.lib;opencv_core242.lib;opencv_highgui242.lib;$(SolutionDir)/lib/pmdaccess2.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OPENCVDIR)/x86/vc10/lib</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>copy $(SolutionDir)\lib\pmdaccess2.dll "$(OutDir)pmdaccess2.dll"
+      <Command>copy $(SolutionDir)\lib\*.dll "$(OutDir)"
 copy $(SolutionDir)\lib\camboardnano* "$(OutDir)"
 copy $(SolutionDir)\lib\pmdfile* "$(OutDir)"
 copy $(SolutionDir)\recordings\*.pmd "$(OutDir)"</Command>
@@ -75,7 +75,7 @@ copy $(SolutionDir)\recordings\*.pmd "$(OutDir)"</Command>
     <ClCompile Include="CppPMDServer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="simplepmd.h" />
+    <ClInclude Include="airtouch.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

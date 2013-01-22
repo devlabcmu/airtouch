@@ -20,7 +20,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="simplepmd.h">
+    <ClInclude Include="airtouch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
