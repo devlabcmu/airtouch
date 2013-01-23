@@ -47,7 +47,7 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opencv_imgproc242.lib;ws2_32.lib;opencv_core242.lib;opencv_highgui242.lib;$(SolutionDir)/lib/pmdaccess2.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opencv_imgproc242d.lib;ws2_32.lib;opencv_core242d.lib;opencv_highgui242d.lib;$(SolutionDir)/lib/pmdaccess2.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OPENCVDIR)/x86/vc10/lib</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>

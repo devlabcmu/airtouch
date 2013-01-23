@@ -7,6 +7,7 @@
 #include"airtouch.h"
 
 #include <math.h>
+#include <time.h>
 
 #include <opencv/cxcore.h>
 #include <opencv/highgui.h>
@@ -45,6 +46,11 @@ void welcomeMessage();
 IplImage* _ocvFrame;
 int _ocvFrameStep;
 
+// FPS
+time_t _fpsStart, _fpsEnd;
+double _fps = 0;
+int _fpsCounter = 0;
+
 // Image processing
 void initializeBackgroundSubtraction();
 void performBackgroundSubtraction();
@@ -77,14 +83,35 @@ void welcomeMessage()
 
 void updateUI()
 {
+	// calculate current fps
+	time(&_fpsEnd);
+	
+	double sec = difftime(_fpsEnd, _fpsStart);
+	if(sec > 1)
+	{
+		_fps = _fpsCounter;
+		time(&_fpsStart);
+		_fpsCounter = 0;
+	} else
+	{
+		++_fpsCounter;
+	}
+
 	depthDataToImage(_pmdDistanceBuffer, (unsigned char *)  _ocvFrame->imageData, _ocvFrameStep, _ocvFrame->nChannels);
     cvFlip (_ocvFrame, _ocvFrame, 0);
 	cvCircle(_ocvFrame, cvPoint(cvRound(_pmdData.fingerX), 
 		PMDNUMROWS - cvRound(_pmdData.fingerY)), 
 		10, 
 		CV_RGB(255,0,0));
+	ostringstream str;
+	str.precision(2);
+	str << "fps: " << _fps;
     // Display the image
-    cvShowImage ("Server", _ocvFrame);
+	// to do: use consistent method calls (all 2.1 or all 1.*)
+	Mat img = _ocvFrame;
+	putText(img, str.str(), cvPoint(10,20), FONT_HERSHEY_COMPLEX_SMALL, 1.0f,CV_RGB(255,0,0)) ;
+	cvShowImage ("Server", _ocvFrame);
+	
 	
 }
 
@@ -368,6 +395,8 @@ bool communicateWithClient(SOCKET* hClient)
 	HRESULT hr = sendData(*hClient, _fromClient.buffer, BUFSIZE, 0);
 	if(!SUCCEEDED(hr)) return true;
 
+
+
 	while(true)
 	{
 		// receive data from client
@@ -426,6 +455,7 @@ int main(int argc, char* argv[])
 	// welcome message
 	welcomeMessage();
 	
+
 	// initialize opencv frame
 	_ocvFrame = cvCreateImage(cvSize(PMDNUMCOLS,PMDNUMROWS), 8, 3);
 	_ocvFrameStep = _ocvFrame->widthStep / sizeof(unsigned char);
