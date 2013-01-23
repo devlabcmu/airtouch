@@ -92,7 +92,6 @@ int sendData(SOCKET socket, const char* data, int len, int flags)
 	do
 	{ 
 		nData = send( socket, &data[iPos], nLeft, 0 );
-		cout << "sent " << nData << " bytes" << endl;
 		if( nData == SOCKET_ERROR ) { 
 			cout << "Error sending data" << endl;
 			return -1;
@@ -128,7 +127,6 @@ int receiveData(SOCKET socket, char* buffer, int len, bool mustFill)
 		
 		nLeft -= nData;
 		iPos  += nData;
-		cout << "received " << nData << " bits, " << nLeft << " left" << endl;
 	} while( nLeft > 0 );
 	return len - nLeft;
 }

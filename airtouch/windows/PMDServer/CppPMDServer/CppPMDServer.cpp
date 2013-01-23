@@ -4,23 +4,38 @@
 
 #include "simplewinsock.h"
 #include "strutils.h"
-#include"simplepmd.h"
+#include"airtouch.h"
+
+#include <math.h>
+#include <time.h>
 
 #include <opencv/cxcore.h>
 #include <opencv/highgui.h>
+#include <opencv2/imgproc/imgproc.hpp>
 
+using namespace cv;
 using namespace std;
 
-#define BUFSIZE 512
+#define SSTR( x ) ( dynamic_cast< std::ostringstream & >( ( std::ostringstream() << std::dec << x ) ) ).str() 
 
+#define BUFSIZE 512
+#define BACKGROUND_THRESHOLD_STDEV 5
+
+/* Globar vars */
+// Sent over network
 PMDData _pmdData;
 PMDFingerData _fingerData;
 PMDRequest _fromClient;
 
+// PMD
+float _pmdDistanceBuffer[PMDIMAGESIZE];
 PMDDataDescription _pmdDataDescription;
 PMDHandle _pmdHandle;
 unsigned int _pmdFlags[PMDIMAGESIZE];
 char _pmdErrorBuffer[BUFSIZE];
+
+// Image processing
+BackgroundSubtractionData _background;
 
 /* function declarations */
 // PMD
@@ -31,8 +46,32 @@ void welcomeMessage();
 IplImage* _ocvFrame;
 int _ocvFrameStep;
 
+// FPS
+time_t _fpsStart, _fpsEnd;
+double _fps = 0;
+int _fpsCounter = 0;
+
+// Image processing
+void initializeBackgroundSubtraction();
+void performBackgroundSubtraction();
+void showBackgroundImage();
+void findFingers();
+
+// Random
+void error(string msg);
+
 // Networking
 bool communicateWithClient(SOCKET* hClient);
+
+void error(string msg)
+{
+	cout << msg << endl; 
+	exit(EXIT_FAILURE);
+}
+
+//
+// UI
+//
 
 void welcomeMessage()
 {
@@ -44,39 +83,219 @@ void welcomeMessage()
 
 void updateUI()
 {
-	unsigned char * currentRow = 0;
-    unsigned char * imgPtr = (unsigned char *) _ocvFrame->imageData;
-	float * dataPtr = _pmdData.buffer;
-	int step = _ocvFrame->nChannels;
-	for (int y = 0; y < PMDNUMROWS; ++y)
-    {
-		currentRow = &imgPtr[y * _ocvFrameStep];
-		for (int x = 0; x < PMDNUMCOLS; ++x, currentRow += step, ++dataPtr)
-        {
-			unsigned char val;
-            // Clamp at 1 meters and scale the values in between to fit the image
-            if (*dataPtr > 1.0f)
-            {
-                val = 0;
-            }
-            else
-            {
-                val = 255 - (unsigned char) (*dataPtr * 255.0f);
-            }
-			currentRow[0] = val;
-			currentRow[1] = val;
-			currentRow[2] = val;
-        }
-    }
+	// calculate current fps
+	time(&_fpsEnd);
+	
+	double sec = difftime(_fpsEnd, _fpsStart);
+	if(sec > 1)
+	{
+		_fps = _fpsCounter;
+		time(&_fpsStart);
+		_fpsCounter = 0;
+	} else
+	{
+		++_fpsCounter;
+	}
 
+	depthDataToImage(_pmdDistanceBuffer, (unsigned char *)  _ocvFrame->imageData, _ocvFrameStep, _ocvFrame->nChannels);
     cvFlip (_ocvFrame, _ocvFrame, 0);
 	cvCircle(_ocvFrame, cvPoint(cvRound(_pmdData.fingerX), 
 		PMDNUMROWS - cvRound(_pmdData.fingerY)), 
 		10, 
 		CV_RGB(255,0,0));
+	ostringstream str;
+	str.precision(2);
+	str << "fps: " << _fps;
     // Display the image
-    cvShowImage ("Server", _ocvFrame);
+	// to do: use consistent method calls (all 2.1 or all 1.*)
+	Mat img = _ocvFrame;
+	putText(img, str.str(), cvPoint(10,20), FONT_HERSHEY_COMPLEX_SMALL, 1.0f,CV_RGB(255,0,0)) ;
+	cvShowImage ("Server", _ocvFrame);
 	
+	
+}
+
+
+//
+// Image Processing
+//
+
+void initializeBackgroundSubtraction()
+{
+	cout << "initializing background subtraction..." << endl;
+	// for first 50 frames compute mean, standard deviation
+	ZeroMemory(_background.means, _countof(_background.means) * sizeof(float));
+	ZeroMemory(_background.stdevs, _countof(_background.means) * sizeof(float));
+	// first get 50 frames
+	float* frames[_numFramesForBackgroundSubtraction];
+	float framesForAverage[PMDIMAGESIZE];
+	ZeroMemory(framesForAverage, _countof(framesForAverage) * sizeof(float));
+
+	// fill in the frames
+	for (int i = 0; i < _numFramesForBackgroundSubtraction; i++)
+	{
+		float* frame = new float[PMDIMAGESIZE];
+		frames[i] = frame;
+		// fill the frame with data
+		HRESULT hr = updateCameraData();
+
+		if(!SUCCEEDED(hr)) error("Error: Failed to update camera data in initializeBackgroundSubtraction");
+		
+		memcpy_s(frame, PMDIMAGESIZE * sizeof(float), _pmdDistanceBuffer, PMDIMAGESIZE * sizeof(float));
+	}
+
+	// figure out how many frames to average over for each pixel (depends on valid data)
+	for (int i = 0; i < _numFramesForBackgroundSubtraction; i++)
+	{
+		for(int j = 0; j < PMDIMAGESIZE; j++)
+		{
+			if(frames[i][j] != PMD_INVALID_DISTANCE) framesForAverage[j]++;
+		}
+	}
+	// get averages
+	for (int i = 0; i < _numFramesForBackgroundSubtraction; i++)
+	{
+		float* curFrame = frames[i];
+		float* curBgRow = 0;
+		float* curDataRow = 0;
+		for(int y = 0; y < _pmdDataDescription.img.numRows; y++)
+		{
+			curBgRow = &_background.means[y* _pmdDataDescription.img.numColumns];
+			curDataRow = &curFrame[y * _pmdDataDescription.img.numColumns];
+			
+			for(int x = 0; x < _pmdDataDescription.img.numColumns; x++)
+			{
+				if(curDataRow[x] == PMD_INVALID_DISTANCE) continue;
+				int avI = y * _pmdDataDescription.img.numColumns + x;
+				if(framesForAverage[avI] > 0)
+					curBgRow[x] += curDataRow[x] / framesForAverage[avI];
+				else
+					curBgRow[x] = PMD_INVALID_DISTANCE;
+			}
+		}
+	}
+	
+	// compute standard deviation for each frame
+	for (int i = 0; i < _numFramesForBackgroundSubtraction; i++)
+	{
+		float* frame = frames[i];
+		
+		// fill the frame with data
+		float* curMeanRow = 0;
+		float* curStdevRow = 0;
+		float* curDataRow = 0;
+		for(int y = 0; y < _pmdDataDescription.img.numRows; y++)
+		{
+			curMeanRow = &_background.means[y* _pmdDataDescription.img.numColumns];
+			curStdevRow = &_background.stdevs[y * _pmdDataDescription.img.numColumns];
+			curDataRow = &frame[y * _pmdDataDescription.img.numColumns];
+			for(int x = 0; x < _pmdDataDescription.img.numColumns; x++)
+			{
+				if(curDataRow[x] == PMD_INVALID_DISTANCE) continue;
+				int avI = y * _pmdDataDescription.img.numColumns + x;
+				if(framesForAverage[avI] > 0)
+					curStdevRow[x] += pow(curDataRow[x] - curMeanRow[x], 2) / framesForAverage[avI];
+				else
+					curStdevRow[x] = PMD_INVALID_DISTANCE;
+			}
+		}
+	}
+	for (int i = 0; i < PMDIMAGESIZE; i++)
+	{
+		if(_background.stdevs[i] > 0)
+			_background.stdevs[i] = sqrt(_background.stdevs[i]);
+	}
+	// show the mean  and stdev
+	showBackgroundImage();
+
+	// free all the frames
+	for (int i = 0; i < _numFramesForBackgroundSubtraction; i++)
+	{
+		delete frames[i];
+	}
+}
+
+void performBackgroundSubtraction()
+{
+	// in the depthbuffer, make anything that is within stdev of mean -1
+
+	for (int i = 0; i < PMDIMAGESIZE; i++)
+	{
+		if(_pmdDistanceBuffer[i] == PMD_INVALID_DISTANCE) continue;
+		if(_background.means[i] == PMD_INVALID_DISTANCE) continue;
+		if(abs(_pmdDistanceBuffer[i]  - _background.means[i]) < BACKGROUND_THRESHOLD_STDEV * _background.stdevs[i])
+		{
+				_pmdDistanceBuffer[i] = PMD_INVALID_DISTANCE;
+		}
+	}
+	
+}
+
+void medianFilter()
+{
+	// todo: store IplImage as global?
+	IplImage* toFilter = cvCreateImage(cvSize(PMDNUMCOLS,PMDNUMROWS), IPL_DEPTH_32F, 1);
+	IplImage* result = cvCreateImage(cvSize(PMDNUMCOLS,PMDNUMROWS), IPL_DEPTH_32F, 1);
+	memcpy(toFilter->imageData, _pmdDistanceBuffer, PMDIMAGESIZE * sizeof(float));
+	toFilter->imageDataOrigin = toFilter->imageData;
+	cv::Mat src = toFilter;
+	cv::Mat dst = result;
+
+	medianBlur(src, dst, 5);
+	memcpy(_pmdDistanceBuffer, result->imageData, PMDIMAGESIZE* sizeof(float));
+	cvReleaseImage(&result);
+	cvReleaseImage(&toFilter);
+
+}
+
+void showBackgroundImage()
+{
+	// todo: convert to a method (repeated once already)
+	IplImage* toShow = cvCreateImage(cvSize(PMDNUMCOLS,PMDNUMROWS), 8, 3);
+	depthDataToImage(_background.means, (unsigned char *)toShow->imageData, toShow->widthStep / sizeof(unsigned char), toShow->nChannels);
+
+	cvFlip (toShow, toShow, 0);
+
+    // Display the image
+    cvShowImage ("Background Image", toShow);
+	cvWaitKey(1);
+
+	 cvReleaseImage(&toShow);
+
+	//// show standard deviation
+	toShow = cvCreateImage(cvSize(PMDNUMCOLS,PMDNUMROWS), 8, 3);
+	depthDataToImage(_background.stdevs, (unsigned char *)toShow->imageData, toShow->widthStep / sizeof(unsigned char), toShow->nChannels);
+
+	cvFlip (toShow, toShow, 0);
+	cvShowImage ("Stdev Image", toShow);
+	cvWaitKey(1);
+	cvReleaseImage(&toShow);
+}
+
+void findFingers()
+{
+	// find the x, y coordinate that has the highest value
+	_pmdData.fingerX = 0;
+	_pmdData.fingerY = 0;
+	_pmdData.fingerZ = FLT_MAX;
+
+	for(int y = 0; y < _pmdDataDescription.img.numRows; y++)
+	{
+		for(int x = 0; x < _pmdDataDescription.img.numColumns; x++)
+		{
+			int idx = y * _pmdDataDescription.img.numColumns + x;
+			if(_pmdDistanceBuffer[idx] >= 0 && _pmdDistanceBuffer[idx] < _pmdData.fingerZ)
+			{
+				_pmdData.fingerX = x;
+				_pmdData.fingerY = y;
+				_pmdData.fingerZ = _pmdDistanceBuffer[idx];
+			}
+		}
+	}
+
+	_fingerData.fingerX = _pmdData.fingerX;
+	_fingerData.fingerY = _pmdData.fingerY;
+	_fingerData.fingerZ = _pmdData.fingerZ;
 }
 
 //
@@ -102,12 +321,10 @@ HRESULT updateCameraData()
 	if (res != PMD_OK)
 	{
 		pmdGetLastError (_pmdHandle, _pmdErrorBuffer, BUFSIZ);
-		cout << "Could get data description:" << _pmdErrorBuffer << endl;
+		cout << "Could not get data description:" << _pmdErrorBuffer << endl;
 		pmdClose (_pmdHandle);
 		return -1;
 	}
-
-	cout << "retrieved source data description" << endl;  
 
 	if (_pmdDataDescription.subHeaderType != PMD_IMAGE_DATA)
 	{
@@ -119,7 +336,8 @@ HRESULT updateCameraData()
 	// make sure that the numrows and numcolumsn is same size as PMDIMAGESIZE
 	assert(_pmdDataDescription.img.numColumns * _pmdDataDescription.img.numRows == PMDIMAGESIZE);
 
-	res = pmdGetDistances (_pmdHandle, _pmdData.buffer, _pmdDataDescription.img.numColumns * _pmdDataDescription.img.numRows * sizeof (float));
+	// todo: this shoudl be copied to a seperate location...
+	res = pmdGetDistances (_pmdHandle, _pmdDistanceBuffer, _pmdDataDescription.img.numColumns * _pmdDataDescription.img.numRows * sizeof (float));
 	if (res != PMD_OK)
 	{
 		pmdGetLastError (_pmdHandle, _pmdErrorBuffer, 128);
@@ -136,13 +354,6 @@ HRESULT updateCameraData()
 		pmdClose (_pmdHandle);
 		return -1;
 	}
-
-
-	// find the x, y coordinate that has the highest value
-	_pmdData.fingerX = 0;
-	_pmdData.fingerY = 0;
-	_pmdData.fingerZ = FLT_MAX;
-
 	for(int y = 0; y < _pmdDataDescription.img.numRows; y++)
 	{
 		for(int x = 0; x < _pmdDataDescription.img.numColumns; x++)
@@ -150,24 +361,12 @@ HRESULT updateCameraData()
 			int idx = y * _pmdDataDescription.img.numColumns + x;
 			if(_pmdFlags[idx] & PMD_FLAG_INVALID)
 			{
-				_pmdData.buffer[idx] = 1;
-			} else if(_pmdData.buffer[idx] < _pmdData.fingerZ)
-			{
-				_pmdData.fingerX = x;
-				_pmdData.fingerY = y;
-				_pmdData.fingerZ = _pmdData.buffer[idx];
+				_pmdDistanceBuffer[idx] = PMD_INVALID_DISTANCE;
 			}
 		}
 	}
-
-	_fingerData.fingerX = _pmdData.fingerX;
-	_fingerData.fingerY = _pmdData.fingerY;
-	_fingerData.fingerZ = _pmdData.fingerZ;
-
 	return 0;
 }
-
-
 
 // Initializes connection to client and sends data.
 // Returns when client disconnects
@@ -190,12 +389,13 @@ bool communicateWithClient(SOCKET* hClient)
 		return true;
 	}
 	
-	cout << "client first message: " << _fromClient.buffer  << "echoing..." << endl;
-
+	cout << "client first message: " << _fromClient.buffer << endl;
 
 	// send a reply, simply echo for now
 	HRESULT hr = sendData(*hClient, _fromClient.buffer, BUFSIZE, 0);
 	if(!SUCCEEDED(hr)) return true;
+
+
 
 	while(true)
 	{
@@ -205,7 +405,10 @@ bool communicateWithClient(SOCKET* hClient)
 		bytesReceived = receiveData(*hClient, _fromClient.buffer, 512, false);
 		if(bytesReceived == 0) return true;
 		// write the rest of the data send to the screen
+
+#ifdef NETWORK_DEBUG
 		cout << "received: " << (_fromClient.buffer) << endl;
+#endif
 
 		char command = _fromClient.buffer[0];
 
@@ -219,12 +422,18 @@ bool communicateWithClient(SOCKET* hClient)
 		hr = updateCameraData();
 
 		if(!SUCCEEDED(hr)) return true;
+		threshold(_pmdDistanceBuffer, 0.1f);
+		performBackgroundSubtraction();
+		medianFilter();
+		findFingers();
+
 		if(command == 'f')
 		{
 			// only send the finger data
 			hr = sendData(*hClient, (char*)&_fingerData, sizeof(PMDFingerData), 0);	
 		} else
 		{
+			memcpy_s(_pmdData.buffer,_countof(_pmdData.buffer) * sizeof(float), _pmdDistanceBuffer, _countof(_pmdData.buffer) * sizeof(float));
 			hr = sendData(*hClient, (char*)&_pmdData, sizeof(PMDData), 0);	
 		}
 		
@@ -246,25 +455,28 @@ int main(int argc, char* argv[])
 	// welcome message
 	welcomeMessage();
 	
+
 	// initialize opencv frame
 	_ocvFrame = cvCreateImage(cvSize(PMDNUMCOLS,PMDNUMROWS), 8, 3);
 	_ocvFrameStep = _ocvFrame->widthStep / sizeof(unsigned char);
 
 	HRESULT hr = 0;
 
+	// Initialize the PMD camera
 	// check if we have parameters, if so first param is filename
 	if(argc > 1)
 	{
 		char* filename = argv[1];
 		cout << "Reading data from file " << filename << endl;
 		hr = initializePMDFromFile(&_pmdHandle,filename, _pmdErrorBuffer, BUFSIZE);
-		if(!SUCCEEDED(hr)) return -1;
+		if(!SUCCEEDED(hr)) error("Error: failed to initialize from file");
 	} else 
 	{
-		initializePMD(&_pmdHandle, _pmdErrorBuffer, BUFSIZE);
+		hr = initializePMD(&_pmdHandle, _pmdErrorBuffer, BUFSIZE);
+		if(!SUCCEEDED(hr)) error("Error: failed to initialize PMD camera");
 	}
-	
 
+	initializeBackgroundSubtraction();
 	
 	WSADATA wsaData = {0};
 	WORD wVer = MAKEWORD(2,2);
@@ -278,8 +490,7 @@ int main(int argc, char* argv[])
 	SOCKET hSock  = {0};
 	hSock = socket( AF_INET, SOCK_STREAM, IPPROTO_IP );
 	if( hSock == INVALID_SOCKET ) { 
-		cout << "Invalid socket, failed to create socket" << endl;
-		return -1;
+		error("Invalid socket, failed to create socket");
 	}
 
 	// step 3: bind socket
@@ -300,7 +511,7 @@ int main(int argc, char* argv[])
 		// step 4: listen for a client 
 		SOCKET hClient;
 		hr = getClientConnection(&hSock, &hClient);
-		if(!SUCCEEDED(hr)) return -1;
+		if(!SUCCEEDED(hr)) error("Error: Failed to get client connection");
 
 		stayAlive = communicateWithClient(&hClient);
 		closesocket( hClient );
@@ -314,10 +525,10 @@ int main(int argc, char* argv[])
 	// close server socket 
 	hr = closesocket( hSock );
 	hSock = 0;
-	if( hr == SOCKET_ERROR )  cout << "Error failed to close socket" << endl;
+	if( hr == SOCKET_ERROR )  cout << "Error: failed to close socket" << endl;
 
 
 	// Release WinSock DLL 
 	hr = WSACleanup();
-	if( hr == SOCKET_ERROR ) cout << "Error cleaning up Winsock Library" << endl;
+	if( hr == SOCKET_ERROR ) cout << "Error: cleaning up Winsock Library" << endl;
 }

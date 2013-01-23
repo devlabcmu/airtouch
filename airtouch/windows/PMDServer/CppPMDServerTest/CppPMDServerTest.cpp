@@ -26,30 +26,7 @@ int _ocvFrameStep;
 
 void updateFrameWithNewData()
 {
-	unsigned char * currentRow = 0;
-    unsigned char * imgPtr = (unsigned char *) _ocvFrame->imageData;
-	float * dataPtr = _fromServer.buffer;
-	int step = _ocvFrame->nChannels;
-	for (int y = 0; y < PMDNUMROWS; ++y)
-    {
-		currentRow = &imgPtr[y * _ocvFrameStep];
-		for (int x = 0; x < PMDNUMCOLS; ++x, currentRow += step, ++dataPtr)
-        {
-			unsigned char val;
-            // Clamp at 1 meters and scale the values in between to fit the image
-            if (*dataPtr > 1.0f)
-            {
-                val = 0;
-            }
-            else
-            {
-                val = 255 - (unsigned char) (*dataPtr * 255.0f);
-            }
-			currentRow[0] = val;
-			currentRow[1] = val;
-			currentRow[2] = val;
-        }
-    }
+	depthDataToImage(_fromServer.buffer, (unsigned char *)  _ocvFrame->imageData, _ocvFrameStep, _ocvFrame->nChannels);
 
     cvFlip (_ocvFrame, _ocvFrame, 0);
 	cvCircle(_ocvFrame, cvPoint(cvRound(_fromServer.fingerX), 
