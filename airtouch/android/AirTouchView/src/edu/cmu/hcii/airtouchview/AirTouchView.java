@@ -3,10 +3,10 @@ package edu.cmu.hcii.airtouchview;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -55,6 +55,7 @@ public class AirTouchView extends View {
 	PMDSendData _dataFromServer;
 	boolean _stopNetworkConnection = false;
 	boolean _getOnlyFingerData = false;
+	Timer _timer;
 
 	// UI
 	private Map<Integer, AirTouchPoint> _touchMap = new HashMap<Integer, AirTouchPoint>();
@@ -222,12 +223,20 @@ public class AirTouchView extends View {
 		_dataFromServer = new PMDSendData();
 		// handshake has already happened
 		// begin sending and receiving data
-		new SendReceiveTask().execute();
+		TimerTask task = new TimerTask() {
+            public void run() {
+                new SendReceiveTask().execute();
+                
+            }
+        };
+        _timer = new Timer();
+        _timer.scheduleAtFixedRate(task, 1, 30);
 	}
 
 	public void stop()
 	{
 		_stopNetworkConnection = true;
+		_timer.cancel();
 		new DisconnectTask().execute();
 	}
 
@@ -309,6 +318,7 @@ public class AirTouchView extends View {
 	{
 		@Override
 		protected Void doInBackground(Void... params) {
+			_timer.cancel();
 			try {
 				_toServer.writeBytes("disconnect");
 			} catch (IOException e) {
@@ -336,13 +346,14 @@ public class AirTouchView extends View {
 		@Override
 		protected Boolean doInBackground(Void... params) {
 			// TODO Auto-generated method stub
-
+		   // Log.v(TAG, "in SendReceiveData");
 			try {
 				// send 'gimme'
 				// receive data
 				// update PMDSendData
 				if(_getOnlyFingerData)
 				{
+					// Log.v(TAG, "wrote finger");
 					_toServer.writeBytes("finger");
 				} else 
 				{
@@ -363,9 +374,9 @@ public class AirTouchView extends View {
 					nleft -= nReceived;
 					//					Log.v(TAG, String.format("recevied %d bytes, total received %d, %d left", nReceived, totalReceived, nleft));
 				} while (true);
-				
+				//Log.v(TAG, "got data");
 				updatePMDData(lMsg);
-
+				//Log.v(TAG, "updated data");
 			} catch (IOException e) {
 				Log.v(TAG, e.getMessage());
 				return false;
@@ -375,7 +386,7 @@ public class AirTouchView extends View {
 		@Override
 		protected void onPostExecute(Boolean succeeded) {
 			// TODO Auto-generated method stub
-
+			//Log.v(TAG, "in post execute");
 			// if we failed, then we should disconnect and go back to the home page
 			if(!succeeded) {
 				_errorText = "ERROR: couldn't communicate with server. Please go back and try again.";
@@ -383,6 +394,7 @@ public class AirTouchView extends View {
 				new DisconnectTask().execute();
 				return;
 			}
+			
 			if(_stopNetworkConnection) return;
 
 			// invalidate screen
@@ -399,10 +411,8 @@ public class AirTouchView extends View {
 					_pmdDepth.setPixel(x, y, Color.argb(255, v,v,v));
 				}
 			}
-
-			// do aondther sendReceiveTask
+			//Log.v(TAG, "invalidating");
 			postInvalidate();
-			new SendReceiveTask().execute();
 		}
 	}
 
