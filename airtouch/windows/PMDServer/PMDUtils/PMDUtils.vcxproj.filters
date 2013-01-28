@@ -24,5 +24,8 @@
     <ClInclude Include="pmddata.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="airtouch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

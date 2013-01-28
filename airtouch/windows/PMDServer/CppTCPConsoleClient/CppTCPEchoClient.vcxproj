@@ -14,7 +14,7 @@
     <ProjectGuid>{BD6707E2-744A-4116-A5E6-ADCBF6793020}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>CppTCPEchoClient</RootNamespace>
-    <ProjectName>CppTCPConsoleClient</ProjectName>
+    <ProjectName>TCPConsoleClient</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

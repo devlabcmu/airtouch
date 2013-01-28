@@ -13,6 +13,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{A35AF8D8-3DBD-40C2-BF0B-76BB82EB6C86}</ProjectGuid>
     <RootNamespace>CppPMDServer</RootNamespace>
+    <ProjectName>PMDServer</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -73,9 +74,6 @@ copy $(SolutionDir)\recordings\*.pmd "$(OutDir)"</Command>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CppPMDServer.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="airtouch.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

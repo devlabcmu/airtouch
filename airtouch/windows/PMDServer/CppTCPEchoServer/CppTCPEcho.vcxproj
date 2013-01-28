@@ -14,7 +14,7 @@
     <ProjectGuid>{D3050C42-25AD-41C2-9841-EDB20C7CBDCD}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>CppTCPEcho</RootNamespace>
-    <ProjectName>CppTCPEchoServer</ProjectName>
+    <ProjectName>TCPEchoServer</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
