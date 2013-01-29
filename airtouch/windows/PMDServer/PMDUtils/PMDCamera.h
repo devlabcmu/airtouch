@@ -52,7 +52,6 @@ public:
 	void RenderDistances(const IplImage* src, IplImage* renderTo);
 	void RenderDistances(const float * src, IplImage* renderTo);
 
-
 	// Image Processing
 	void MedianFilter();
 	void UpdateBackgroundSubtraction();
@@ -60,6 +59,8 @@ public:
 
 	// static methods
 	static void DepthDataToImage(float const* pDepthData, unsigned char* imgPtr, int rowStep, int step);
+
+
 private:
 	PMDDataDescription m_pmdDataDescription;
 	PMDHandle m_pmdHandle;

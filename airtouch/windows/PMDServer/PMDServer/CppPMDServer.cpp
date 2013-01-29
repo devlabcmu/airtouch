@@ -1,22 +1,8 @@
-#include <stdio.h>
-#include <tchar.h>
-#include <assert.h>
-
 #include "simplewinsock.h"
-#include "strutils.h"
 
-#include <math.h>
 #include <time.h>
 
-#include <opencv/cxcore.h>
-#include <opencv/highgui.h>
-#include <opencv2/imgproc/imgproc.hpp>
-
 #include "PMDCamera.h"
-
-using namespace cv;
-using namespace std;
-
 
 
 /* Globar vars */
