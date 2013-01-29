@@ -5,6 +5,7 @@
 #include "strutils.h"
 #include"pmddata.h"
 #include "PMDCamera.h"
+#include "PMDUtils.h"
 
 #include <opencv/cxcore.h>
 #include <opencv/highgui.h>
@@ -25,7 +26,7 @@ int _ocvFrameStep;
 
 void updateFrameWithNewData()
 {
-	PMDCamera::DepthDataToImage(_fromServer.buffer, (unsigned char *)  _ocvFrame->imageData, _ocvFrameStep, _ocvFrame->nChannels);
+	PMDUtils::DistancesToImage(_fromServer.buffer, _ocvFrame);
 
     cvFlip (_ocvFrame, _ocvFrame, 0);
 	cvCircle(_ocvFrame, cvPoint(cvRound(_fromServer.fingerX), 

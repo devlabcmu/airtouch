@@ -40,7 +40,6 @@ public:
 	IplImage* GetCvBackgroundImage();
 	IplImage* GetCvDistances();
 
-	void Threshold(float maxdistance);
 	
 	// Getters
 	PMDFingerData const* const GetFingerData(){ return &m_pmdFingerData;}
@@ -49,18 +48,11 @@ public:
 	IplImage const* const GetDistancesProcessed() {return m_pmdDistancesProcessed;}
 	BackgroundSubtractionData const* const GetBackgroundSubtractionData() {return &m_backgroundSubtractionData;}
 
-	// Renders the distance values to the given opencv image
-	void RenderDistances(const IplImage* src, IplImage* renderTo);
-	void RenderDistances(const float * src, IplImage* renderTo);
-
 	// Image Processing
 	void MedianFilter();
 	void UpdateBackgroundSubtraction();
 	void UpdateFingers();
-
-	// static methods
-	static void DepthDataToImage(float const* pDepthData, unsigned char* imgPtr, int rowStep, int step);
-	static void AmplitudesToImage(float const* pDepthData, unsigned char* imgPtr, int rowStep, int step);
+	void Threshold(float maxdistance);
 
 private:
 	PMDDataDescription m_pmdDataDescription;

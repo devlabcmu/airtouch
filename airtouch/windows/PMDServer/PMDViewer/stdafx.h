@@ -14,4 +14,5 @@
 
 // TODO: reference additional headers your program requires here
 #include "PMDCamera.h"
+#include "PMDUtils.h"
 #include <time.h>

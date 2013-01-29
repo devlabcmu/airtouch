@@ -244,16 +244,6 @@ void PMDCamera::Threshold(float maxDistance)
 	}
 }
 
-void PMDCamera::RenderDistances(const float* src, IplImage* dst)
-{
-	DepthDataToImage(src, (unsigned char *) dst->imageData, dst->widthStep / sizeof(unsigned char), dst->nChannels);
-}
-
-void PMDCamera::RenderDistances(const IplImage* src, IplImage* dst)
-{
-	RenderDistances((const float *)src->imageData, dst);
-}
-
 void PMDCamera::UpdateBackgroundSubtraction()
 {
 	// in the depthbuffer, make anything that is within stdev of mean -1
@@ -308,52 +298,7 @@ void PMDCamera::MedianFilter()
 	cvReleaseImage(&tmp);
 }
 
-void PMDCamera::DepthDataToImage( float const* pDepthData, unsigned char* imgPtr, int rowStep, int step)
-{
-	unsigned char * currentRow = 0;
-	for (int y = 0; y < PMDNUMROWS; ++y)
-    {
-		currentRow = &imgPtr[y * rowStep];
-		for (int x = 0; x < PMDNUMCOLS; ++x, currentRow += step, ++pDepthData)
-        {
-			unsigned char val;
-            // Clamp at 1 meters and scale the values in between to fit the image
-            if (*pDepthData >= 1.0f || *pDepthData <= 0)
-            {
-                val = 0;
-            }
-            else
-            {
-                val = 255 - (unsigned char) (*pDepthData * 255.0f);
-            }
-			currentRow[0] = val;
-			currentRow[1] = val;
-			currentRow[2] = val;
-        }
-    }
-}
 
-void PMDCamera::AmplitudesToImage( float const* pDepthData, unsigned char* imgPtr, int rowStep, int step)
-{
-	float maxAmp = 0.0f;
-	for(int i = 0; i < PMDIMAGESIZE; i++)
-	{
-		if(pDepthData[i] > maxAmp) maxAmp = pDepthData[i];
-	}
-	unsigned char * currentRow = 0;
-	for (int y = 0; y < PMDNUMROWS; ++y)
-    {
-		currentRow = &imgPtr[y * rowStep];
-		for (int x = 0; x < PMDNUMCOLS; ++x, currentRow += step, ++pDepthData)
-        {
-			unsigned char val = (char)(*pDepthData / maxAmp * 255.0f);
-            // Clamp at 1 meters and scale the values in between to fit the image
-			currentRow[0] = val;
-			currentRow[1] = val;
-			currentRow[2] = val;
-        }
-    }
-}
 
 
 

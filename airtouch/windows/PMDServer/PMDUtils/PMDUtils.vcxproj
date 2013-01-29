@@ -14,11 +14,13 @@
     <ClInclude Include="PMDCamera.h" />
     <ClInclude Include="PMDConstants.h" />
     <ClInclude Include="pmddata.h" />
+    <ClInclude Include="PMDUtils.h" />
     <ClInclude Include="simplewinsock.h" />
     <ClInclude Include="strutils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PMDCamera.cpp" />
+    <ClCompile Include="PMDUtils.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{ADEB6233-FA5D-4C68-828E-12B88949635F}</ProjectGuid>

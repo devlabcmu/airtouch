@@ -34,7 +34,7 @@ void showBackgroundImage()
 	// todo: convert to a method (repeated once already)
 	BackgroundSubtractionData const* const backgroundData = _pmdCamera.GetBackgroundSubtractionData();
 	IplImage* toShow = cvCreateImage(cvSize(PMDNUMCOLS,PMDNUMROWS), 8, 3);
-	_pmdCamera.RenderDistances(backgroundData->means, toShow);
+	PMDUtils::DistancesToImage(backgroundData->means, toShow);
 	
 	cvFlip (toShow, toShow, 0);
 
@@ -46,7 +46,7 @@ void showBackgroundImage()
 
 	//// show standard deviation
 	toShow = cvCreateImage(cvSize(PMDNUMCOLS,PMDNUMROWS), 8, 3);
-	_pmdCamera.RenderDistances(backgroundData->stdevs, toShow);
+	PMDUtils::DistancesToImage(backgroundData->stdevs, toShow);
 
 	cvFlip (toShow, toShow, 0);
 	cvShowImage ("Stdev Image", toShow);
@@ -119,12 +119,12 @@ bool draw()
 
 	// get intensities
 
-	PMDCamera::AmplitudesToImage(_pmdCamera.GetIntensitiesBuffer(), (unsigned char*) _images[imageIndex]->imageData,  
+	PMDUtils::AmplitudesToImage(_pmdCamera.GetIntensitiesBuffer(), (unsigned char*) _images[imageIndex]->imageData,  
 		_images[imageIndex]->widthStep / sizeof(unsigned char), _images[imageIndex]->nChannels);
 
 	imageIndex++;
 
-	_pmdCamera.RenderDistances(_pmdCamera.GetDistancesProcessed(), _images[imageIndex]);
+	PMDUtils::DistancesToImage((const float *)_pmdCamera.GetDistancesProcessed()->imageData, _images[imageIndex]);
 	cvCircle(_images[imageIndex], cvPoint(cvRound(_pmdCamera.GetFingerData()->fingerX), 
 		PMDNUMROWS - cvRound(_pmdCamera.GetFingerData()->fingerY)), 
 		10, 
@@ -134,7 +134,7 @@ bool draw()
 	str.precision(2);
 	str << "fps: " << _fps;
     
-	for(int i = 0; i < _images.size(); i++)
+	for(UINT i = 0; i < _images.size(); i++)
 	{
 		cvFlip (_images[i], _images[i], 0);
 		Mat img = _images[i];

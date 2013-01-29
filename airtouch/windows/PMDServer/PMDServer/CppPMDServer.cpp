@@ -3,6 +3,7 @@
 #include <time.h>
 
 #include "PMDCamera.h"
+#include "PMDUtils.h"
 
 
 /* Globar vars */
@@ -63,7 +64,7 @@ void updateUI()
 		++_fpsCounter;
 	}
 
-	_pmdCamera.RenderDistances(_pmdCamera.GetDistancesProcessed(), _distancesAndFingerLocation);
+	PMDUtils::DistancesToImage(_pmdCamera.GetDistancesProcessed(), _distancesAndFingerLocation);
 
     cvFlip (_distancesAndFingerLocation, _distancesAndFingerLocation, 0);
 	cvCircle(_distancesAndFingerLocation, cvPoint(cvRound(_pmdData.fingerX), 
@@ -88,7 +89,7 @@ void showBackgroundImage()
 	// todo: convert to a method (repeated once already)
 	BackgroundSubtractionData const* const backgroundData = _pmdCamera.GetBackgroundSubtractionData();
 	IplImage* toShow = cvCreateImage(cvSize(PMDNUMCOLS,PMDNUMROWS), 8, 3);
-	_pmdCamera.RenderDistances(backgroundData->means, toShow);
+	PMDUtils::DistancesToImage(backgroundData->means, toShow);
 	
 	cvFlip (toShow, toShow, 0);
 
@@ -100,7 +101,7 @@ void showBackgroundImage()
 
 	//// show standard deviation
 	toShow = cvCreateImage(cvSize(PMDNUMCOLS,PMDNUMROWS), 8, 3);
-	_pmdCamera.RenderDistances(backgroundData->stdevs, toShow);
+	PMDUtils::DistancesToImage(backgroundData->stdevs, toShow);
 
 	cvFlip (toShow, toShow, 0);
 	cvShowImage ("Stdev Image", toShow);
