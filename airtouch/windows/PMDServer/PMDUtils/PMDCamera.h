@@ -45,6 +45,7 @@ public:
 	// Getters
 	PMDFingerData const* const GetFingerData(){ return &m_pmdFingerData;}
 	float const* const GetDistanceBuffer() {return m_pmdDistanceBuffer;}
+	float const* const GetIntensitiesBuffer() {return m_pmdIntensitiesBuffer;}
 	IplImage const* const GetDistancesProcessed() {return m_pmdDistancesProcessed;}
 	BackgroundSubtractionData const* const GetBackgroundSubtractionData() {return &m_backgroundSubtractionData;}
 
@@ -59,7 +60,7 @@ public:
 
 	// static methods
 	static void DepthDataToImage(float const* pDepthData, unsigned char* imgPtr, int rowStep, int step);
-
+	static void AmplitudesToImage(float const* pDepthData, unsigned char* imgPtr, int rowStep, int step);
 
 private:
 	PMDDataDescription m_pmdDataDescription;
@@ -70,6 +71,7 @@ private:
 	// Data
 	unsigned int m_pmdFlags[PMDIMAGESIZE];
 	float m_pmdDistanceBuffer[PMDIMAGESIZE];
+	float m_pmdIntensitiesBuffer[PMDIMAGESIZE];
 	IplImage* m_pmdDistancesProcessed;
 	
 	// Image Processing

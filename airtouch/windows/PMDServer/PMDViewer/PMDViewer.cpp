@@ -11,7 +11,8 @@ double _fps = 0;
 int _fpsCounter = 0;
 
 // UI
-IplImage* _data;
+vector<IplImage*> _images;
+string _frameTitles[2] = {"intensities", "distances processed"};
 
 void error(string msg)
 {
@@ -23,7 +24,6 @@ void error(string msg)
 
 void welcomeMessage()
 {
-	// add welcome here
 	cout << "PMDViewer shows PMD data and various stages of processing algorithm" << endl;
 	cout << "Usage: PMDViewer.exe to read from camera" << endl;
 	cout << "Usage: PMDViewer.exe [filename.pmd] to read from .pmd file" << endl;
@@ -69,50 +69,10 @@ bool update()
 	return true;
 }
 
-void getFps()
-{
-	// calculate current fps
-	time(&_fpsEnd);
-	
-	double sec = difftime(_fpsEnd, _fpsStart);
-	if(sec > 1)
-	{
-		_fps = _fpsCounter;
-		time(&_fpsStart);
-		_fpsCounter = 0;
-	} else
-	{
-		++_fpsCounter;
-	}
-}
-bool draw()
-{
-	getFps();
-
-	_pmdCamera.RenderDistances(_pmdCamera.GetDistancesProcessed(), _data);
-
-    cvFlip (_data, _data, 0);
-	cvCircle(_data, cvPoint(cvRound(_pmdCamera.GetFingerData()->fingerX), 
-		PMDNUMROWS - cvRound(_pmdCamera.GetFingerData()->fingerY)), 
-		10, 
-		CV_RGB(255,0,0));
-
-	ostringstream str;
-	str.precision(2);
-	str << "fps: " << _fps;
-    
-	Mat img = _data;
-	putText(img, str.str(), cvPoint(10,20), FONT_HERSHEY_COMPLEX_SMALL, 1.0f,CV_RGB(255,0,0)) ;
-	cvShowImage ("Data", _data);
-	return true;
-}
-
-int  main(int argc, char* argv[])
+void setup(int argc, char* argv[])
 {
 	// welcome message
 	welcomeMessage();
-	
-	_data = cvCreateImage(cvSize(PMDNUMCOLS,PMDNUMROWS), 8, 3);
 
 	HRESULT hr = 0;
 
@@ -133,7 +93,82 @@ int  main(int argc, char* argv[])
 	hr = _pmdCamera.InitializeBackgroundSubtraction();
 	if(!SUCCEEDED(hr)) error("Error: Background subtraction failed");
 	showBackgroundImage();
+}
+void getFps()
+{
+	// calculate current fps
+	time(&_fpsEnd);
 	
+	double sec = difftime(_fpsEnd, _fpsStart);
+	if(sec > 1)
+	{
+		_fps = _fpsCounter;
+		time(&_fpsStart);
+		_fpsCounter = 0;
+	} else
+	{
+		++_fpsCounter;
+	}
+}
+
+bool draw()
+{
+	getFps();
+
+	int imageIndex = 0;
+
+	// get intensities
+
+	PMDCamera::AmplitudesToImage(_pmdCamera.GetIntensitiesBuffer(), (unsigned char*) _images[imageIndex]->imageData,  
+		_images[imageIndex]->widthStep / sizeof(unsigned char), _images[imageIndex]->nChannels);
+
+	imageIndex++;
+
+	_pmdCamera.RenderDistances(_pmdCamera.GetDistancesProcessed(), _images[imageIndex]);
+	cvCircle(_images[imageIndex], cvPoint(cvRound(_pmdCamera.GetFingerData()->fingerX), 
+		PMDNUMROWS - cvRound(_pmdCamera.GetFingerData()->fingerY)), 
+		10, 
+		CV_RGB(255,0,0));
+
+	ostringstream str;
+	str.precision(2);
+	str << "fps: " << _fps;
+    
+	for(int i = 0; i < _images.size(); i++)
+	{
+		cvFlip (_images[i], _images[i], 0);
+		Mat img = _images[i];
+		putText(img, str.str(), cvPoint(10,20), FONT_HERSHEY_COMPLEX_SMALL, 1.0f,CV_RGB(255,0,0)) ;
+		cvShowImage (_frameTitles[i].c_str(), _images[i]);
+	}
+    
+	return true;
+}
+
+void createImages()
+{
+	for(int i = 0; i < _countof(_frameTitles);i++)
+	{
+		IplImage* toAdd = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), 8,3); 
+		_images.push_back(toAdd);
+	}
+}
+
+void destroyImages()
+{
+	for(int i = 0; i < _countof(_frameTitles);i++)
+	{
+		cvReleaseImage(&_images[i]);
+	}
+	_images.clear();
+}
+
+int  main(int argc, char* argv[])
+{
+	setup(argc, argv);
+	
+	createImages();
+
 	while(true)
 	{
 		if(!update()) break;
@@ -141,9 +176,7 @@ int  main(int argc, char* argv[])
 		int key = cvWaitKey(1);
 		if(key == 'q') break;
 	}
-
-	cvReleaseImage(&_data);
-
+	destroyImages();
 	return 0;
 }
 

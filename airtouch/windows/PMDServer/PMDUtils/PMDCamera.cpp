@@ -194,6 +194,16 @@ HRESULT PMDCamera::UpdateCameraData()
 		return -1;
 	}
 
+	res = pmdGetAmplitudes (m_pmdHandle, m_pmdIntensitiesBuffer, PMDIMAGESIZE * sizeof (float));
+	if (res != PMD_OK)
+	{
+		pmdGetLastError (m_pmdHandle, m_pmdErrorBuffer, 128);
+		fprintf (stderr, "UpdateCameraData Error: Could not get intensities: %s\n", m_pmdErrorBuffer);
+		pmdClose (m_pmdHandle);
+		return -1;
+	}
+
+
 	res = pmdGetFlags(m_pmdHandle, m_pmdFlags, PMDIMAGESIZE * 4);
 	if (res != PMD_OK)
 	{
@@ -322,3 +332,27 @@ void PMDCamera::DepthDataToImage( float const* pDepthData, unsigned char* imgPtr
         }
     }
 }
+
+void PMDCamera::AmplitudesToImage( float const* pDepthData, unsigned char* imgPtr, int rowStep, int step)
+{
+	unsigned char * currentRow = 0;
+	for (int y = 0; y < PMDNUMROWS; ++y)
+    {
+		currentRow = &imgPtr[y * rowStep];
+		for (int x = 0; x < PMDNUMCOLS; ++x, currentRow += step, ++pDepthData)
+        {
+			unsigned char val = *pDepthData;
+            // Clamp at 1 meters and scale the values in between to fit the image
+            if (*pDepthData > 255 || *pDepthData < 0)
+            {
+                val = 0;
+            }
+			currentRow[0] = val;
+			currentRow[1] = val;
+			currentRow[2] = val;
+        }
+    }
+}
+
+
+
