@@ -335,18 +335,19 @@ void PMDCamera::DepthDataToImage( float const* pDepthData, unsigned char* imgPtr
 
 void PMDCamera::AmplitudesToImage( float const* pDepthData, unsigned char* imgPtr, int rowStep, int step)
 {
+	float maxAmp = 0.0f;
+	for(int i = 0; i < PMDIMAGESIZE; i++)
+	{
+		if(pDepthData[i] > maxAmp) maxAmp = pDepthData[i];
+	}
 	unsigned char * currentRow = 0;
 	for (int y = 0; y < PMDNUMROWS; ++y)
     {
 		currentRow = &imgPtr[y * rowStep];
 		for (int x = 0; x < PMDNUMCOLS; ++x, currentRow += step, ++pDepthData)
         {
-			unsigned char val = *pDepthData;
+			unsigned char val = (char)(*pDepthData / maxAmp * 255.0f);
             // Clamp at 1 meters and scale the values in between to fit the image
-            if (*pDepthData > 255 || *pDepthData < 0)
-            {
-                val = 0;
-            }
 			currentRow[0] = val;
 			currentRow[1] = val;
 			currentRow[2] = val;
