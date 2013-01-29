@@ -83,16 +83,6 @@ void updateUI()
 }
 
 
-//
-// Image Processing
-//
-
-void initializeBackgroundSubtraction()
-{
-	cout << "initializing background subtraction..." << endl;
-	
-}
-
 void showBackgroundImage()
 {
 	// todo: convert to a method (repeated once already)

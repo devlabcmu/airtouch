@@ -12,7 +12,7 @@
 
 
 #define BUFSIZE 512
-#define BACKGROUND_THRESHOLD_STDEV 5
+#define BACKGROUND_THRESHOLD_STDEV 3
 
 using namespace cv;
 using namespace std;
