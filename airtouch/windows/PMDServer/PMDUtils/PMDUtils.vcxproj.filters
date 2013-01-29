@@ -24,8 +24,16 @@
     <ClInclude Include="pmddata.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="airtouch.h">
+    <ClInclude Include="PMDCamera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="PMDConstants.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="PMDCamera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -1,11 +1,10 @@
 #include <stdio.h>
 #include <tchar.h>
 
-
-
 #include "simplewinsock.h"
 #include "strutils.h"
 #include"pmddata.h"
+#include "PMDCamera.h"
 
 #include <opencv/cxcore.h>
 #include <opencv/highgui.h>
@@ -26,7 +25,7 @@ int _ocvFrameStep;
 
 void updateFrameWithNewData()
 {
-	depthDataToImage(_fromServer.buffer, (unsigned char *)  _ocvFrame->imageData, _ocvFrameStep, _ocvFrame->nChannels);
+	PMDCamera::DepthDataToImage(_fromServer.buffer, (unsigned char *)  _ocvFrame->imageData, _ocvFrameStep, _ocvFrame->nChannels);
 
     cvFlip (_ocvFrame, _ocvFrame, 0);
 	cvCircle(_ocvFrame, cvPoint(cvRound(_fromServer.fingerX), 
