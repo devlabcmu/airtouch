@@ -107,16 +107,18 @@ bool update()
 
 	// PMDUtils::DistancesToImage((const float *)_pmdCamera.GetDistancesProcessed()->imageData, _images[imageIndex]);
 	memcpy(_images[imageIndex]->imageData, _pmdCamera.GetDistancesProcessedRGB()->imageData, _pmdCamera.GetDistancesProcessedRGB()->imageSize);
-	cvCircle(_images[imageIndex], cvPoint(cvRound(_pmdCamera.GetFingerData()->fingerX), 
-		PMDNUMROWS - cvRound(_pmdCamera.GetFingerData()->fingerY)), 
-		10, 
-		CV_RGB(255,0,0));
+
+	vector<KeyPoint> blobs = _pmdCamera.GetBlobPoints();
+	for(vector<KeyPoint>::iterator i = blobs.begin(); i < blobs.end(); i++)
+	{
+		cvCircle(_images[imageIndex], i->pt, i->size, CV_RGB(0, 255, 0));
+	}
 
 	vector<Finger> fingers = _pmdCamera.GetFingers();
 	std::sort(fingers.begin(), fingers.end(), fingerCompare);
 	Mat img = _images[imageIndex];
 
-	CvScalar fingerColors[2] = {CV_RGB(255,0,0), CV_RGB(0,255,0)};
+	CvScalar fingerColors[2] = {CV_RGB(255,0,0), CV_RGB(0,0,255)};
 	for(vector<Finger>::iterator i = fingers.begin(); i !=fingers.end(); i++)
 	{
 		cvCircle(_images[imageIndex], i->screenCoords, 10, fingerColors[i - fingers.begin()]);

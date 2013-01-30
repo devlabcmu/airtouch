@@ -9,7 +9,7 @@
 
 const int g_numFramesForBackgroundSubtraction = 50;
 
-const float g_fingerSmoothing = 0.8f;
+const float g_fingerSmoothing = 0.5f;
 
 PMDCamera::PMDCamera(void)
 {
@@ -28,7 +28,7 @@ PMDCamera::PMDCamera(void)
 
 	blobParams.filterByArea = true;
 	blobParams.minArea = 300.0f;
-	blobParams.maxArea = 10000.0f;
+	blobParams.maxArea = 100000.0f;
 
 	blobParams.filterByCircularity = false;
 	
@@ -392,6 +392,7 @@ void PMDCamera::BlobsToFingers()
 
 void PMDCamera::UpdateFingerPositions()
 {
+	float* pDistances = (float*) m_pmdDistancesProcessed->imageData;
 	// for each finger, smooth with old screen position and new screen position
 	// update rest of coordinates
 	for(vector<Finger>::iterator j = m_newFingers.begin(); j !=m_newFingers.end(); j++)
@@ -401,12 +402,12 @@ void PMDCamera::UpdateFingerPositions()
 		float minZ = 1000.0f;
 		float minX = 0, minY = 0;
 		bool newFinger = j->screenCoords.x < 0;
-		int searchSize = newFinger ? j->blobSize / 2 : 30;
+		int searchSize = newFinger ? j->blobSize : 20;
 		bool first = true;
 		for(int dy = -searchSize; dy < searchSize; dy++)
 		{
 			y = (newFinger ? j->blobCenter.y : j->screenCoords.y) + dy;
-			if(y < 0 || y > PMDNUMROWS || abs(y - j->blobCenter.y) > j->blobSize / 2) continue;
+			if(y < 0 || y > PMDNUMROWS || abs(y - j->blobCenter.y) > j->blobSize * 1.5) continue;
 			for(int dx = -searchSize; dx < searchSize; dx++)
 			{
 				x = (newFinger ? j->blobCenter.x : j->screenCoords.x) + dx;
@@ -416,10 +417,10 @@ void PMDCamera::UpdateFingerPositions()
 					minY = y;
 					first = false;
 				}
-				if(x < 0 || x > PMDNUMCOLS || abs(x - j->blobCenter.x) > j->blobSize / 2) continue;
+				if(x < 0 || x > PMDNUMCOLS || abs(x - j->blobCenter.x) > j->blobSize * 1.5) continue;
 				int idx = y * PMDNUMCOLS + x;
 				if(m_pmdFlags[idx] & PMD_FLAG_INVALID) continue;
-				float dst = m_pmdDistanceBuffer[idx];
+				float dst = pDistances[idx];
 				if(dst == PMD_INVALID_DISTANCE) continue;
 				if(dst < minZ)
 				{
