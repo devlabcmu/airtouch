@@ -23,6 +23,22 @@ typedef struct {
 	float stdevs[PMDIMAGESIZE];
 } BackgroundSubtractionData;
 
+typedef struct {
+	Point2f screenCoords;
+	Point2f blobCenter;
+	float blobSize;
+	Point3f worldCoords;
+	Point3f phoneCoords;
+	int id;
+} Finger;
+
+typedef struct {
+	Point2f blobPoint;
+	Point2f fingerPoint;
+	int blobIndex;
+	int fingerIndex;
+	float distance;
+} ClosestBlobInfo;
 
 class PMDCamera
 {
@@ -51,6 +67,7 @@ public:
 	IplImage const* const GetDistancesProcessedRGB() {return m_pmdDistancesProcessedRGB;}
 	IplImage const* const GetCoordsPhoneSpace() { return m_pmdPhoneSpace; }
 	vector<KeyPoint> GetBlobPoints() {return m_blobPoints;}
+	vector<Finger> GetFingers() {return m_newFingers;}
 	BackgroundSubtractionData const* const GetBackgroundSubtractionData() {return &m_backgroundSubtractionData;}
 	
 	Point3f GetCoord(int row, int col)
@@ -105,7 +122,11 @@ private:
 
 	
 
-	
-	
+	// FInger Tracking
+	vector<Finger> m_oldFingers;
+	vector<Finger> m_newFingers;
+	void BlobsToFingers();
+	void UpdateFingerPositions();
+	static bool blobCompare(KeyPoint a, KeyPoint b) { return a.size > b.size;}
 };
 

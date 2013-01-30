@@ -71,6 +71,8 @@ void showBackgroundImage()
 	cvReleaseImage(&toShow);
 }
 
+bool fingerCompare(Finger a, Finger b){ return a.id < b.id;}
+
 bool update()
 {
 	HRESULT hr = _pmdCamera.UpdateCameraData();
@@ -101,7 +103,6 @@ bool update()
 	_pmdCamera.RemoveReflection();
 	_pmdCamera.Erode(1);
 	_pmdCamera.UpdateFingers();
-	_pmdCamera.FindBlobs();
 	vector<KeyPoint> blobPoints = _pmdCamera.GetBlobPoints();
 
 	// PMDUtils::DistancesToImage((const float *)_pmdCamera.GetDistancesProcessed()->imageData, _images[imageIndex]);
@@ -110,9 +111,15 @@ bool update()
 		PMDNUMROWS - cvRound(_pmdCamera.GetFingerData()->fingerY)), 
 		10, 
 		CV_RGB(255,0,0));
-	for(vector<KeyPoint>::iterator i = blobPoints.begin(); i !=blobPoints.end(); i++)
+
+	vector<Finger> fingers = _pmdCamera.GetFingers();
+	std::sort(fingers.begin(), fingers.end(), fingerCompare);
+	Mat img = _images[imageIndex];
+
+	CvScalar fingerColors[2] = {CV_RGB(255,0,0), CV_RGB(0,255,0)};
+	for(vector<Finger>::iterator i = fingers.begin(); i !=fingers.end(); i++)
 	{
-		cvCircle(_images[imageIndex], i->pt, i->size, CV_RGB(0, 255, 0));
+		cvCircle(_images[imageIndex], i->screenCoords, 10, fingerColors[i - fingers.begin()]);
 	}
 	return true;
 }

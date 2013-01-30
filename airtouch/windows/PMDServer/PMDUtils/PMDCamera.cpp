@@ -1,5 +1,5 @@
 #include "PMDCamera.h"
-
+#include <algorithm>
 #define SOURCE_PLUGIN "camboardnano"
 #define SOURCE_PARAM ""
 #define PROC_PLUGIN "camboardnanoproc"
@@ -9,6 +9,7 @@
 
 const int g_numFramesForBackgroundSubtraction = 50;
 
+const float g_fingerSmoothing = 0.5f;
 
 PMDCamera::PMDCamera(void)
 {
@@ -297,27 +298,170 @@ void PMDCamera::UpdateBackgroundSubtraction()
 		}
 	}
 }
+void PMDCamera::BlobsToFingers()
+{
+	// reduce number of blobs to max_fingers
+	vector<KeyPoint> blobCopy;
+	for (vector<KeyPoint>::iterator i = m_blobPoints.begin(); i < m_blobPoints.end(); i++)
+	{
+		blobCopy.push_back(*i);
+	}
+
+	if(blobCopy.size() > PMD_MAX_FINGERS)
+	{
+		std::sort(blobCopy.begin(), blobCopy.end(), PMDCamera::blobCompare);
+		blobCopy.erase(blobCopy.begin() + PMD_MAX_FINGERS - 1, blobCopy.end());
+	}
+
+	if(blobCopy.size() == 0) return;
+
+	for(vector<KeyPoint>::iterator i = blobCopy.begin(); i !=blobCopy.end(); i++)
+	{
+		Finger newFinger;
+
+		// find the finger that is closest to the current blob position
+		int closestIndex=0;
+		float closestDistance = 10000.0f;
+		Point2f blobCenter = i->pt;
+		for(vector<Finger>::iterator j = m_oldFingers.begin(); j !=m_oldFingers.end(); j++)
+		{
+			float dist = norm(blobCenter - j->blobCenter);
+			if(dist < closestDistance)
+			{
+				closestDistance = dist;
+				closestIndex = j - m_oldFingers.begin();
+			}
+		}
+
+		bool fingerBlobMatch = m_oldFingers.size() > 0;
+		// check if there are any other blobs that are closer to this finger
+		for(vector<KeyPoint>::iterator k = blobCopy.begin(); k !=blobCopy.end() && fingerBlobMatch; k++)
+		{
+			if(k == i) continue;
+			float dist = norm(k->pt - m_oldFingers[closestIndex].blobCenter);
+			if(dist < closestDistance) fingerBlobMatch = false;
+		}
+
+		if(!fingerBlobMatch)
+		{
+			// we need to generate a new finger
+			newFinger.id = 0;
+			for(vector<Finger>::iterator j = m_newFingers.begin(); j !=m_newFingers.end(); j++)
+			{
+				if(newFinger.id <= j->id)
+					newFinger.id = j->id + 1;
+			}
+			for(vector<Finger>::iterator j = m_oldFingers.begin(); j !=m_oldFingers.end(); j++)
+			{
+				if(newFinger.id <= j->id)
+					newFinger.id = j->id + 1;
+			}
+
+			newFinger.screenCoords = cvPoint(-1,-1);
+		} else
+		{
+			newFinger = m_oldFingers[closestIndex];
+
+			// update the screen coordinates of the new finger, for now just blob coords
+			// get rid of finger at that index
+			m_oldFingers.erase(m_oldFingers.begin() + closestIndex);
+		}
+
+		newFinger.blobCenter = i->pt;
+		newFinger.blobSize = i->size;
+		m_newFingers.push_back(newFinger);
+	}
+
+	
+
+	// find closest finger
+
+	// if no finger present then add a new finger
+
+	// given an old finger location 
+	// if no location is present then location is blob center
+	// cull around the finger
+	// find smallest z value
+	// smooth
+
+	// find the x,y coordinate that has the smallest z value
+
+
+	// find the x, y coordinate that has the highest value
+}
+
+void PMDCamera::UpdateFingerPositions()
+{
+	// for each finger, smooth with old screen position and new screen position
+	// update rest of coordinates
+	for(vector<Finger>::iterator j = m_newFingers.begin(); j !=m_newFingers.end(); j++)
+	{
+		// find x,y, depth that has smallest depth within region of finger
+		int x, y;
+		float minZ = 1000.0f;
+		float minX, minY;
+		for(int dy = -j->blobSize / 2; dy < j->blobSize/2; dy++)
+		{
+			y = j->blobCenter.y + dy;
+			if(y < 0 || y > PMDNUMROWS) continue;
+			for(int dx = -j->blobSize / 2; dx < j->blobSize/2; dx++)
+			{
+				x = j->blobCenter.x + dx;
+				if(x < 0 || x > PMDNUMCOLS) continue;
+				int idx = y * PMDNUMCOLS + x;
+				if(m_pmdFlags[idx] & PMD_FLAG_INVALID) continue;
+				float dst = m_pmdDistanceBuffer[idx];
+				if(dst == PMD_INVALID_DISTANCE) continue;
+				if(dst < minZ)
+				{
+					minX = x;
+					minY = y;
+					minZ = dst;
+				}
+			}
+		}
+
+		// smooth finger position
+		// if screen coords are new, just use those
+		if(j->screenCoords.x < 0)
+		{
+			j->screenCoords.x = minX;
+			j->screenCoords.y = minY;
+		} else
+		{
+			j->screenCoords.x = j->screenCoords.x * g_fingerSmoothing + minX * (1 - g_fingerSmoothing);
+			j->screenCoords.y = j->screenCoords.y * g_fingerSmoothing + minY * (1 - g_fingerSmoothing);
+		}
+
+		// update world and phone coords
+		x = j->screenCoords.x;
+		y = j->screenCoords.y;
+		float* pWorld = (float*)m_pmdCoords->imageData;
+		pWorld += 3 * (PMDNUMCOLS * y + x);
+
+		j->worldCoords = Point3f(pWorld[0], pWorld[1], pWorld[2]);
+		j->phoneCoords = m_phoneCalibration.ToPhoneSpace(j->worldCoords);
+	}
+}
 
 void PMDCamera::UpdateFingers()
 {
-	// find the x, y coordinate that has the highest value
-	m_pmdFingerData.fingerX = 0;
-	m_pmdFingerData.fingerY = 0;
-	m_pmdFingerData.fingerZ = FLT_MAX;
-
-	for(int y = 0; y < PMDNUMROWS; y++)
+	FindBlobs();
+	
+	// copy all new fingers to old fingers
+	m_oldFingers.clear();
+	for(vector<Finger>::iterator i = m_newFingers.begin(); i !=m_newFingers.end(); i++)
 	{
-		for(int x = 0; x < PMDNUMCOLS; x++)
-		{
-			int idx = y * PMDNUMCOLS + x;
-			if(m_pmdDistanceBuffer[idx] >= 0 && m_pmdDistanceBuffer[idx] < m_pmdFingerData.fingerZ)
-			{
-				m_pmdFingerData.fingerX = x;
-				m_pmdFingerData.fingerY = y;
-				m_pmdFingerData.fingerZ = m_pmdDistanceBuffer[idx];
-			}
-		}
+		m_oldFingers.push_back(*i);
 	}
+
+	m_newFingers.clear();
+	
+	// associate fingers to blobs. new_fingers will be populated, blob point will be associated blob point, 
+	// screen coords are still the old screen coords
+	BlobsToFingers();
+	UpdateFingerPositions();
+	
 
 }
 
