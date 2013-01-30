@@ -232,7 +232,7 @@ int main(int argc, char* argv[])
 
 	hr = _pmdCamera.InitializeBackgroundSubtraction();
 	if(!SUCCEEDED(hr)) error("Error: Background subtraction failed");
-	showBackgroundImage();
+	//showBackgroundImage();
 
 	WSADATA wsaData = {0};
 	WORD wVer = MAKEWORD(2,2);
