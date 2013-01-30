@@ -67,10 +67,9 @@ void updateUI()
 	PMDUtils::DistancesToImage(_pmdCamera.GetDistancesProcessed(), _distancesAndFingerLocation);
 
     cvFlip (_distancesAndFingerLocation, _distancesAndFingerLocation, 0);
-	cvCircle(_distancesAndFingerLocation, cvPoint(cvRound(_pmdData.fingerX), 
-		PMDNUMROWS - cvRound(_pmdData.fingerY)), 
-		10, 
-		CV_RGB(255,0,0));
+
+	
+
 	ostringstream str;
 	str.precision(2);
 	str << "fps: " << _fps;
@@ -166,10 +165,15 @@ bool communicateWithClient(SOCKET* hClient)
 		_pmdCamera.Threshold(0.1f);
 		_pmdCamera.UpdateBackgroundSubtraction();
 		_pmdCamera.MedianFilter();
+		_pmdCamera.RemoveReflection();
+		_pmdCamera.Erode(1);
+		
 		_pmdCamera.UpdateFingers();
+
+		// draw all fingers
+		
 		memcpy_s(&_pmdData.fingerX, sizeof(PMDFingerData), _pmdCamera.GetFingerData(), sizeof(PMDFingerData));
 
-		
 
 		if(command == 'f')
 		{

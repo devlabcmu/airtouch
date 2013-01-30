@@ -87,7 +87,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>opencv_calib3d242.lib;opencv_imgproc242d.lib;ws2_32.lib;opencv_core242d.lib;opencv_highgui242d.lib;$(SolutionDir)/lib/pmdaccess2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opencv_calib3d242d.lib;opencv_features2d242d.lib;opencv_imgproc242d.lib;ws2_32.lib;opencv_core242d.lib;opencv_highgui242d.lib;$(SolutionDir)/lib/pmdaccess2.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OPENCVDIR)/x86/vc10/lib;$(SolutionDir)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>

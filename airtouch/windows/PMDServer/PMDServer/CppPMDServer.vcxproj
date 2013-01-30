@@ -73,6 +73,12 @@ copy $(SolutionDir)\recordings\*.pmd "$(OutDir)"</Command>
       <AdditionalDependencies>opencv_imgproc242d.lib;ws2_32.lib;opencv_core242d.lib;opencv_highgui242d.lib;$(SolutionDir)/lib/pmdaccess2.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OPENCVDIR)/x86/vc10/lib;$(SolutionDir)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>copy $(SolutionDir)\lib\*.dll "$(OutDir)"
+copy $(SolutionDir)\lib\camboardnano* "$(OutDir)"
+copy $(SolutionDir)\lib\pmdfile* "$(OutDir)"
+copy $(SolutionDir)\recordings\*.pmd "$(OutDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CppPMDServer.cpp" />
