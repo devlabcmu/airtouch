@@ -14,6 +14,7 @@ PMDCamera::PMDCamera(void)
 {
 	// create all opencv images
 	m_pmdDistancesProcessed = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), IPL_DEPTH_32F, 1);
+	m_pmdPhoneSpace = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), IPL_DEPTH_32F, 3);
 	m_pmdCoords = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), IPL_DEPTH_32F, 3);
 }
 
@@ -223,21 +224,20 @@ HRESULT PMDCamera::UpdateCameraData()
 		return -1;
 	}
 
-
-	for(int y = 0; y < PMDNUMROWS; y++)
+	// Zero out all invalid coordinates
+	for (int i = 0; i < PMDIMAGESIZE; i++)
 	{
-		for(int x = 0; x < PMDNUMCOLS; x++)
+		if(m_pmdFlags[i] & PMD_FLAG_INVALID)
 		{
-			int idx = y * PMDNUMCOLS + x;
-			if(m_pmdFlags[idx] & PMD_FLAG_INVALID)
-			{
-				m_pmdDistanceBuffer[idx] = PMD_INVALID_DISTANCE;
-			}
+			m_pmdDistanceBuffer[i] = PMD_INVALID_DISTANCE;
 		}
 	}
 
 	// copy the raw data to the processed data
 	memcpy_s(m_pmdDistancesProcessed->imageData, PMDIMAGESIZE * sizeof(float), m_pmdDistanceBuffer, PMDIMAGESIZE * sizeof(float));
+
+	// get the coordinates in phone space
+	m_phoneCalibration.ToPhoneSpace((float*)m_pmdCoords->imageData, (float*)m_pmdPhoneSpace->imageData);
 
 	return 0;
 }
@@ -306,6 +306,19 @@ void PMDCamera::MedianFilter()
 	medianBlur(src, dst, 5);
 	memcpy_s(m_pmdDistancesProcessed->imageData, PMDIMAGESIZE * sizeof(float), tmp->imageData, PMDIMAGESIZE * sizeof(float));
 	cvReleaseImage(&tmp);
+}
+
+void PMDCamera::RemoveReflection()
+{
+	float* pPhone = (float*) m_pmdPhoneSpace->imageData;
+	float* pDistances = (float *)m_pmdDistancesProcessed->imageData;
+	for(int i = 0; i < PMDIMAGESIZE; i++, pPhone += 3, ++pDistances)
+	{
+		if(pPhone[1] < 0)
+		{
+			*pDistances = PMD_INVALID_DISTANCE;
+		}
+	}
 }
 
 

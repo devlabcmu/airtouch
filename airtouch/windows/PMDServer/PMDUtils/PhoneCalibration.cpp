@@ -1,7 +1,9 @@
 #include "PhoneCalibration.h"
 #include "PMDConstants.h"
 
+#define PHONE_ANDROID
 
+#ifdef PHONE_ANDROID
 #define ORIGINX 0.0387f
 #define ORIGINY -0.0329f
 #define ORIGINZ 0.0644
@@ -13,6 +15,22 @@
 #define P2X 0.0392f
 #define P2Y -0.0196f
 #define P2Z  0.2121f
+#endif
+
+#ifdef PHONE_IPHONE
+// calibration for iphone
+#define ORIGINX 0.0387f
+#define ORIGINY -0.0329f
+#define ORIGINZ 0.0644
+
+#define P1X -0.0169f
+#define P1Y -0.0271f
+#define P1Z 0.0548f
+
+#define P2X 0.0392f
+#define P2Y -0.0196f
+#define P2Z  0.2121f
+#endif
 
 PhoneCalibration::PhoneCalibration(void)
 {
@@ -39,20 +57,36 @@ Point3f PhoneCalibration::ToPhoneSpace(Point3f coord)
 	return Point3f(x,y,z);
 }
 
-void PhoneCalibration::ToPhoneSpace(Mat* src, Mat* dst)
+void PhoneCalibration::ToPhoneSpace(float* src, float* dst)
 {
-	float* pSrc = (float*) src->data;
-	float* pDst = (float*) dst->data;
+	float* pSrc = src;
+	float* pDst = dst;
+
+	float ox = m_origin.at<float>(0);
+	float oy = m_origin.at<float>(1);
+	float oz = m_origin.at<float>(2);
+
+	float xx = m_unitX.at<float>(0);
+	float xy = m_unitX.at<float>(1);
+	float xz = m_unitX.at<float>(2);
+
+	float yx = m_unitY.at<float>(0);
+	float yy = m_unitY.at<float>(1);
+	float yz = m_unitY.at<float>(2);
+
+	float zx = m_unitZ.at<float>(0);
+	float zy = m_unitZ.at<float>(1);
+	float zz = m_unitZ.at<float>(2);
 
 	for(int i = 0; i < PMDIMAGESIZE; i++, pSrc += 3, pDst +=3)
 	{
-		float x = pSrc[0];
-		float y = pSrc[1];
-		float z = pSrc[2];
+		float x = pSrc[0] - ox;
+		float y = pSrc[1] - oy;
+		float z = pSrc[2] - oz;
 
-		pDst[0] = m_unitX.at<float>(0) * x + m_unitX.at<float>(1) * y + m_unitX.at<float>(2) * z;
-		pDst[1] = m_unitY.at<float>(0) * x + m_unitY.at<float>(1) * y + m_unitY.at<float>(2) * z;
-		pDst[2] = m_unitZ.at<float>(0) * x + m_unitZ.at<float>(1) * y + m_unitZ.at<float>(2) * z;
+		pDst[0] = xx * x + xy * y + xz * z;
+		pDst[1] = yx * x + yy * y + yz * z;
+		pDst[2] = zx * x + zy * y + zz * z;
 	}
 }
 

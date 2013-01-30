@@ -9,6 +9,7 @@
 #include <pmdsdk2.h>
 #include "PMDConstants.h"
 #include "pmddata.h"
+#include "PhoneCalibration.h"
 
 
 #define BUFSIZE 512
@@ -47,6 +48,7 @@ public:
 	UINT const* const GetFlags(){return m_pmdFlags;}
 	IplImage const* const GetCoords() {return m_pmdCoords;}
 	IplImage const* const GetDistancesProcessed() {return m_pmdDistancesProcessed;}
+	IplImage const* const GetCoordsPhoneSpace() { return m_pmdPhoneSpace; }
 	BackgroundSubtractionData const* const GetBackgroundSubtractionData() {return &m_backgroundSubtractionData;}
 	
 	Point3f GetCoord(int row, int col)
@@ -69,6 +71,7 @@ public:
 	void MedianFilter();
 	void UpdateBackgroundSubtraction();
 	void UpdateFingers();
+	void RemoveReflection();
 	void Threshold(float maxdistance);
 
 private:
@@ -83,13 +86,19 @@ private:
 	float m_pmdIntensitiesBuffer[PMDIMAGESIZE];
 	IplImage* m_pmdCoords;
 	IplImage* m_pmdDistancesProcessed;
-	
-	// Image Processing
-	BackgroundSubtractionData m_backgroundSubtractionData;
-
+	IplImage* m_pmdPhoneSpace;
 	PMDFingerData m_pmdFingerData;
 
-	// OpenCV UI
+
+	// Image Processing
+	BackgroundSubtractionData m_backgroundSubtractionData;
+	
+	// Calibration
+	PhoneCalibration m_phoneCalibration;
+
+	
+
+	
 	
 };
 

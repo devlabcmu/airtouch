@@ -12,7 +12,7 @@ int _fpsCounter = 0;
 
 // UI
 vector<IplImage*> _images;
-string _frameTitles[3] = {"intensities", "distances", "distances processed"};
+string _frameTitles[4] = {"intensities", "distances", "before reflection removal", "final"};
 
 Mat _phoneSpace;
 PhoneCalibration _phoneCalibration;
@@ -79,23 +79,32 @@ bool update()
 		fprintf(stderr, "Failed to update camera data\n");
 		return false;
 	}
+	int imageIndex = 0;
+
+	// update amplitudes
+	PMDUtils::AmplitudesToImage(_pmdCamera.GetIntensitiesBuffer(), (unsigned char*) _images[imageIndex]->imageData,  
+		_images[imageIndex]->widthStep / sizeof(unsigned char), _images[imageIndex]->nChannels);
+	imageIndex++;
+	
+	// update distances
+	PMDUtils::DistancesToImage(_pmdCamera.GetDistanceBuffer(), _images[imageIndex]);
+	imageIndex++;
+
 	_pmdCamera.Threshold(0.5f);
 	_pmdCamera.UpdateBackgroundSubtraction();
 	_pmdCamera.MedianFilter();
+
+	// update processed distances BEFORE reflection removal
+	PMDUtils::DistancesToImage((const float *)_pmdCamera.GetDistancesProcessed()->imageData, _images[imageIndex]);
+	imageIndex++;
+
+	_pmdCamera.RemoveReflection();
 	_pmdCamera.UpdateFingers();
-
-	_phoneCalibration.ToPhoneSpace(&Mat(_pmdCamera.GetCoords()), &_phoneSpace);
-	float* pPhone = (float*) _phoneSpace.data;
-	float* pDistances = (float *)_pmdCamera.GetDistancesProcessed()->imageData;
-	for(int i = 0; i < PMDIMAGESIZE; i++, pPhone += 3, ++pDistances)
-	{
-		if(pPhone[1] < 0)
-		{
-			*pDistances = PMD_INVALID_DISTANCE;
-		}
-	}
-
-	// apply transformation to coordinate data.
+	PMDUtils::DistancesToImage((const float *)_pmdCamera.GetDistancesProcessed()->imageData, _images[imageIndex]);
+	cvCircle(_images[imageIndex], cvPoint(cvRound(_pmdCamera.GetFingerData()->fingerX), 
+		PMDNUMROWS - cvRound(_pmdCamera.GetFingerData()->fingerY)), 
+		10, 
+		CV_RGB(255,0,0));
 
 	return true;
 }
@@ -149,22 +158,10 @@ bool draw()
 {
 	getFps();
 
-	int imageIndex = 0;
 
-	// get intensities
 
-	PMDUtils::AmplitudesToImage(_pmdCamera.GetIntensitiesBuffer(), (unsigned char*) _images[imageIndex]->imageData,  
-		_images[imageIndex]->widthStep / sizeof(unsigned char), _images[imageIndex]->nChannels);
-	imageIndex++;
 
-	PMDUtils::DistancesToImage(_pmdCamera.GetDistanceBuffer(), _images[imageIndex]);
-	imageIndex++;
 
-	PMDUtils::DistancesToImage((const float *)_pmdCamera.GetDistancesProcessed()->imageData, _images[imageIndex]);
-	cvCircle(_images[imageIndex], cvPoint(cvRound(_pmdCamera.GetFingerData()->fingerX), 
-		PMDNUMROWS - cvRound(_pmdCamera.GetFingerData()->fingerY)), 
-		10, 
-		CV_RGB(255,0,0));
 
 	ostringstream str;
 	str.precision(2);

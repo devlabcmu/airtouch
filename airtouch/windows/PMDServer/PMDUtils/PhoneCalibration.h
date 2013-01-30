@@ -10,7 +10,7 @@ public:
 	PhoneCalibration(void);
 	~PhoneCalibration(void);
 	Point3f ToPhoneSpace(Point3f coord);
-	void ToPhoneSpace(Mat* src, Mat* dst);
+	void ToPhoneSpace(float* src, float* dst);
 
 private:
 	Mat m_origin;
