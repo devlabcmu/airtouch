@@ -16,6 +16,31 @@ PMDCamera::PMDCamera(void)
 	m_pmdDistancesProcessed = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), IPL_DEPTH_32F, 1);
 	m_pmdPhoneSpace = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), IPL_DEPTH_32F, 3);
 	m_pmdCoords = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), IPL_DEPTH_32F, 3);
+	m_pmdDistancesProcessedRGB = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), 8, 3); 
+
+	SimpleBlobDetector::Params blobParams;
+	blobParams.minThreshold = 1;
+	blobParams.maxThreshold = 255;
+	blobParams.thresholdStep = 100;
+	
+	blobParams.minDistBetweenBlobs = 1.0f;
+
+	blobParams.filterByArea = true;
+	blobParams.minArea = 300.0f;
+	blobParams.maxArea = 10000.0f;
+
+	blobParams.filterByCircularity = false;
+	
+	blobParams.filterByColor = true;
+	blobParams.blobColor = 255;
+
+	blobParams.filterByConvexity = false;
+	blobParams.filterByInertia = false;
+	
+
+	blobParams.blobColor = 255;
+	m_blobDetector = new SimpleBlobDetector(blobParams);
+	m_blobDetector->create("SimpleBlob");
 }
 
 
@@ -24,6 +49,8 @@ PMDCamera::~PMDCamera(void)
 	// release all opencv images
 	cvReleaseImage(&m_pmdDistancesProcessed);
 	cvReleaseImage(&m_pmdCoords);
+	cvReleaseImage(&m_pmdPhoneSpace);
+	cvReleaseImage(&m_pmdDistancesProcessedRGB);
 }
 
 HRESULT PMDCamera::InitializeCamera()
@@ -254,6 +281,7 @@ void PMDCamera::Threshold(float maxDistance)
 	}
 }
 
+
 void PMDCamera::UpdateBackgroundSubtraction()
 {
 	// in the depthbuffer, make anything that is within stdev of mean -1
@@ -308,6 +336,18 @@ void PMDCamera::MedianFilter()
 	cvReleaseImage(&tmp);
 }
 
+void PMDCamera::Erode(int erosionSize)
+{
+	IplImage* tmp = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), IPL_DEPTH_32F, 1);
+	Mat src = m_pmdDistancesProcessed;
+	Mat dst = tmp;
+	Mat kernel = getStructuringElement(MORPH_ELLIPSE, Size(2*erosionSize + 1, 2 * erosionSize + 1), Point(erosionSize, erosionSize));
+	erode(src, dst, kernel);
+	memcpy_s(m_pmdDistancesProcessed->imageData, PMDIMAGESIZE * sizeof(float), tmp->imageData, PMDIMAGESIZE * sizeof(float));
+	cvReleaseImage(&tmp);
+}
+
+
 void PMDCamera::RemoveReflection()
 {
 	float* pPhone = (float*) m_pmdPhoneSpace->imageData;
@@ -321,6 +361,11 @@ void PMDCamera::RemoveReflection()
 	}
 }
 
+void PMDCamera::FindBlobs()
+{
+	PMDUtils::DistancesToImage((const float *)m_pmdDistancesProcessed->imageData, m_pmdDistancesProcessedRGB);
+	m_blobDetector->detect(m_pmdDistancesProcessedRGB, m_blobPoints);
+}
 
 
 

@@ -10,7 +10,7 @@
 #include "PMDConstants.h"
 #include "pmddata.h"
 #include "PhoneCalibration.h"
-
+#include "PMDUtils.h"
 
 #define BUFSIZE 512
 #define BACKGROUND_THRESHOLD_STDEV 3
@@ -48,7 +48,9 @@ public:
 	UINT const* const GetFlags(){return m_pmdFlags;}
 	IplImage const* const GetCoords() {return m_pmdCoords;}
 	IplImage const* const GetDistancesProcessed() {return m_pmdDistancesProcessed;}
+	IplImage const* const GetDistancesProcessedRGB() {return m_pmdDistancesProcessedRGB;}
 	IplImage const* const GetCoordsPhoneSpace() { return m_pmdPhoneSpace; }
+	vector<KeyPoint> GetBlobPoints() {return m_blobPoints;}
 	BackgroundSubtractionData const* const GetBackgroundSubtractionData() {return &m_backgroundSubtractionData;}
 	
 	Point3f GetCoord(int row, int col)
@@ -73,6 +75,8 @@ public:
 	void UpdateFingers();
 	void RemoveReflection();
 	void Threshold(float maxdistance);
+	void Erode(int erosionSize);
+	void FindBlobs();
 
 private:
 	PMDDataDescription m_pmdDataDescription;
@@ -86,13 +90,16 @@ private:
 	float m_pmdIntensitiesBuffer[PMDIMAGESIZE];
 	IplImage* m_pmdCoords;
 	IplImage* m_pmdDistancesProcessed;
+	IplImage* m_pmdDistancesProcessedRGB;
 	IplImage* m_pmdPhoneSpace;
 	PMDFingerData m_pmdFingerData;
 
 
 	// Image Processing
 	BackgroundSubtractionData m_backgroundSubtractionData;
-	
+	Ptr<FeatureDetector> m_blobDetector;
+	vector<KeyPoint> m_blobPoints;
+
 	// Calibration
 	PhoneCalibration m_phoneCalibration;
 

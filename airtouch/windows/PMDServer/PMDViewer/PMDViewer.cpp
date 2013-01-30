@@ -25,7 +25,7 @@ void mouse_callback(int event, int x, int y, int flags, void* param)
 {
 	if(event == CV_EVENT_LBUTTONDOWN){
 		IplImage* image = (IplImage*) param;
-		Point3f p = _pmdCamera.GetCoord(image->height -y, x);
+		Point3f p = _pmdCamera.GetCoord(image->height -y, image->width - x);
 		Point3f phone = _phoneCalibration.ToPhoneSpace(p);
 		fprintf(stdout, "mouse: (%d, %d), world:(%.4f,%.4f,%.4f), phone: (%.4f,%.4f,%.4f) \n", x, y, p.x, p.y, p.z, phone.x, phone.y, phone.z);
 	}
@@ -90,7 +90,7 @@ bool update()
 	PMDUtils::DistancesToImage(_pmdCamera.GetDistanceBuffer(), _images[imageIndex]);
 	imageIndex++;
 
-	_pmdCamera.Threshold(0.5f);
+	_pmdCamera.Threshold(PMD_MAX_PHONE_DISTANCE);
 	_pmdCamera.UpdateBackgroundSubtraction();
 	_pmdCamera.MedianFilter();
 
@@ -99,13 +99,21 @@ bool update()
 	imageIndex++;
 
 	_pmdCamera.RemoveReflection();
+	_pmdCamera.Erode(1);
 	_pmdCamera.UpdateFingers();
-	PMDUtils::DistancesToImage((const float *)_pmdCamera.GetDistancesProcessed()->imageData, _images[imageIndex]);
+	_pmdCamera.FindBlobs();
+	vector<KeyPoint> blobPoints = _pmdCamera.GetBlobPoints();
+
+	// PMDUtils::DistancesToImage((const float *)_pmdCamera.GetDistancesProcessed()->imageData, _images[imageIndex]);
+	memcpy(_images[imageIndex]->imageData, _pmdCamera.GetDistancesProcessedRGB()->imageData, _pmdCamera.GetDistancesProcessedRGB()->imageSize);
 	cvCircle(_images[imageIndex], cvPoint(cvRound(_pmdCamera.GetFingerData()->fingerX), 
 		PMDNUMROWS - cvRound(_pmdCamera.GetFingerData()->fingerY)), 
 		10, 
 		CV_RGB(255,0,0));
-
+	for(vector<KeyPoint>::iterator i = blobPoints.begin(); i !=blobPoints.end(); i++)
+	{
+		cvCircle(_images[imageIndex], i->pt, i->size, CV_RGB(0, 255, 0));
+	}
 	return true;
 }
 
@@ -160,16 +168,13 @@ bool draw()
 
 
 
-
-
-
 	ostringstream str;
 	str.precision(2);
 	str << "fps: " << _fps;
     
 	for(UINT i = 0; i < _images.size(); i++)
 	{
-		cvFlip (_images[i], _images[i], 0);
+		cvFlip (_images[i], _images[i], -1);
 		Mat img = _images[i];
 		putText(img, str.str(), cvPoint(10,20), FONT_HERSHEY_COMPLEX_SMALL, 1.0f,CV_RGB(255,0,0)) ;
 		cvShowImage (_frameTitles[i].c_str(), _images[i]);
