@@ -255,6 +255,11 @@ int main(int argc, char* argv[])
 	saListen.sin_port        = htons( 10000 );     
 	saListen.sin_addr.s_addr = htonl( INADDR_ANY );  
 	// bind socket's name 
+
+	int flag = 1;
+	hr = setsockopt(hSock, IPPROTO_TCP, TCP_NODELAY, (char*)&flag, sizeof(int));
+	if(!SUCCEEDED(hr)) return -1;
+
 	hr = bindSocket(&hSock, &saListen);
 	if(!SUCCEEDED(hr)) return -1;
 

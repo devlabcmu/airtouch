@@ -66,7 +66,13 @@ public:
 		// copy up to MAX_FINGERS fingers worth of data
 		for(int i = 0; i < 2; i++)
 		{
-			if(i >= m_newFingers.size()) break;
+			if(i >= m_newFingers.size()) 
+			{
+				pR[0] = PMD_INVALID_DISTANCE;
+				pR[1] = PMD_INVALID_DISTANCE;
+				pR[2] = PMD_INVALID_DISTANCE;
+				continue;
+			}
 			Point3f p = m_newFingers[i].phoneCoords;
 			pR[0] = p.x;
 			pR[1] = p.y;
