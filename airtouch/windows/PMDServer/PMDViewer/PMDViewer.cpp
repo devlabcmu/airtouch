@@ -12,7 +12,24 @@ int _fpsCounter = 0;
 
 // UI
 vector<IplImage*> _images;
-string _frameTitles[2] = {"intensities", "distances processed"};
+string _frameTitles[3] = {"intensities", "distances", "distances processed"};
+
+Mat _phoneSpace;
+PhoneCalibration _phoneCalibration;
+
+float _xBuffer[PMDIMAGESIZE];
+float _yBuffer[PMDIMAGESIZE];
+float _zBuffer[PMDIMAGESIZE];
+
+void mouse_callback(int event, int x, int y, int flags, void* param)
+{
+	if(event == CV_EVENT_LBUTTONDOWN){
+		IplImage* image = (IplImage*) param;
+		Point3f p = _pmdCamera.GetCoord(image->height -y, x);
+		Point3f phone = _phoneCalibration.ToPhoneSpace(p);
+		fprintf(stdout, "mouse: (%d, %d), world:(%.4f,%.4f,%.4f), phone: (%.4f,%.4f,%.4f) \n", x, y, p.x, p.y, p.z, phone.x, phone.y, phone.z);
+	}
+}
 
 void error(string msg)
 {
@@ -66,6 +83,20 @@ bool update()
 	_pmdCamera.UpdateBackgroundSubtraction();
 	_pmdCamera.MedianFilter();
 	_pmdCamera.UpdateFingers();
+
+	_phoneCalibration.ToPhoneSpace(&Mat(_pmdCamera.GetCoords()), &_phoneSpace);
+	float* pPhone = (float*) _phoneSpace.data;
+	float* pDistances = (float *)_pmdCamera.GetDistancesProcessed()->imageData;
+	for(int i = 0; i < PMDIMAGESIZE; i++, pPhone += 3, ++pDistances)
+	{
+		if(pPhone[1] < 0)
+		{
+			*pDistances = PMD_INVALID_DISTANCE;
+		}
+	}
+
+	// apply transformation to coordinate data.
+
 	return true;
 }
 
@@ -93,6 +124,8 @@ void setup(int argc, char* argv[])
 	hr = _pmdCamera.InitializeBackgroundSubtraction();
 	if(!SUCCEEDED(hr)) error("Error: Background subtraction failed");
 	showBackgroundImage();
+
+	_phoneSpace = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), IPL_DEPTH_32F, 3);
 }
 void getFps()
 {
@@ -111,6 +144,7 @@ void getFps()
 	}
 }
 
+
 bool draw()
 {
 	getFps();
@@ -121,7 +155,9 @@ bool draw()
 
 	PMDUtils::AmplitudesToImage(_pmdCamera.GetIntensitiesBuffer(), (unsigned char*) _images[imageIndex]->imageData,  
 		_images[imageIndex]->widthStep / sizeof(unsigned char), _images[imageIndex]->nChannels);
+	imageIndex++;
 
+	PMDUtils::DistancesToImage(_pmdCamera.GetDistanceBuffer(), _images[imageIndex]);
 	imageIndex++;
 
 	PMDUtils::DistancesToImage((const float *)_pmdCamera.GetDistancesProcessed()->imageData, _images[imageIndex]);
@@ -151,6 +187,8 @@ void createImages()
 	{
 		IplImage* toAdd = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), 8,3); 
 		_images.push_back(toAdd);
+		cvNamedWindow(_frameTitles[i].c_str());
+		cvSetMouseCallback( _frameTitles[i].c_str(), mouse_callback, toAdd);
 	}
 }
 
@@ -168,7 +206,7 @@ int  main(int argc, char* argv[])
 	setup(argc, argv);
 	
 	createImages();
-
+	
 	while(true)
 	{
 		if(!update()) break;

@@ -4,7 +4,7 @@
 #define SOURCE_PARAM ""
 #define PROC_PLUGIN "camboardnanoproc"
 #define PROC_PARAM ""
-#define PMD_INVALID_DISTANCE -1
+
 #define FILE_SOURCE_PLUGIN "pmdfile"
 
 const int g_numFramesForBackgroundSubtraction = 50;
@@ -14,6 +14,7 @@ PMDCamera::PMDCamera(void)
 {
 	// create all opencv images
 	m_pmdDistancesProcessed = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), IPL_DEPTH_32F, 1);
+	m_pmdCoords = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), IPL_DEPTH_32F, 3);
 }
 
 
@@ -21,6 +22,7 @@ PMDCamera::~PMDCamera(void)
 {
 	// release all opencv images
 	cvReleaseImage(&m_pmdDistancesProcessed);
+	cvReleaseImage(&m_pmdCoords);
 }
 
 HRESULT PMDCamera::InitializeCamera()
@@ -203,6 +205,14 @@ HRESULT PMDCamera::UpdateCameraData()
 		return -1;
 	}
 
+	res = pmdGet3DCoordinates (m_pmdHandle, (float *)m_pmdCoords->imageData, PMDIMAGESIZE * 3 * sizeof (float));
+	if (res != PMD_OK)
+	{
+		pmdGetLastError (m_pmdHandle, m_pmdErrorBuffer, 128);
+		fprintf (stderr, "UpdateCameraData Error: Could not get 3d coordinates: %s\n", m_pmdErrorBuffer);
+		pmdClose (m_pmdHandle);
+		return -1;
+	}
 
 	res = pmdGetFlags(m_pmdHandle, m_pmdFlags, PMDIMAGESIZE * 4);
 	if (res != PMD_OK)

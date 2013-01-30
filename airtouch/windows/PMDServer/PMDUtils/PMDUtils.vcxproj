@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="PhoneCalibration.h" />
     <ClInclude Include="PMDCamera.h" />
     <ClInclude Include="PMDConstants.h" />
     <ClInclude Include="pmddata.h" />
@@ -19,6 +20,7 @@
     <ClInclude Include="strutils.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="PhoneCalibration.cpp" />
     <ClCompile Include="PMDCamera.cpp" />
     <ClCompile Include="PMDUtils.cpp" />
   </ItemGroup>
@@ -64,9 +66,12 @@
       <AdditionalLibraryDirectories>$(OPENCVDIR)/x86/vc10/lib</AdditionalLibraryDirectories>
     </Link>
     <Lib>
-      <AdditionalDependencies>opencv_imgproc242d.lib;ws2_32.lib;opencv_core242d.lib;opencv_highgui242d.lib;$(SolutionDir)/lib/pmdaccess2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opencv_calib3d242.lib;opencv_imgproc242d.lib;ws2_32.lib;opencv_core242d.lib;opencv_highgui242d.lib;$(SolutionDir)/lib/pmdaccess2.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OPENCVDIR)/x86/vc10/lib;$(SolutionDir)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
+    <PostBuildEvent>
+      <Command>copy $(SolutionDir)\lib\*.dll "$(OutDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -82,7 +87,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>opencv_imgproc242d.lib;ws2_32.lib;opencv_core242d.lib;opencv_highgui242d.lib;$(SolutionDir)/lib/pmdaccess2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opencv_calib3d242.lib;opencv_imgproc242d.lib;ws2_32.lib;opencv_core242d.lib;opencv_highgui242d.lib;$(SolutionDir)/lib/pmdaccess2.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OPENCVDIR)/x86/vc10/lib;$(SolutionDir)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>

@@ -38,15 +38,32 @@ public:
 
 	// OpenCV UI
 	IplImage* GetCvBackgroundImage();
-	IplImage* GetCvDistances();
 
 	
 	// Getters
 	PMDFingerData const* const GetFingerData(){ return &m_pmdFingerData;}
 	float const* const GetDistanceBuffer() {return m_pmdDistanceBuffer;}
 	float const* const GetIntensitiesBuffer() {return m_pmdIntensitiesBuffer;}
+	UINT const* const GetFlags(){return m_pmdFlags;}
+	IplImage const* const GetCoords() {return m_pmdCoords;}
 	IplImage const* const GetDistancesProcessed() {return m_pmdDistancesProcessed;}
 	BackgroundSubtractionData const* const GetBackgroundSubtractionData() {return &m_backgroundSubtractionData;}
+	
+	Point3f GetCoord(int row, int col)
+	{ 
+		Point3f result;
+		result.x=0;
+		result.y=0;
+		result.z=0;
+
+		if(m_pmdFlags[row * PMDNUMCOLS + col] & PMD_FLAG_INVALID) return result;
+		float* pCoords = (float*)m_pmdCoords->imageData;
+		int idx = (row * PMDNUMCOLS + col) * 3;
+		result.x=pCoords[idx];
+		result.y=pCoords[idx + 1];
+		result.z=pCoords[idx + 2];
+		return result;
+	};
 
 	// Image Processing
 	void MedianFilter();
@@ -64,6 +81,7 @@ private:
 	unsigned int m_pmdFlags[PMDIMAGESIZE];
 	float m_pmdDistanceBuffer[PMDIMAGESIZE];
 	float m_pmdIntensitiesBuffer[PMDIMAGESIZE];
+	IplImage* m_pmdCoords;
 	IplImage* m_pmdDistancesProcessed;
 	
 	// Image Processing
