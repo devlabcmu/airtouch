@@ -9,7 +9,7 @@
 
 const int g_numFramesForBackgroundSubtraction = 50;
 
-const float g_fingerSmoothing = 0.5f;
+const float g_fingerSmoothing = 0.8f;
 
 PMDCamera::PMDCamera(void)
 {
@@ -399,15 +399,24 @@ void PMDCamera::UpdateFingerPositions()
 		// find x,y, depth that has smallest depth within region of finger
 		int x, y;
 		float minZ = 1000.0f;
-		float minX, minY;
-		for(int dy = -j->blobSize / 2; dy < j->blobSize/2; dy++)
+		float minX = 0, minY = 0;
+		bool newFinger = j->screenCoords.x < 0;
+		int searchSize = newFinger ? j->blobSize / 2 : 30;
+		bool first = true;
+		for(int dy = -searchSize; dy < searchSize; dy++)
 		{
-			y = j->blobCenter.y + dy;
-			if(y < 0 || y > PMDNUMROWS) continue;
-			for(int dx = -j->blobSize / 2; dx < j->blobSize/2; dx++)
+			y = (newFinger ? j->blobCenter.y : j->screenCoords.y) + dy;
+			if(y < 0 || y > PMDNUMROWS || abs(y - j->blobCenter.y) > j->blobSize / 2) continue;
+			for(int dx = -searchSize; dx < searchSize; dx++)
 			{
-				x = j->blobCenter.x + dx;
-				if(x < 0 || x > PMDNUMCOLS) continue;
+				x = (newFinger ? j->blobCenter.x : j->screenCoords.x) + dx;
+				if(first)
+				{
+					minX = x;
+					minY = y;
+					first = false;
+				}
+				if(x < 0 || x > PMDNUMCOLS || abs(x - j->blobCenter.x) > j->blobSize / 2) continue;
 				int idx = y * PMDNUMCOLS + x;
 				if(m_pmdFlags[idx] & PMD_FLAG_INVALID) continue;
 				float dst = m_pmdDistanceBuffer[idx];
@@ -423,7 +432,7 @@ void PMDCamera::UpdateFingerPositions()
 
 		// smooth finger position
 		// if screen coords are new, just use those
-		if(j->screenCoords.x < 0)
+		if(newFinger)
 		{
 			j->screenCoords.x = minX;
 			j->screenCoords.y = minY;
