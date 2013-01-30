@@ -28,11 +28,6 @@ void updateFrameWithNewData()
 {
 	PMDUtils::DistancesToImage(_fromServer.buffer, _ocvFrame);
 
-    cvFlip (_ocvFrame, _ocvFrame, 0);
-	cvCircle(_ocvFrame, cvPoint(cvRound(_fromServer.fingerX), 
-		PMDNUMROWS - cvRound(_fromServer.fingerY)), 
-		10, 
-		CV_RGB(255,0,0));
     // Display the image
     cvShowImage ("Client", _ocvFrame);
 }
@@ -100,7 +95,7 @@ int main(int argc, char* argv[])
 		int c = cvWaitKey (1);
 		if (c == 'q' || c == 'Q' || c == 27) break;
 
-        cout << _fromServer.fingerX << ", " << _fromServer.fingerY << ", " << _fromServer.fingerZ << endl;
+		cout << _fromServer.finger1X << ", " << _fromServer.finger1Y << ", " << _fromServer.finger1Z << endl;
 		
 		if(BIT_DEBUG){
 			byte* tmp = (byte*)&_fromServer;

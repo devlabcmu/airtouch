@@ -58,7 +58,23 @@ public:
 
 	
 	// Getters
-	PMDFingerData const* const GetFingerData(){ return &m_pmdFingerData;}
+	PMDFingerData const const GetFingerData()
+	{ 
+		PMDFingerData result;
+		ZeroMemory(&result, sizeof(result));
+		float* pR = (float*)&result;
+		// copy up to MAX_FINGERS fingers worth of data
+		for(int i = 0; i < 2; i++)
+		{
+			if(i >= m_newFingers.size()) break;
+			Point3f p = m_newFingers[i].phoneCoords;
+			pR[0] = p.x;
+			pR[1] = p.y;
+			pR[2] = p.z;
+			pR+=3;
+		}
+		return result;
+	}
 	float const* const GetDistanceBuffer() {return m_pmdDistanceBuffer;}
 	float const* const GetIntensitiesBuffer() {return m_pmdIntensitiesBuffer;}
 	UINT const* const GetFlags(){return m_pmdFlags;}

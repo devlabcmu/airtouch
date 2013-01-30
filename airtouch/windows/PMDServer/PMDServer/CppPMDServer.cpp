@@ -181,14 +181,15 @@ bool communicateWithClient(SOCKET* hClient)
 
 		// draw all fingers
 		
-
+		PMDFingerData toSend = _pmdCamera.GetFingerData();
 
 		if(command == 'f')
 		{
 			// only send the finger data
-			hr = sendData(*hClient, (char*)_pmdCamera.GetFingerData(), sizeof(PMDFingerData), 0);	
+			hr = sendData(*hClient, (char*)&toSend, sizeof(PMDFingerData), 0);	
 		} else
 		{
+			memcpy(&_pmdData, &toSend, sizeof(float) * 6);
 			memcpy_s(_pmdData.buffer,_countof(_pmdData.buffer) * sizeof(float), _pmdCamera.GetDistanceBuffer(), _countof(_pmdData.buffer) * sizeof(float));
 			hr = sendData(*hClient, (char*)&_pmdData, sizeof(PMDData), 0);	
 		}
