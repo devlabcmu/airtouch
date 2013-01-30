@@ -48,6 +48,8 @@ void welcomeMessage()
 	cout << "Usage: PMDServer.exe [filename.pmd] to read from .pmd file" << endl;
 }
 
+bool fingerCompare(Finger a, Finger b){ return a.id < b.id;}
+
 void updateUI()
 {
 	// calculate current fps
@@ -66,9 +68,16 @@ void updateUI()
 
 	PMDUtils::DistancesToImage(_pmdCamera.GetDistancesProcessed(), _distancesAndFingerLocation);
 
-    cvFlip (_distancesAndFingerLocation, _distancesAndFingerLocation, 0);
+	vector<Finger> fingers = _pmdCamera.GetFingers();
+	std::sort(fingers.begin(), fingers.end(), fingerCompare);
 
-	
+	CvScalar fingerColors[2] = {CV_RGB(255,0,0), CV_RGB(0,0,255)};
+	for(vector<Finger>::iterator i = fingers.begin(); i !=fingers.end(); i++)
+	{
+		cvCircle(_distancesAndFingerLocation, i->screenCoords, 10, fingerColors[i - fingers.begin()]);
+	}
+
+    cvFlip (_distancesAndFingerLocation, _distancesAndFingerLocation, -1);
 
 	ostringstream str;
 	str.precision(2);
@@ -162,17 +171,16 @@ bool communicateWithClient(SOCKET* hClient)
 		hr = _pmdCamera.UpdateCameraData();
 
 		if(!SUCCEEDED(hr)) return true;
-		_pmdCamera.Threshold(0.1f);
+
+		_pmdCamera.Threshold(PMD_MAX_PHONE_DISTANCE);
 		_pmdCamera.UpdateBackgroundSubtraction();
 		_pmdCamera.MedianFilter();
 		_pmdCamera.RemoveReflection();
 		_pmdCamera.Erode(1);
-		
 		_pmdCamera.UpdateFingers();
 
 		// draw all fingers
 		
-		memcpy_s(&_pmdData.fingerX, sizeof(PMDFingerData), _pmdCamera.GetFingerData(), sizeof(PMDFingerData));
 
 
 		if(command == 'f')
