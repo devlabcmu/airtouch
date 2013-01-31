@@ -18,8 +18,10 @@ import android.graphics.RectF;
 import android.os.AsyncTask;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
 import edu.cmu.hcii.airtouchview.AirTouchPoint.TouchType;
 
 
@@ -31,16 +33,30 @@ public class AirTouchView extends View {
 	static final int PMD_NUM_COLS = 165;
 	static final int PMD_NUM_ROWS = 120;
 	static final int PMD_SEND_DATA_SIZE = 79212;
-	static final int PMD_FINGER_ONLY_DATA_SIZE = 12;
+	static final int PMD_FINGER_ONLY_DATA_SIZE = 24;
+	static final int PMD_INVALID_DISTANCE = -1000;
 	static final boolean OUTPUT_BITS_DEBUG = false;
 
 	static String TAG = "AirTouchViewView";
 
+	// convenience structs
+	public class Point3f
+	{
+		public float x;
+		public float y;
+		public float z;
+		
+	}
+	
 	// structs from PMD
 	public class PMDSendData {
-		public float fingerX; // 4 bytes
-		public float fingerY; // 4 bytes
-		public float fingerZ; // 4 bytes
+		public float finger1X; // 4 bytes
+		public float finger1Y; // 4 bytes
+		public float finger1Z; // 4 bytes
+		
+		public float finger2X; // 4 bytes
+		public float finger2Y; // 4 bytes
+		public float finger2Z; // 4 bytes
 		public float[] buffer = new float[PMD_IMAGE_SIZE]; // 19800 * 4 bytes
 	}
 
@@ -80,7 +96,7 @@ public class AirTouchView extends View {
 		Paint paint;
 
 		paint = new Paint();
-		paint.setColor(Color.RED);
+		paint.setColor(Color.MAGENTA);
 		paintBrushes.put(AirTouchPoint.TouchType.TOUCH_DOWN, paint);
 
 		paint = new Paint();
@@ -89,8 +105,12 @@ public class AirTouchView extends View {
 
 		paint = new Paint();
 		paint.setColor(Color.BLUE);
-		paintBrushes.put(AirTouchPoint.TouchType.AIR_MOVE, paint);
-
+		paintBrushes.put(AirTouchPoint.TouchType.AIR_MOVE1, paint);
+		
+		paint = new Paint();
+		paint.setColor(Color.RED);
+		paintBrushes.put(AirTouchPoint.TouchType.AIR_MOVE2, paint);
+		
 	}
 
 	public AirTouchView(Context context) {
@@ -116,7 +136,26 @@ public class AirTouchView extends View {
 		_toServer = toServer;
 	}
 
+	public Point3f PhoneToScreen(float x, float y, float z)
+	{
+		Point3f result = new Point3f();
+		float realWidth = 0.065f;
+		float realHeight = 0.095f;
+		float realDepth = 0.1f;
+		WindowManager wm = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
+		Display display = wm.getDefaultDisplay();
+		
+		int width = display.getWidth();
+		int height = display.getHeight();
+		
+		result.x =  x / realWidth * width;
+		result.y = z / realHeight * height;
+		result.z = y / realDepth;
+		return result;
+	}
+	
 	protected void onDraw(Canvas canvas) {
+		Log.v("AirTouchView", "drawing");
 		canvas.drawRGB(255, 255, 255);
 		Paint paint;
 
@@ -124,7 +163,6 @@ public class AirTouchView extends View {
 		synchronized(_touchMapLock) {
 
 			for(AirTouchPoint tp : _touchMap.values()) {
-				Log.v(AirTouchViewMain.TAG, "draw point " + tp.x + "," + tp.y);
 				canvas.save();
 
 				canvas.translate(tp.x, tp.y);
@@ -140,12 +178,32 @@ public class AirTouchView extends View {
 		}
 
 
-
-
 		// draw a bitmap with the bytes if we are not just showing finger data.
 		if(!_getOnlyFingerData) canvas.drawBitmap(_pmdDepth, _depthMatrix, null);
+		
+		// convert the finger 
+		
 		// draw a circle at Finger loc
-		canvas.drawCircle(_dataFromServer.fingerX, PMD_NUM_ROWS * 2 - _dataFromServer.fingerY * 2, 20, paintBrushes.get(TouchType.AIR_MOVE));
+		if(_dataFromServer.finger1X > PMD_INVALID_DISTANCE )
+		{
+			Point3f p = PhoneToScreen(_dataFromServer.finger1X, _dataFromServer.finger1Y, _dataFromServer.finger1Z);
+//			Log.v("AirTouchView", String.format("finger1 pos: (%f, %f, %f)\n\t(%f, %f, %f)", 
+//					_dataFromServer.finger1X, _dataFromServer.finger1Y, _dataFromServer.finger1Z,
+//					p.x, p.y, p.z
+//					));
+			
+			canvas.drawCircle(p.x, p.y, p.z * 500, paintBrushes.get(TouchType.AIR_MOVE1));
+		}
+		
+		if (_dataFromServer.finger2X > PMD_INVALID_DISTANCE)
+		{
+			Point3f p = PhoneToScreen(_dataFromServer.finger2X, _dataFromServer.finger2Y, _dataFromServer.finger2Z);
+//			Log.v("AirTouchView", String.format("finger2 pos: (%f, %f, %f)\n\t(%f, %f, %f)", 
+//					_dataFromServer.finger2X, _dataFromServer.finger2Y, _dataFromServer.finger2Z,
+//					p.x, p.y, p.z
+//					));
+			canvas.drawCircle(p.x, p.y, p.z * 500, paintBrushes.get(TouchType.AIR_MOVE2));			
+		}
 
 		// Draw any errors
 		if(_errorText != null) 
@@ -230,7 +288,7 @@ public class AirTouchView extends View {
             }
         };
         _timer = new Timer();
-        _timer.scheduleAtFixedRate(task, 1, 30);
+        _timer.scheduleAtFixedRate(task, 1, 33);
 	}
 
 	public void stop()
@@ -266,14 +324,18 @@ public class AirTouchView extends View {
 	{
 		if(_dataFromServer == null) return;
 
-		_dataFromServer.fingerX = getFloatInByteArray(in, 0);
-		_dataFromServer.fingerY = getFloatInByteArray(in, 4);
-		_dataFromServer.fingerZ = getFloatInByteArray(in, 8);
+		_dataFromServer.finger1X = getFloatInByteArray(in, 0);
+		_dataFromServer.finger1Y = getFloatInByteArray(in, 4);
+		_dataFromServer.finger1Z = getFloatInByteArray(in, 8);
 
+		_dataFromServer.finger2X = getFloatInByteArray(in, 12);
+		_dataFromServer.finger2Y = getFloatInByteArray(in, 16);
+		_dataFromServer.finger2Z = getFloatInByteArray(in, 20);
+		
 		if(!_getOnlyFingerData)
 		{
 			for (int i = 0; i < PMD_IMAGE_SIZE; i++) {
-				_dataFromServer.buffer[i] = getFloatInByteArray(in, 12 + i * 4);
+				_dataFromServer.buffer[i] = getFloatInByteArray(in, 24 + i * 4);
 			}	
 		}
 		
@@ -353,7 +415,7 @@ public class AirTouchView extends View {
 				// update PMDSendData
 				if(_getOnlyFingerData)
 				{
-					// Log.v(TAG, "wrote finger");
+					//Log.v(TAG, "wrote finger");
 					_toServer.writeBytes("finger");
 				} else 
 				{
@@ -372,7 +434,7 @@ public class AirTouchView extends View {
 					if(nReceived <= 0) break;
 					totalReceived += nReceived;
 					nleft -= nReceived;
-					//					Log.v(TAG, String.format("recevied %d bytes, total received %d, %d left", nReceived, totalReceived, nleft));
+					///Log.v(TAG, String.format("recevied %d bytes, total received %d, %d left", nReceived, totalReceived, nleft));
 				} while (true);
 				//Log.v(TAG, "got data");
 				updatePMDData(lMsg);
@@ -399,19 +461,19 @@ public class AirTouchView extends View {
 
 			// invalidate screen
 			// update pixels
-			int i = 0;
-			for (int y = 0; y < PMD_NUM_ROWS; y++) {
-				for (int x = 0; x < PMD_NUM_COLS; x++, i++) {
-					float val = _dataFromServer.buffer[i];
-					int v = 0;
-					if(val <= 1.0f)
-					{
-						v = (int)(255 - 255 * val);
-					}
-					_pmdDepth.setPixel(x, y, Color.argb(255, v,v,v));
-				}
-			}
-			//Log.v(TAG, "invalidating");
+//			int i = 0;
+//			for (int y = 0; y < PMD_NUM_ROWS; y++) {
+//				for (int x = 0; x < PMD_NUM_COLS; x++, i++) {
+//					float val = _dataFromServer.buffer[i];
+//					int v = 0;
+//					if(val <= 1.0f)
+//					{
+//						v = (int)(255 - 255 * val);
+//					}
+//					_pmdDepth.setPixel(x, y, Color.argb(255, v,v,v));
+//				}
+//			}
+			// Log.v(TAG, "invalidating");
 			postInvalidate();
 		}
 	}

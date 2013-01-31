@@ -12,7 +12,8 @@ public class AirTouchPoint {
 		TOUCH_DOWN,
 		TOUCH_MOVE,
 		TOUCH_UP,
-		AIR_MOVE,
+		AIR_MOVE1,
+		AIR_MOVE2,
 		AIR_REMOVED
 	}
 	public AirTouchPoint(float x, float y, TouchType t){
