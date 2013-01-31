@@ -19,7 +19,7 @@ PMDCamera::PMDCamera(void)
 	m_pmdPhoneSpace = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), IPL_DEPTH_32F, 3);
 	m_pmdCoords = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), IPL_DEPTH_32F, 3);
 	m_pmdDistancesProcessedRGB = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), 8, 3); 
-
+	m_pmdIntensitiesRGB = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), 8, 3);
 	SimpleBlobDetector::Params blobParams;
 	blobParams.minThreshold = 1;
 	blobParams.maxThreshold = 255;
@@ -42,7 +42,16 @@ PMDCamera::PMDCamera(void)
 
 	blobParams.blobColor = 255;
 	m_blobDetector = new SimpleBlobDetector(blobParams);
-	m_blobDetector->create("SimpleBlob");
+	m_blobDetector->create("DistancesBlob");
+
+	blobParams.minThreshold = 150;
+	blobParams.maxThreshold = 255;
+	blobParams.thresholdStep = 50;
+	
+	blobParams.minArea = 1.0f;
+	blobParams.maxArea = 100000.0f;
+	m_intensitiesBlobDetector = new SimpleBlobDetector(blobParams);
+	m_intensitiesBlobDetector->create("IntensitiesBlob");
 }
 
 
@@ -53,6 +62,7 @@ PMDCamera::~PMDCamera(void)
 	cvReleaseImage(&m_pmdCoords);
 	cvReleaseImage(&m_pmdPhoneSpace);
 	cvReleaseImage(&m_pmdDistancesProcessedRGB);
+	cvReleaseImage(&m_pmdIntensitiesRGB);
 }
 
 HRESULT PMDCamera::InitializeCamera()
@@ -375,6 +385,50 @@ void PMDCamera::BlobsToFingers()
 
 }
 
+Point2f PMDCamera::FindFingerPos(vector<Finger>::iterator f)
+{
+	float* pDistances = (float*) m_pmdDistancesProcessed->imageData;
+	int x, y;
+	float minZ = 1000.0f;
+	float minX = 0, minY = 0;
+	bool newFinger = f->screenCoords.x < 0;
+	int searchSize = newFinger ? f->blobSize : 20;
+	bool first = true;
+	for(int dy = -searchSize; dy < searchSize; dy++)
+	{
+		y = (newFinger ? f->blobCenter.y : f->screenCoords.y) + dy;
+		if(y < 0 || y > PMDNUMROWS || abs(y - f->blobCenter.y) > f->blobSize * 1.5) continue;
+		for(int dx = -searchSize; dx < searchSize; dx++)
+		{
+			x = (newFinger ? f->blobCenter.x : f->screenCoords.x) + dx;
+			if(first)
+			{
+				minX = x;
+				minY = y;
+				first = false;
+			}
+			if(x < 0 || x > PMDNUMCOLS || abs(x - f->blobCenter.x) > f->blobSize * 1.5) continue;
+			int idx = y * PMDNUMCOLS + x;
+			if(m_pmdFlags[idx] & PMD_FLAG_INVALID) continue;
+			float dst = pDistances[idx];
+			if(dst == PMD_INVALID_DISTANCE) continue;
+			if(dst < minZ)
+			{
+				minX = x;
+				minY = y;
+				minZ = dst;
+			}
+		}
+	}
+	return Point2f(minX, minY);
+}
+
+Point2f PMDCamera::FindFingerPosUsingTracker(vector<Finger>::iterator f)
+{
+	Point2f result;
+	return result;
+}
+
 void PMDCamera::UpdateFingerPositions()
 {
 	float* pDistances = (float*) m_pmdDistancesProcessed->imageData;
@@ -382,74 +436,45 @@ void PMDCamera::UpdateFingerPositions()
 	// update rest of coordinates
 	for(vector<Finger>::iterator j = m_newFingers.begin(); j !=m_newFingers.end(); j++)
 	{
-		// find x,y, depth that has smallest depth within region of finger
-		int x, y;
-		float minZ = 1000.0f;
-		float minX = 0, minY = 0;
+		// if the screen coordinates are invalid then the finger has just appeared
 		bool newFinger = j->screenCoords.x < 0;
-		int searchSize = newFinger ? j->blobSize : 20;
-		bool first = true;
-		for(int dy = -searchSize; dy < searchSize; dy++)
-		{
-			y = (newFinger ? j->blobCenter.y : j->screenCoords.y) + dy;
-			if(y < 0 || y > PMDNUMROWS || abs(y - j->blobCenter.y) > j->blobSize * 1.5) continue;
-			for(int dx = -searchSize; dx < searchSize; dx++)
-			{
-				x = (newFinger ? j->blobCenter.x : j->screenCoords.x) + dx;
-				if(first)
-				{
-					minX = x;
-					minY = y;
-					first = false;
-				}
-				if(x < 0 || x > PMDNUMCOLS || abs(x - j->blobCenter.x) > j->blobSize * 1.5) continue;
-				int idx = y * PMDNUMCOLS + x;
-				if(m_pmdFlags[idx] & PMD_FLAG_INVALID) continue;
-				float dst = pDistances[idx];
-				if(dst == PMD_INVALID_DISTANCE) continue;
-				if(dst < minZ)
-				{
-					minX = x;
-					minY = y;
-					minZ = dst;
-				}
-			}
-		}
+		
+		// find the finger position in screen space using info about the blog
+		Point2f fingerPos = FindFingerPos(j);
 
-		// smooth finger position
-		// if screen coords are new, just use those
+		// smooth finger position screen space
 		if(newFinger)
 		{
-			j->screenCoords.x = minX;
-			j->screenCoords.y = minY;
+			// if screen coords are new, just use those
+			j->screenCoords = fingerPos;
 		} else
 		{
-			j->screenCoords.x = j->screenCoords.x * g_fingerSmoothing + minX * (1 - g_fingerSmoothing);
-			j->screenCoords.y = j->screenCoords.y * g_fingerSmoothing + minY * (1 - g_fingerSmoothing);
+			// otherwise, smooth
+			j->screenCoords = j->screenCoords * g_fingerSmoothing + fingerPos * (1 - g_fingerSmoothing);
 		}
 
-		// update world and phone coords
-		x = j->screenCoords.x;
-		y = j->screenCoords.y;
+		// update world coords
+		int x = j->screenCoords.x;
+		int y = j->screenCoords.y;
 		float* pWorld = (float*)m_pmdCoords->imageData;
 		pWorld += 3 * (PMDNUMCOLS * y + x);
+		Point3f world = Point3f(pWorld[0], pWorld[1], pWorld[2]);
 
+		// smooth world coords
 		if(newFinger)
 		{
-			j->worldCoords = Point3f(pWorld[0], pWorld[1], pWorld[2]);
+			j->worldCoords = world;
 		} else
 		{
-			Point3f wc = j->worldCoords;
+			// todo: need to do something better if the coordinates are invalid
 			if(pDistances[(PMDNUMCOLS * y + x)] != PMD_INVALID_DISTANCE)
 			{
-				j->worldCoords.x = wc.x * g_fingerWorldSmoothing + (1 - g_fingerWorldSmoothing ) * pWorld[0];
-				j->worldCoords.y = wc.y * g_fingerWorldSmoothing + (1 - g_fingerWorldSmoothing ) * pWorld[1];
-				j->worldCoords.z = wc.z * g_fingerWorldSmoothing + (1 - g_fingerWorldSmoothing ) * pWorld[2];
+				j->worldCoords = j->worldCoords * g_fingerSmoothing + (1 - g_fingerWorldSmoothing) * world;
 			}
 			
 		}
 
-		
+		// update phone coords
 		j->phoneCoords = m_phoneCalibration.ToPhoneSpace(j->worldCoords);
 	}
 }
@@ -540,6 +565,12 @@ void PMDCamera::FindBlobs()
 	m_blobDetector->detect(m_pmdDistancesProcessedRGB, m_blobPoints);
 }
 
+
+void PMDCamera::FindBlobsInIntensityImage()
+{
+	PMDUtils::AmplitudesToImage(m_pmdIntensitiesBuffer, m_pmdIntensitiesRGB);
+	m_intensitiesBlobDetector->detect(m_pmdIntensitiesRGB, m_blobPointsIntensity);
+}
 
 
 

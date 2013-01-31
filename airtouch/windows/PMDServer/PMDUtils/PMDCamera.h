@@ -89,6 +89,7 @@ public:
 	IplImage const* const GetDistancesProcessedRGB() {return m_pmdDistancesProcessedRGB;}
 	IplImage const* const GetCoordsPhoneSpace() { return m_pmdPhoneSpace; }
 	vector<KeyPoint> GetBlobPoints() {return m_blobPoints;}
+	vector<KeyPoint> GetBlobPointsIntensities() {return m_blobPointsIntensity;}
 	vector<Finger> GetFingers() {return m_newFingers;}
 	BackgroundSubtractionData const* const GetBackgroundSubtractionData() {return &m_backgroundSubtractionData;}
 	
@@ -117,8 +118,19 @@ public:
 	void Threshold(float maxdistance);
 	void Erode(int erosionSize);
 	void FindBlobs();
-
+	void FindBlobsInIntensityImage();
 private:
+	// methods
+
+	// Finds the finger position using information about the blob
+	// Assumes user is wearing an IR reflective marker
+	// Returns the 2d position in screen space
+	Point2f FindFingerPosUsingTracker(vector<Finger>::iterator f);
+
+	// Finds the finger position using information about the blob
+	// Returns the 2d position in screen space
+	Point2f FindFingerPos(vector<Finger>::iterator f);
+	
 	PMDDataDescription m_pmdDataDescription;
 	PMDHandle m_pmdHandle;
 	
@@ -132,13 +144,16 @@ private:
 	IplImage* m_pmdDistancesProcessed;
 	IplImage* m_pmdDistancesProcessedRGB;
 	IplImage* m_pmdPhoneSpace;
+	IplImage* m_pmdIntensitiesRGB;
 	PMDFingerData m_pmdFingerData;
 
 
 	// Image Processing
 	BackgroundSubtractionData m_backgroundSubtractionData;
 	Ptr<FeatureDetector> m_blobDetector;
+	Ptr<FeatureDetector> m_intensitiesBlobDetector;
 	vector<KeyPoint> m_blobPoints;
+	vector<KeyPoint> m_blobPointsIntensity;
 
 	// Calibration
 	PhoneCalibration m_phoneCalibration;

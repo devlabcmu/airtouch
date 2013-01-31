@@ -86,6 +86,15 @@ bool update()
 	// update amplitudes
 	PMDUtils::AmplitudesToImage(_pmdCamera.GetIntensitiesBuffer(), (unsigned char*) _images[imageIndex]->imageData,  
 		_images[imageIndex]->widthStep / sizeof(unsigned char), _images[imageIndex]->nChannels);
+
+	
+	_pmdCamera.FindBlobsInIntensityImage();
+	vector<KeyPoint> blobs = _pmdCamera.GetBlobPointsIntensities();
+	for(vector<KeyPoint>::iterator i = blobs.begin(); i < blobs.end(); i++)
+	{
+		cvCircle(_images[imageIndex], i->pt, i->size, CV_RGB(0, 255, 0));
+	}
+
 	imageIndex++;
 	
 	// update distances
@@ -103,16 +112,15 @@ bool update()
 	_pmdCamera.RemoveReflection();
 	_pmdCamera.Erode(1);
 	_pmdCamera.UpdateFingers();
-	vector<KeyPoint> blobPoints = _pmdCamera.GetBlobPoints();
 
-	// PMDUtils::DistancesToImage((const float *)_pmdCamera.GetDistancesProcessed()->imageData, _images[imageIndex]);
 	memcpy(_images[imageIndex]->imageData, _pmdCamera.GetDistancesProcessedRGB()->imageData, _pmdCamera.GetDistancesProcessedRGB()->imageSize);
 
-	vector<KeyPoint> blobs = _pmdCamera.GetBlobPoints();
+	blobs = _pmdCamera.GetBlobPoints();
 	for(vector<KeyPoint>::iterator i = blobs.begin(); i < blobs.end(); i++)
 	{
 		cvCircle(_images[imageIndex], i->pt, i->size, CV_RGB(0, 255, 0));
 	}
+
 
 	vector<Finger> fingers = _pmdCamera.GetFingers();
 	std::sort(fingers.begin(), fingers.end(), fingerCompare);
