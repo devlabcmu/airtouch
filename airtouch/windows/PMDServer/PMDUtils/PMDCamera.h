@@ -88,7 +88,6 @@ public:
 	IplImage const* const GetDistancesProcessed() {return m_pmdDistancesProcessed;}
 	IplImage const* const GetDistancesProcessedRGB() {return m_pmdDistancesProcessedRGB;}
 	IplImage const* const GetCoordsPhoneSpace() { return m_pmdPhoneSpace; }
-	IplImage const* const GetFingerMaskRGB() {return m_pmdFingerMaskRGB;}
 	char const* const GetFingerIdMask() {return m_fingerIdMask;}
 	vector<KeyPoint> GetBlobPoints() {return m_blobPoints;}
 	vector<KeyPoint> GetBlobPointsIntensities() {return m_blobPointsIntensity;}
@@ -154,7 +153,6 @@ private:
 	IplImage* m_pmdDistancesProcessedRGB;
 	IplImage* m_pmdPhoneSpace;
 	IplImage* m_pmdIntensitiesRGB;
-	IplImage* m_pmdFingerMaskRGB;
 	PMDFingerData m_pmdFingerData;
 
 

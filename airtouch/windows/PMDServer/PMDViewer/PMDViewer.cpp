@@ -112,9 +112,27 @@ bool update()
 	_pmdCamera.RemoveReflection();
 	_pmdCamera.Erode(1);
 	_pmdCamera.UpdateFingers();
-
+	vector<Finger> fingers = _pmdCamera.GetFingers();
+	CvScalar fingerColors[2] = {CV_RGB(255,0,0), CV_RGB(0,0,255)};
+	
+	
 	// draw finger mask
-	memcpy_s(_images[imageIndex]->imageData, _images[imageIndex]->imageSize, _pmdCamera.GetFingerMaskRGB()->imageData,  _pmdCamera.GetFingerMaskRGB()->imageSize);
+	cvSet(_images[imageIndex], CV_RGB(0,0,0));
+	const char* pFingerIdMask = _pmdCamera.GetFingerIdMask();
+	for(vector<Finger>::iterator i = fingers.begin(); i !=fingers.end(); i++)
+	{
+		int id = i->id;
+		int mask[PMDIMAGESIZE];
+		ZeroMemory(mask, PMDIMAGESIZE * sizeof(int));
+		for(int j = 0; j < PMDIMAGESIZE; j++)
+		{
+			if(pFingerIdMask[j] == id) 
+			{
+				cvSet1D(_images[imageIndex], j, fingerColors[id % 2]);
+			}
+		}
+	}
+
 	imageIndex++;
 
 	// draw the final image
@@ -127,10 +145,8 @@ bool update()
 	}
 
 
-	vector<Finger> fingers = _pmdCamera.GetFingers();
 	Mat img = _images[imageIndex];
 
-	CvScalar fingerColors[2] = {CV_RGB(255,0,0), CV_RGB(0,0,255)};
 	for(vector<Finger>::iterator i = fingers.begin(); i !=fingers.end(); i++)
 	{
 		cvCircle(_images[imageIndex], i->screenCoords, 10, fingerColors[i->id % 2]);

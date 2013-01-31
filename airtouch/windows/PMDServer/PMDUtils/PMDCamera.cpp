@@ -20,7 +20,6 @@ PMDCamera::PMDCamera(void)
 	m_pmdCoords = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), IPL_DEPTH_32F, 3);
 	m_pmdDistancesProcessedRGB = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), 8, 3); 
 	m_pmdIntensitiesRGB = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), 8, 3);
-	m_pmdFingerMaskRGB = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), 8, 3);
 
 	SimpleBlobDetector::Params blobParams;
 	blobParams.minThreshold = 1;
@@ -65,7 +64,6 @@ PMDCamera::~PMDCamera(void)
 	cvReleaseImage(&m_pmdPhoneSpace);
 	cvReleaseImage(&m_pmdDistancesProcessedRGB);
 	cvReleaseImage(&m_pmdIntensitiesRGB);
-	cvReleaseImage(&m_pmdFingerMaskRGB);
 }
 
 HRESULT PMDCamera::InitializeCamera()
@@ -324,7 +322,6 @@ void PMDCamera::UpdateFingerIdMask()
 	// -1 means invalid
 	// > 0 means the finger id
 	CvScalar fingerColors[2] = {CV_RGB(255,0,0), CV_RGB(0,0,255)};
-	cvSet(m_pmdFingerMaskRGB, CV_RGB(0,0,0));
 	for (vector<Finger>::iterator i = m_newFingers.begin(); i < m_newFingers.end(); i++)
 	{
 		pointsToExplore.clear();
@@ -347,7 +344,6 @@ void PMDCamera::UpdateFingerIdMask()
 
 			// otherwise the point is a member of the blob, set mask value
 			m_fingerIdMask[idx] = id;
-			cvSet2D(m_pmdFingerMaskRGB, toExplore.y, toExplore.x, fingerColors[id % 2]);
 			// also set color value
 
 			// add all of its neighbors that are valid coordinates
