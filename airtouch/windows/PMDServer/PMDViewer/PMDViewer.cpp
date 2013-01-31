@@ -97,7 +97,7 @@ bool update()
 
 	imageIndex++;
 	
-	// update distances
+	// draw distances
 	PMDUtils::DistancesToImage(_pmdCamera.GetDistanceBuffer(), _images[imageIndex]);
 	imageIndex++;
 

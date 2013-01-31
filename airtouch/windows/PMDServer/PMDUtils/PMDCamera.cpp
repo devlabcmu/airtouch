@@ -279,6 +279,10 @@ HRESULT PMDCamera::UpdateCameraData()
 	// get the coordinates in phone space
 	m_phoneCalibration.ToPhoneSpace((float*)m_pmdCoords->imageData, (float*)m_pmdPhoneSpace->imageData);
 
+
+	// update falgs
+	m_blobIntensitiesFound = false;
+
 	return 0;
 }
 
@@ -479,7 +483,42 @@ Point2f PMDCamera::FindFingerPos(vector<Finger>::iterator f)
 
 Point2f PMDCamera::FindFingerPosUsingTracker(vector<Finger>::iterator f)
 {
-	Point2f result;
+	FindBlobsInIntensityImage();
+	Point2f result(0,0);
+
+	// for each finger
+	// for each blob in the intensity image
+	for(vector<KeyPoint>::iterator j = m_blobPointsIntensity.begin(); j < m_blobPointsIntensity.end(); j++)
+	{
+		int idx = (int)j->pt.y * PMDNUMCOLS + (int)j->pt.x;
+		if(m_fingerIdMask[idx] != f->id) continue;
+		// if the blob's center is in the finger's mask
+		// screen position is average of all points in blob's radius
+
+		result = j->pt;
+		//int searchSize = j->size * 2;
+		//int numItems = 0;
+		//Point2f newScreenCoords(0,0);
+		//for(int dy = -searchSize; dy < searchSize; dy++)
+		//{
+		//	int y = j->pt.y + dy;
+		//	if(y < 0 || y >= PMDNUMCOLS) continue;
+		//	for( int dx = -searchSize; dx < searchSize; dx++)
+		//	{
+		//		int x = j->pt.x + dx;
+		//		if(x < 0 || x >= PMDNUMROWS) continue;
+		//		idx = y * PMDNUMCOLS + x;
+		//		if(m_fingerIdMask[idx] != f->id) continue;
+		//		numItems++;
+		//		newScreenCoords.x += x;
+		//		newScreenCoords.y += y;
+		//	}
+		//}
+		//if(numItems > 0)
+		//	result = newScreenCoords * (1 / (float)numItems);
+		break;
+	}
+
 	return result;
 }
 
@@ -494,7 +533,9 @@ void PMDCamera::UpdateFingerPositions()
 		bool newFinger = j->screenCoords.x < 0;
 		
 		// find the finger position in screen space using info about the blog
-		Point2f fingerPos = FindFingerPos(j);
+		Point2f fingerPos = FindFingerPosUsingTracker(j);
+		if(fingerPos.x  == 0)
+			fingerPos = FindFingerPos(j);
 
 		// smooth finger position screen space
 		if(newFinger)
@@ -549,6 +590,8 @@ void PMDCamera::UpdateFingers()
 	// associate fingers to blobs. new_fingers will be populated, blob point will be associated blob point, 
 	// screen coords are still the old screen coords
 	BlobsToFingers();
+
+	FindBlobsInIntensityImage();
 
 	UpdateFingerIdMask();
 
@@ -623,8 +666,10 @@ void PMDCamera::FindBlobs()
 
 void PMDCamera::FindBlobsInIntensityImage()
 {
+	if(m_blobIntensitiesFound) return;
 	PMDUtils::AmplitudesToImage(m_pmdIntensitiesBuffer, m_pmdIntensitiesRGB);
 	m_intensitiesBlobDetector->detect(m_pmdIntensitiesRGB, m_blobPointsIntensity);
+	m_blobIntensitiesFound = true;
 }
 
 

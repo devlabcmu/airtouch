@@ -17,6 +17,21 @@
 #define P2Z  0.2121f
 #endif
 
+
+#ifdef PHONE_ANDROID_1_31
+#define ORIGINX 0.0324f
+#define ORIGINY -0.0287f
+#define ORIGINZ 0.0536
+
+#define P1X -0.0174f
+#define P1Y -0.0275f
+#define P1Z 0.0545f
+
+#define P2X 0.0437f
+#define P2Y -0.0209f
+#define P2Z  0.1860f
+#endif
+
 #ifdef PHONE_IPHONE
 // calibration for iphone
 #define ORIGINX 0.0387f

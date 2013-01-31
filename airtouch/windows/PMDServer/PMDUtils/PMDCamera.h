@@ -128,6 +128,9 @@ public:
 	void UpdateFingers();
 
 private:
+	// flags
+	bool m_blobIntensitiesFound;
+
 	// methods
 
 	// Finds the finger position using information about the blob
