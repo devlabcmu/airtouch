@@ -140,7 +140,7 @@ public class AirTouchView extends View {
 	{
 		Point3f result = new Point3f();
 		float realWidth = 0.065f;
-		float realHeight = 0.095f;
+		float realHeight = 0.09f;
 		float realDepth = 0.1f;
 		WindowManager wm = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
 		Display display = wm.getDefaultDisplay();
@@ -149,7 +149,7 @@ public class AirTouchView extends View {
 		int height = display.getHeight();
 		
 		result.x =  x / realWidth * width;
-		result.y = z / realHeight * height;
+		result.y = z / realHeight * height + 200;
 		result.z = y / realDepth;
 		return result;
 	}
@@ -159,6 +159,7 @@ public class AirTouchView extends View {
 		canvas.drawRGB(255, 255, 255);
 		Paint paint;
 
+		
 		// Draw touch points
 		synchronized(_touchMapLock) {
 
@@ -181,29 +182,34 @@ public class AirTouchView extends View {
 		// draw a bitmap with the bytes if we are not just showing finger data.
 		if(!_getOnlyFingerData) canvas.drawBitmap(_pmdDepth, _depthMatrix, null);
 		
-		// convert the finger 
-		
-		// draw a circle at Finger loc
-		if(_dataFromServer.finger1X > PMD_INVALID_DISTANCE )
+
+		if(_touchMap.values().size() == 0)
 		{
-			Point3f p = PhoneToScreen(_dataFromServer.finger1X, _dataFromServer.finger1Y, _dataFromServer.finger1Z);
-//			Log.v("AirTouchView", String.format("finger1 pos: (%f, %f, %f)\n\t(%f, %f, %f)", 
-//					_dataFromServer.finger1X, _dataFromServer.finger1Y, _dataFromServer.finger1Z,
-//					p.x, p.y, p.z
-//					));
 			
-			canvas.drawCircle(p.x, p.y, p.z * 500, paintBrushes.get(TouchType.AIR_MOVE1));
+			// draw a circle at Finger loc
+			if(_dataFromServer.finger1X > PMD_INVALID_DISTANCE )
+			{
+				Point3f p = PhoneToScreen(_dataFromServer.finger1X, _dataFromServer.finger1Y, _dataFromServer.finger1Z);
+//				Log.v("AirTouchView", String.format("finger1 pos: (%f, %f, %f)\n\t(%f, %f, %f)", 
+//						_dataFromServer.finger1X, _dataFromServer.finger1Y, _dataFromServer.finger1Z,
+//						p.x, p.y, p.z
+//						));
+				
+				canvas.drawCircle(p.x, p.y, p.z * 500, paintBrushes.get(TouchType.AIR_MOVE1));
+			}
+			
+			if (_dataFromServer.finger2X > PMD_INVALID_DISTANCE)
+			{
+				Point3f p = PhoneToScreen(_dataFromServer.finger2X, _dataFromServer.finger2Y, _dataFromServer.finger2Z);
+//				Log.v("AirTouchView", String.format("finger2 pos: (%f, %f, %f)\n\t(%f, %f, %f)", 
+//						_dataFromServer.finger2X, _dataFromServer.finger2Y, _dataFromServer.finger2Z,
+//						p.x, p.y, p.z
+//						));
+				canvas.drawCircle(p.x, p.y, p.z * 500, paintBrushes.get(TouchType.AIR_MOVE2));			
+			}
+			
 		}
-		
-		if (_dataFromServer.finger2X > PMD_INVALID_DISTANCE)
-		{
-			Point3f p = PhoneToScreen(_dataFromServer.finger2X, _dataFromServer.finger2Y, _dataFromServer.finger2Z);
-//			Log.v("AirTouchView", String.format("finger2 pos: (%f, %f, %f)\n\t(%f, %f, %f)", 
-//					_dataFromServer.finger2X, _dataFromServer.finger2Y, _dataFromServer.finger2Z,
-//					p.x, p.y, p.z
-//					));
-			canvas.drawCircle(p.x, p.y, p.z * 500, paintBrushes.get(TouchType.AIR_MOVE2));			
-		}
+
 
 		// Draw any errors
 		if(_errorText != null) 
