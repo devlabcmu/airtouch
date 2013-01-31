@@ -9,7 +9,8 @@
 
 const int g_numFramesForBackgroundSubtraction = 50;
 
-const float g_fingerSmoothing = 0.8f;
+const float g_fingerSmoothing = 0.2f;
+const float g_fingerWorldSmoothing = 0.4f;
 
 PMDCamera::PMDCamera(void)
 {
@@ -372,22 +373,6 @@ void PMDCamera::BlobsToFingers()
 		m_newFingers.push_back(newFinger);
 	}
 
-	
-
-	// find closest finger
-
-	// if no finger present then add a new finger
-
-	// given an old finger location 
-	// if no location is present then location is blob center
-	// cull around the finger
-	// find smallest z value
-	// smooth
-
-	// find the x,y coordinate that has the smallest z value
-
-
-	// find the x, y coordinate that has the highest value
 }
 
 void PMDCamera::UpdateFingerPositions()
@@ -449,7 +434,22 @@ void PMDCamera::UpdateFingerPositions()
 		float* pWorld = (float*)m_pmdCoords->imageData;
 		pWorld += 3 * (PMDNUMCOLS * y + x);
 
-		j->worldCoords = Point3f(pWorld[0], pWorld[1], pWorld[2]);
+		if(newFinger)
+		{
+			j->worldCoords = Point3f(pWorld[0], pWorld[1], pWorld[2]);
+		} else
+		{
+			Point3f wc = j->worldCoords;
+			if(pDistances[(PMDNUMCOLS * y + x)] != PMD_INVALID_DISTANCE)
+			{
+				j->worldCoords.x = wc.x * g_fingerWorldSmoothing + (1 - g_fingerWorldSmoothing ) * pWorld[0];
+				j->worldCoords.y = wc.y * g_fingerWorldSmoothing + (1 - g_fingerWorldSmoothing ) * pWorld[1];
+				j->worldCoords.z = wc.z * g_fingerWorldSmoothing + (1 - g_fingerWorldSmoothing ) * pWorld[2];
+			}
+			
+		}
+
+		
 		j->phoneCoords = m_phoneCalibration.ToPhoneSpace(j->worldCoords);
 	}
 }
@@ -508,9 +508,28 @@ void PMDCamera::RemoveReflection()
 	float* pDistances = (float *)m_pmdDistancesProcessed->imageData;
 	for(int i = 0; i < PMDIMAGESIZE; i++, pPhone += 3, ++pDistances)
 	{
-		if(pPhone[1] < 0)
+		if(pPhone[1] < 0 )
 		{
 			*pDistances = PMD_INVALID_DISTANCE;
+
+			// try removing anything outside phone as well
+
+		}
+	}
+}
+
+void PMDCamera::RemoveOutsidePhone()
+{
+	float* pPhone = (float*) m_pmdPhoneSpace->imageData;
+	float* pDistances = (float *)m_pmdDistancesProcessed->imageData;
+	for(int i = 0; i < PMDIMAGESIZE; i++, pPhone += 3, ++pDistances)
+	{
+		if(pPhone[0] < 0 || pPhone[0] > 0.06f)
+		{
+			*pDistances = PMD_INVALID_DISTANCE;
+
+			// try removing anything outside phone as well
+
 		}
 	}
 }

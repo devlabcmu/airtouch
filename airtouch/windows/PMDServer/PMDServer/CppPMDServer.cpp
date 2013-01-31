@@ -301,7 +301,7 @@ int main(int argc, char* argv[])
 		_pmdCamera.UpdateBackgroundSubtraction();
 		_pmdCamera.MedianFilter();
 		_pmdCamera.RemoveReflection();
-		_pmdCamera.Erode(1);
+		//_pmdCamera.Erode(1);
 		_pmdCamera.UpdateFingers();
 		
 		// lock the pmd data

@@ -113,6 +113,7 @@ public:
 	void UpdateBackgroundSubtraction();
 	void UpdateFingers();
 	void RemoveReflection();
+	void RemoveOutsidePhone();
 	void Threshold(float maxdistance);
 	void Erode(int erosionSize);
 	void FindBlobs();
