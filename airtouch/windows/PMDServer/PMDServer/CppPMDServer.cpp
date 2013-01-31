@@ -49,7 +49,7 @@ void welcomeMessage()
 	// add welcome here
 	cout << "PMDServer sends data from pmd camera or a file" << endl;
 	cout << "Usage: PMDServer.exe to read from camera" << endl;
-	cout << "Usage: PMDServer.exe [filename.pmd] to read from .pmd file" << endl;
+	cout << "Usage: PMDServer.exe [--use-ir-tracker] [filename.pmd] to read from .pmd file" << endl;
 }
 
 bool fingerCompare(Finger a, Finger b){ return a.id < b.id;}
@@ -269,13 +269,31 @@ int main(int argc, char* argv[])
 
 	// Initialize the PMD camera
 	// check if we have parameters, if so first param is filename
-	if(argc > 1)
+	int argi = 1;
+	bool fromCamera = true;
+	while(argc > argi)
 	{
-		char* filename = argv[1];
-		cout << "Reading data from file " << filename << endl;
-		hr = _pmdCamera.InitializeCameraFromFile(filename);
-		if(!SUCCEEDED(hr)) error("Error: failed to initialize from file");
-	} else 
+		if(strcmp(argv[argi], "--use-ir-tracker") == 0)
+		{
+			_pmdCamera.m_useIrTracker = true;
+			cout << "using ir tracker" << endl;
+		} else  if(argi == argc - 1)
+		{
+			char* filename = argv[argi];
+
+			cout << "Reading data from file " << filename << endl;
+			hr = _pmdCamera.InitializeCameraFromFile(filename);
+			if(!SUCCEEDED(hr)) error("Error: failed to initialize from file");
+			fromCamera = false;
+		} else 
+		{
+			cout << "Unknown argument: " << argv[argi] << endl;
+		}
+		argi++;
+
+	}
+
+	if(fromCamera)
 	{
 		hr = _pmdCamera.InitializeCamera();
 		if(!SUCCEEDED(hr)) error("Error: failed to initialize PMD camera");
@@ -297,11 +315,6 @@ int main(int argc, char* argv[])
 		// update data
 		hr = _pmdCamera.UpdateCameraData();
 
-		_pmdCamera.Threshold(PMD_MAX_PHONE_DISTANCE);
-		_pmdCamera.UpdateBackgroundSubtraction();
-		_pmdCamera.MedianFilter();
-		_pmdCamera.RemoveReflection();
-		//_pmdCamera.Erode(1);
 		_pmdCamera.UpdateFingers();
 		
 		// lock the pmd data

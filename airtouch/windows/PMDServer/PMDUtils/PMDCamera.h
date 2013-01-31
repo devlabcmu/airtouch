@@ -43,6 +43,8 @@ typedef struct {
 class PMDCamera
 {
 public:
+	bool m_useIrTracker;
+
 	PMDCamera(void);
 	~PMDCamera(void);
 

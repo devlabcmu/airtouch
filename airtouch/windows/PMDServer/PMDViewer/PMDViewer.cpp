@@ -12,7 +12,7 @@ int _fpsCounter = 0;
 
 // UI
 vector<IplImage*> _images;
-string _frameTitles[5] = {"intensities", "distances", "before reflection removal", "finger mask", "final"};
+string _frameTitles[4] = {"amplitudes", "distances", "finger mask", "final"};
 
 Mat _phoneSpace;
 PhoneCalibration _phoneCalibration;
@@ -101,20 +101,9 @@ bool update()
 	PMDUtils::DistancesToImage(_pmdCamera.GetDistanceBuffer(), _images[imageIndex]);
 	imageIndex++;
 
-	_pmdCamera.Threshold(PMD_MAX_PHONE_DISTANCE);
-	_pmdCamera.UpdateBackgroundSubtraction();
-	_pmdCamera.MedianFilter();
-
-	// update processed distances BEFORE reflection removal
-	PMDUtils::DistancesToImage((const float *)_pmdCamera.GetDistancesProcessed()->imageData, _images[imageIndex]);
-	imageIndex++;
-
-	_pmdCamera.RemoveReflection();
-	_pmdCamera.Erode(1);
 	_pmdCamera.UpdateFingers();
 	vector<Finger> fingers = _pmdCamera.GetFingers();
 	CvScalar fingerColors[2] = {CV_RGB(255,0,0), CV_RGB(0,0,255)};
-	
 	
 	// draw finger mask
 	cvSet(_images[imageIndex], CV_RGB(0,0,0));

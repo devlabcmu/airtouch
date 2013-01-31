@@ -14,6 +14,8 @@ const float g_fingerWorldSmoothing = 0.4f;
 
 PMDCamera::PMDCamera(void)
 {
+	m_useIrTracker = false;
+	
 	// create all opencv images
 	m_pmdDistancesProcessed = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), IPL_DEPTH_32F, 1);
 	m_pmdPhoneSpace = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), IPL_DEPTH_32F, 3);
@@ -514,7 +516,11 @@ void PMDCamera::UpdateFingerPositions()
 		bool newFinger = j->screenCoords.x < 0;
 		
 		// find the finger position in screen space using info about the blog
-		Point2f fingerPos = FindFingerPosUsingTracker(j);
+		Point2f fingerPos(0,0);
+		if(m_useIrTracker) 
+		{
+			fingerPos = FindFingerPosUsingTracker(j);
+		}
 		if(fingerPos.x  == 0)
 			fingerPos = FindFingerPos(j);
 
@@ -570,6 +576,11 @@ void PMDCamera::UpdateFingerPositions()
 
 void PMDCamera::UpdateFingers()
 {
+	Threshold(PMD_MAX_PHONE_DISTANCE);
+	UpdateBackgroundSubtraction();
+	MedianFilter();
+	RemoveReflection();
+	//RemoveOutsidePhone();
 	FindBlobs();
 	
 	// copy all new fingers to old fingers
