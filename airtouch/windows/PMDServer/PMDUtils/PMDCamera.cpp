@@ -9,7 +9,7 @@
 
 const int g_numFramesForBackgroundSubtraction = 50;
 
-const float g_fingerSmoothing = 0.5f;
+const float g_fingerSmoothing = 0.8f;
 
 PMDCamera::PMDCamera(void)
 {

@@ -4,12 +4,13 @@
 
 #include "PMDCamera.h"
 #include "PMDUtils.h"
-
+#define NETWORK_DEBUG
 
 /* Globar vars */
 // Sent over network
 PMDCamera _pmdCamera;
 PMDData _pmdData;
+HANDLE _pmdDataMutex;
 PMDRequest _fromClient;
 
 // UI
@@ -19,6 +20,9 @@ IplImage* _distancesAndFingerLocation;
 
 // UI
 void welcomeMessage();
+
+
+bool _stayAlive = true;
 
 // FPS
 time_t _fpsStart, _fpsEnd;
@@ -163,38 +167,27 @@ bool communicateWithClient(SOCKET* hClient)
 
 		if(command == 'q') return false;
 		if(command == 'd') return true;
-
-
-		// fill the current send data with data from the camera
-		// send the data
-		memset(&_pmdData, 0, sizeof(PMDData));
-		hr = _pmdCamera.UpdateCameraData();
-
-		if(!SUCCEEDED(hr)) return true;
-
-		_pmdCamera.Threshold(PMD_MAX_PHONE_DISTANCE);
-		_pmdCamera.UpdateBackgroundSubtraction();
-		_pmdCamera.MedianFilter();
-		_pmdCamera.RemoveReflection();
-		_pmdCamera.Erode(1);
-		_pmdCamera.UpdateFingers();
-
-		// draw all fingers
 		
-		PMDFingerData toSend = _pmdCamera.GetFingerData();
-
+		// send the data
+		// make sure to lock it so it doesn't get overridden in the middle
 		if(command == 'f')
 		{
 			// only send the finger data
-			hr = sendData(*hClient, (char*)&toSend, sizeof(PMDFingerData), 0);	
+			WaitForSingleObject(_pmdDataMutex, INFINITE);
+			hr = sendData(*hClient, (char*)&_pmdData, sizeof(PMDFingerData), 0);	
+			ReleaseMutex(_pmdDataMutex);
+			
+#ifdef NETWORK_DEBUG
+		cout << "sent finger data "<< endl;
+#endif
+
 		} else
 		{
-			memcpy(&_pmdData, &toSend, sizeof(float) * 6);
-			memcpy_s(_pmdData.buffer,_countof(_pmdData.buffer) * sizeof(float), _pmdCamera.GetDistanceBuffer(), _countof(_pmdData.buffer) * sizeof(float));
+			WaitForSingleObject(_pmdDataMutex, INFINITE);
 			hr = sendData(*hClient, (char*)&_pmdData, sizeof(PMDData), 0);	
+			ReleaseMutex(_pmdDataMutex);
 		}
 		
-		updateUI();
 
 		if(!SUCCEEDED(hr)) return true;
 
@@ -205,40 +198,13 @@ bool communicateWithClient(SOCKET* hClient)
 	return result;
 }
 
-int main(int argc, char* argv[])
+DWORD WINAPI doNetworkCommunication(LPVOID lpParam)
 {
-	// welcome message
-	welcomeMessage();
-	
-
-	// initialize opencv frame
-	_distancesAndFingerLocation = cvCreateImage(cvSize(PMDNUMCOLS,PMDNUMROWS), 8, 3);
-
-	HRESULT hr = 0;
-
-	// Initialize the PMD camera
-	// check if we have parameters, if so first param is filename
-	if(argc > 1)
-	{
-		char* filename = argv[1];
-		cout << "Reading data from file " << filename << endl;
-		hr = _pmdCamera.InitializeCameraFromFile(filename);
-		if(!SUCCEEDED(hr)) error("Error: failed to initialize from file");
-	} else 
-	{
-		hr = _pmdCamera.InitializeCamera();
-		if(!SUCCEEDED(hr)) error("Error: failed to initialize PMD camera");
-	}
-
-	hr = _pmdCamera.InitializeBackgroundSubtraction();
-	if(!SUCCEEDED(hr)) error("Error: Background subtraction failed");
-	//showBackgroundImage();
-
 	WSADATA wsaData = {0};
 	WORD wVer = MAKEWORD(2,2);
 
 	// Step 1: initialize the socket
-	hr = initWinsock(&wsaData, &wVer);
+	HRESULT hr = initWinsock(&wsaData, &wVer);
 	if(!SUCCEEDED(hr)) return -1;
 
 	cout << "Starting server on socket 10000..." << endl;
@@ -264,8 +230,7 @@ int main(int argc, char* argv[])
 	if(!SUCCEEDED(hr)) return -1;
 
 	// listen for incoming connections until force kill
-	bool stayAlive = true;
-	while( stayAlive )
+	while( _stayAlive )
 	{
 		cout << "Listening for connections on port 10000...." << endl;
 
@@ -274,13 +239,10 @@ int main(int argc, char* argv[])
 		hr = getClientConnection(&hSock, &hClient);
 		if(!SUCCEEDED(hr)) error("Error: Failed to get client connection");
 
-		stayAlive = communicateWithClient(&hClient);
+		_stayAlive = communicateWithClient(&hClient);
 		closesocket( hClient );
 		hClient = 0;
 	}
-
-	cvReleaseImage (&_distancesAndFingerLocation);
-
 	cout << "Shutting down the server" << endl;
 
 	// close server socket 
@@ -292,4 +254,75 @@ int main(int argc, char* argv[])
 	// Release WinSock DLL 
 	hr = WSACleanup();
 	if( hr == SOCKET_ERROR ) cout << "Error: cleaning up Winsock Library" << endl;
+
+}
+
+int main(int argc, char* argv[])
+{
+	// welcome message
+	welcomeMessage();
+	
+	// initialize opencv frame
+	_distancesAndFingerLocation = cvCreateImage(cvSize(PMDNUMCOLS,PMDNUMROWS), 8, 3);
+
+	HRESULT hr = 0;
+
+	// Initialize the PMD camera
+	// check if we have parameters, if so first param is filename
+	if(argc > 1)
+	{
+		char* filename = argv[1];
+		cout << "Reading data from file " << filename << endl;
+		hr = _pmdCamera.InitializeCameraFromFile(filename);
+		if(!SUCCEEDED(hr)) error("Error: failed to initialize from file");
+	} else 
+	{
+		hr = _pmdCamera.InitializeCamera();
+		if(!SUCCEEDED(hr)) error("Error: failed to initialize PMD camera");
+	}
+
+	hr = _pmdCamera.InitializeBackgroundSubtraction();
+	if(!SUCCEEDED(hr)) error("Error: Background subtraction failed");
+	
+	// initialize the pmd data mutex
+	_pmdDataMutex = CreateMutex(NULL, FALSE, NULL);
+
+
+	// start the network thread
+	cout << "Starting network thread..." << endl;
+	HANDLE networkThread = CreateThread(NULL, 0, doNetworkCommunication, NULL, 0, 0);
+
+	while(_stayAlive)
+	{
+		// update data
+		hr = _pmdCamera.UpdateCameraData();
+
+		_pmdCamera.Threshold(PMD_MAX_PHONE_DISTANCE);
+		_pmdCamera.UpdateBackgroundSubtraction();
+		_pmdCamera.MedianFilter();
+		_pmdCamera.RemoveReflection();
+		_pmdCamera.Erode(1);
+		_pmdCamera.UpdateFingers();
+		
+		// lock the pmd data
+		WaitForSingleObject(_pmdDataMutex, INFINITE);
+		// update the pmddata to send
+		memset(&_pmdData, 0, sizeof(PMDData));
+		memcpy(&_pmdData, &_pmdCamera.GetFingerData(), sizeof(float) * 6);
+		memcpy_s(_pmdData.buffer,_countof(_pmdData.buffer) * sizeof(float), _pmdCamera.GetDistanceBuffer(), _countof(_pmdData.buffer) * sizeof(float));
+		// unlock pmd data
+		ReleaseMutex(_pmdDataMutex);
+
+		updateUI();
+
+		// draw ui
+	}
+
+	cvReleaseImage (&_distancesAndFingerLocation);
+	
+	cout << "Waiting for network thread to die..." << endl;
+	WaitForSingleObject(networkThread, INFINITE);
+	
+	CloseHandle(_pmdDataMutex);
+
 }
