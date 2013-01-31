@@ -1,7 +1,7 @@
 #include "PhoneCalibration.h"
 #include "PMDConstants.h"
 
-#define PHONE_ANDROID
+#define PHONE_ANDROID_1_31
 
 #ifdef PHONE_ANDROID
 #define ORIGINX 0.0387f
@@ -21,7 +21,7 @@
 #ifdef PHONE_ANDROID_1_31
 #define ORIGINX 0.0324f
 #define ORIGINY -0.0287f
-#define ORIGINZ 0.0536
+#define ORIGINZ 0.0552
 
 #define P1X -0.0174f
 #define P1Y -0.0275f
@@ -44,7 +44,7 @@
 
 #define P2X 0.0392f
 #define P2Y -0.0196f
-#define P2Z  0.2121f
+#define P2Z  0.1555f
 #endif
 
 PhoneCalibration::PhoneCalibration(void)

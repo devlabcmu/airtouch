@@ -496,26 +496,7 @@ Point2f PMDCamera::FindFingerPosUsingTracker(vector<Finger>::iterator f)
 		// screen position is average of all points in blob's radius
 
 		result = j->pt;
-		//int searchSize = j->size * 2;
-		//int numItems = 0;
-		//Point2f newScreenCoords(0,0);
-		//for(int dy = -searchSize; dy < searchSize; dy++)
-		//{
-		//	int y = j->pt.y + dy;
-		//	if(y < 0 || y >= PMDNUMCOLS) continue;
-		//	for( int dx = -searchSize; dx < searchSize; dx++)
-		//	{
-		//		int x = j->pt.x + dx;
-		//		if(x < 0 || x >= PMDNUMROWS) continue;
-		//		idx = y * PMDNUMCOLS + x;
-		//		if(m_fingerIdMask[idx] != f->id) continue;
-		//		numItems++;
-		//		newScreenCoords.x += x;
-		//		newScreenCoords.y += y;
-		//	}
-		//}
-		//if(numItems > 0)
-		//	result = newScreenCoords * (1 / (float)numItems);
+
 		break;
 	}
 
@@ -549,23 +530,36 @@ void PMDCamera::UpdateFingerPositions()
 		}
 
 		// update world coords
-		int x = j->screenCoords.x;
-		int y = j->screenCoords.y;
-		float* pWorld = (float*)m_pmdCoords->imageData;
-		pWorld += 3 * (PMDNUMCOLS * y + x);
-		Point3f world = Point3f(pWorld[0], pWorld[1], pWorld[2]);
 
+		float* pWorld = (float*)m_pmdCoords->imageData;
+
+		// get world coord by averaging over world coordinates in small region of finger
+		int searchSize = 5;
+		int numItems = 0;
+		Point3f world(0,0,0);
+		for(int dy = -searchSize; dy < searchSize; dy++)
+		{
+			int y = j->screenCoords.y + dy;
+			for( int dx = -searchSize; dx < searchSize; dx++)
+			{
+				int x = j->screenCoords.x + dx;
+				if(x < 0 || x >= PMDNUMROWS) continue;
+				int idx = y * PMDNUMCOLS + x;
+				if(m_fingerIdMask[idx] != j->id) continue;
+				numItems++;
+				world.x += pWorld[3 * idx];
+				world.y += pWorld[3 * idx + 1];
+				world.z += pWorld[3 * idx + 2];
+			}
+		}
+		if(numItems > 0) world = world * (1 / (float) numItems);
 		// smooth world coords
 		if(newFinger)
 		{
 			j->worldCoords = world;
 		} else
 		{
-			// todo: need to do something better if the coordinates are invalid
-			if(pDistances[(PMDNUMCOLS * y + x)] != PMD_INVALID_DISTANCE)
-			{
-				j->worldCoords = j->worldCoords * g_fingerSmoothing + (1 - g_fingerWorldSmoothing) * world;
-			}
+			j->worldCoords = j->worldCoords * g_fingerSmoothing + (1 - g_fingerWorldSmoothing) * world;
 			
 		}
 
