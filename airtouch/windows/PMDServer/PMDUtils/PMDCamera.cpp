@@ -20,6 +20,8 @@ PMDCamera::PMDCamera(void)
 	m_pmdCoords = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), IPL_DEPTH_32F, 3);
 	m_pmdDistancesProcessedRGB = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), 8, 3); 
 	m_pmdIntensitiesRGB = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), 8, 3);
+	m_pmdFingerMaskRGB = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), 8, 3);
+
 	SimpleBlobDetector::Params blobParams;
 	blobParams.minThreshold = 1;
 	blobParams.maxThreshold = 255;
@@ -44,7 +46,7 @@ PMDCamera::PMDCamera(void)
 	m_blobDetector = new SimpleBlobDetector(blobParams);
 	m_blobDetector->create("DistancesBlob");
 
-	blobParams.minThreshold = 150;
+	blobParams.minThreshold = 100;
 	blobParams.maxThreshold = 255;
 	blobParams.thresholdStep = 50;
 	
@@ -63,6 +65,7 @@ PMDCamera::~PMDCamera(void)
 	cvReleaseImage(&m_pmdPhoneSpace);
 	cvReleaseImage(&m_pmdDistancesProcessedRGB);
 	cvReleaseImage(&m_pmdIntensitiesRGB);
+	cvReleaseImage(&m_pmdFingerMaskRGB);
 }
 
 HRESULT PMDCamera::InitializeCamera()
@@ -309,6 +312,61 @@ void PMDCamera::UpdateBackgroundSubtraction()
 		}
 	}
 }
+
+// call after blobstofingers but before findfingerpositions
+void PMDCamera::UpdateFingerIdMask()
+{
+	vector<Point2i> pointsToExplore;
+	memset(m_fingerIdMask, -2, PMDIMAGESIZE * sizeof(int));
+	
+	float* pDistancesProcessed = (float*)m_pmdDistancesProcessed->imageData;
+	// -2 means unexplored
+	// -1 means invalid
+	// > 0 means the finger id
+	CvScalar fingerColors[2] = {CV_RGB(255,0,0), CV_RGB(0,0,255)};
+	cvSet(m_pmdFingerMaskRGB, CV_RGB(0,0,0));
+	for (vector<Finger>::iterator i = m_newFingers.begin(); i < m_newFingers.end(); i++)
+	{
+		pointsToExplore.clear();
+		pointsToExplore.push_back(Point2i(i->blobCenter));
+		int id = i->id;
+		while(!pointsToExplore.empty())
+		{
+			Point2i toExplore = pointsToExplore.back();
+			pointsToExplore.pop_back();
+			int idx = toExplore.y * PMDNUMCOLS + toExplore.x;
+			
+			// if the point has been explored already, continue
+			if(m_fingerIdMask[idx] > -2) continue;
+			// if the point is an invalid distance, mark the point in mask as invalid and continue
+			if(pDistancesProcessed[idx] == PMD_INVALID_DISTANCE)
+			{
+				m_fingerIdMask[idx] = -1;
+				continue;
+			}
+
+			// otherwise the point is a member of the blob, set mask value
+			m_fingerIdMask[idx] = id;
+			cvSet2D(m_pmdFingerMaskRGB, toExplore.y, toExplore.x, fingerColors[id % 2]);
+			// also set color value
+
+			// add all of its neighbors that are valid coordinates
+			for(int dy = -1; dy <=1; dy++)
+			{ 
+				for(int dx = -1; dx <=1; dx++)
+				{
+					if(dx == 0 && dy == 0) continue;
+					int x = toExplore.x + dx;
+					int y = toExplore.y + dy;
+					if(x < 0 || x >= PMDNUMCOLS || y < 0 || y >= PMDNUMROWS) continue;
+					pointsToExplore.push_back(Point2i(x,y));
+				}
+			}
+		}
+	}
+	
+}
+
 void PMDCamera::BlobsToFingers()
 {
 	// reduce number of blobs to max_fingers
@@ -495,9 +553,10 @@ void PMDCamera::UpdateFingers()
 	// associate fingers to blobs. new_fingers will be populated, blob point will be associated blob point, 
 	// screen coords are still the old screen coords
 	BlobsToFingers();
-	UpdateFingerPositions();
-	
 
+	UpdateFingerIdMask();
+
+	UpdateFingerPositions();
 }
 
 

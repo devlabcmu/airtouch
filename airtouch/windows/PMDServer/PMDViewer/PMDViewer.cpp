@@ -12,7 +12,7 @@ int _fpsCounter = 0;
 
 // UI
 vector<IplImage*> _images;
-string _frameTitles[4] = {"intensities", "distances", "before reflection removal", "final"};
+string _frameTitles[5] = {"intensities", "distances", "before reflection removal", "finger mask", "final"};
 
 Mat _phoneSpace;
 PhoneCalibration _phoneCalibration;
@@ -92,7 +92,7 @@ bool update()
 	vector<KeyPoint> blobs = _pmdCamera.GetBlobPointsIntensities();
 	for(vector<KeyPoint>::iterator i = blobs.begin(); i < blobs.end(); i++)
 	{
-		cvCircle(_images[imageIndex], i->pt, i->size, CV_RGB(0, 255, 0));
+		cvCircle(_images[imageIndex], i->pt, i->size, CV_RGB(0, 255, 0), 5);
 	}
 
 	imageIndex++;
@@ -113,6 +113,11 @@ bool update()
 	_pmdCamera.Erode(1);
 	_pmdCamera.UpdateFingers();
 
+	// draw finger mask
+	memcpy_s(_images[imageIndex]->imageData, _images[imageIndex]->imageSize, _pmdCamera.GetFingerMaskRGB()->imageData,  _pmdCamera.GetFingerMaskRGB()->imageSize);
+	imageIndex++;
+
+	// draw the final image
 	memcpy(_images[imageIndex]->imageData, _pmdCamera.GetDistancesProcessedRGB()->imageData, _pmdCamera.GetDistancesProcessedRGB()->imageSize);
 
 	blobs = _pmdCamera.GetBlobPoints();
@@ -123,13 +128,12 @@ bool update()
 
 
 	vector<Finger> fingers = _pmdCamera.GetFingers();
-	std::sort(fingers.begin(), fingers.end(), fingerCompare);
 	Mat img = _images[imageIndex];
 
 	CvScalar fingerColors[2] = {CV_RGB(255,0,0), CV_RGB(0,0,255)};
 	for(vector<Finger>::iterator i = fingers.begin(); i !=fingers.end(); i++)
 	{
-		cvCircle(_images[imageIndex], i->screenCoords, 10, fingerColors[i - fingers.begin()]);
+		cvCircle(_images[imageIndex], i->screenCoords, 10, fingerColors[i->id % 2]);
 	}
 	return true;
 }

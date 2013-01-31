@@ -88,6 +88,8 @@ public:
 	IplImage const* const GetDistancesProcessed() {return m_pmdDistancesProcessed;}
 	IplImage const* const GetDistancesProcessedRGB() {return m_pmdDistancesProcessedRGB;}
 	IplImage const* const GetCoordsPhoneSpace() { return m_pmdPhoneSpace; }
+	IplImage const* const GetFingerMaskRGB() {return m_pmdFingerMaskRGB;}
+	char const* const GetFingerIdMask() {return m_fingerIdMask;}
 	vector<KeyPoint> GetBlobPoints() {return m_blobPoints;}
 	vector<KeyPoint> GetBlobPointsIntensities() {return m_blobPointsIntensity;}
 	vector<Finger> GetFingers() {return m_newFingers;}
@@ -112,13 +114,20 @@ public:
 	// Image Processing
 	void MedianFilter();
 	void UpdateBackgroundSubtraction();
-	void UpdateFingers();
 	void RemoveReflection();
 	void RemoveOutsidePhone();
 	void Threshold(float maxdistance);
 	void Erode(int erosionSize);
+
+	// Blob tracking
+	void BlobsToFingers();
 	void FindBlobs();
+	void UpdateFingerIdMask();
 	void FindBlobsInIntensityImage();
+
+	// Finger tracking
+	void UpdateFingers();
+
 private:
 	// methods
 
@@ -145,6 +154,7 @@ private:
 	IplImage* m_pmdDistancesProcessedRGB;
 	IplImage* m_pmdPhoneSpace;
 	IplImage* m_pmdIntensitiesRGB;
+	IplImage* m_pmdFingerMaskRGB;
 	PMDFingerData m_pmdFingerData;
 
 
@@ -163,7 +173,8 @@ private:
 	// FInger Tracking
 	vector<Finger> m_oldFingers;
 	vector<Finger> m_newFingers;
-	void BlobsToFingers();
+	char m_fingerIdMask[PMDIMAGESIZE];
+	
 	void UpdateFingerPositions();
 	static bool blobCompare(KeyPoint a, KeyPoint b) { return a.size > b.size;}
 };
