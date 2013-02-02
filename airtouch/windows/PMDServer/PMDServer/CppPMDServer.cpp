@@ -4,7 +4,7 @@
 
 #include "PMDCamera.h"
 #include "PMDUtils.h"
-#define NETWORK_DEBUG
+// #define NETWORK_DEBUG
 
 /* Globar vars */
 // Sent over network

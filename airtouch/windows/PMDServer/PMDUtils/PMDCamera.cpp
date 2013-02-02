@@ -11,8 +11,8 @@
 
 const int g_numFramesForBackgroundSubtraction = 50;
 
-const float g_fingerSmoothing = 0.2f;
-const float g_fingerWorldSmoothing = 0.4f;
+const float g_fingerSmoothing = 0.0f;
+const float g_fingerWorldSmoothing = 0.7f;
 
 PMDCamera::PMDCamera(void)
 {
@@ -555,7 +555,7 @@ void PMDCamera::UpdateFingerPositions()
 		float* pWorld = (float*)m_pmdCoords->imageData;
 		float* pDistancesProcessed = (float*)m_pmdDistancesProcessed->imageData;
 		// get world coord by averaging over world coordinates in small region of finger
-		int searchSize = 5;
+		int searchSize = 10;
 		int numItems = 0;
 		Point3f world(PMD_INVALID_DISTANCE,PMD_INVALID_DISTANCE,PMD_INVALID_DISTANCE);
 		for(int dy = -searchSize; dy < searchSize; dy++)
@@ -588,7 +588,10 @@ void PMDCamera::UpdateFingerPositions()
 		if(numItems == 0) continue;
 
 		// average out world position
-		world = world * (1 / (float) numItems);
+		world.x = world.x * (1 / (float) numItems);
+		world.y=  world.y * (1 / (float) numItems);
+		world.z = world.z * (1 / (float) numItems);
+
 		
 		// smooth world coords
 		if(newFinger)
@@ -596,7 +599,10 @@ void PMDCamera::UpdateFingerPositions()
 			j->worldCoords = world;
 		} else
 		{
-			j->worldCoords = j->worldCoords * g_fingerSmoothing + (1 - g_fingerWorldSmoothing) * world;
+			j->worldCoords.x = j->worldCoords.x * g_fingerSmoothing + (1 - g_fingerSmoothing) * world.x;
+			j->worldCoords.y = j->worldCoords.y * g_fingerSmoothing + (1 - g_fingerSmoothing) * world.y;
+			j->worldCoords.z = j->worldCoords.z * g_fingerSmoothing + (1 - g_fingerSmoothing) * world.z;
+			//j->worldCoords = j->worldCoords * g_fingerSmoothing + (1 - g_fingerWorldSmoothing) * world;
 		}
 
 		// update phone coords
