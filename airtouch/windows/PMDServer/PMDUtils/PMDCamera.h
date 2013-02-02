@@ -126,6 +126,7 @@ public:
 	void UpdateFingerIdMask();
 	void FindBlobsInIntensityImage();
 
+
 	// Finger tracking
 	void UpdateFingers();
 

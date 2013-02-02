@@ -1,5 +1,7 @@
 #include "PMDCamera.h"
 #include <algorithm>
+#include <queue>
+#include "ConnectedComponents.h"
 #define SOURCE_PLUGIN "camboardnano"
 #define SOURCE_PARAM ""
 #define PROC_PLUGIN "camboardnanoproc"
@@ -320,7 +322,6 @@ void PMDCamera::UpdateBackgroundSubtraction()
 // call after blobstofingers but before findfingerpositions
 void PMDCamera::UpdateFingerIdMask()
 {
-	vector<Point2i> pointsToExplore;
 	memset(m_fingerIdMask, -2, PMDIMAGESIZE * sizeof(int));
 	
 	float* pDistancesProcessed = (float*)m_pmdDistancesProcessed->imageData;
@@ -330,13 +331,14 @@ void PMDCamera::UpdateFingerIdMask()
 	CvScalar fingerColors[2] = {CV_RGB(255,0,0), CV_RGB(0,0,255)};
 	for (vector<Finger>::iterator i = m_newFingers.begin(); i < m_newFingers.end(); i++)
 	{
-		pointsToExplore.clear();
-		pointsToExplore.push_back(Point2i(i->blobCenter));
+		queue<Point2i> pointsToExplore;
+
+		pointsToExplore.push(Point2i(i->blobCenter));
 		int id = i->id;
 		while(!pointsToExplore.empty())
 		{
-			Point2i toExplore = pointsToExplore.back();
-			pointsToExplore.pop_back();
+			Point2i toExplore = pointsToExplore.front();
+			pointsToExplore.pop();
 			int idx = toExplore.y * PMDNUMCOLS + toExplore.x;
 			
 			// if the point has been explored already, continue
@@ -361,7 +363,7 @@ void PMDCamera::UpdateFingerIdMask()
 					int x = toExplore.x + dx;
 					int y = toExplore.y + dy;
 					if(x < 0 || x >= PMDNUMCOLS || y < 0 || y >= PMDNUMROWS) continue;
-					pointsToExplore.push_back(Point2i(x,y));
+					pointsToExplore.push(Point2i(x,y));
 				}
 			}
 		}
@@ -396,7 +398,7 @@ void PMDCamera::BlobsToFingers()
 		Point2f blobCenter = i->pt;
 		for(vector<Finger>::iterator j = m_oldFingers.begin(); j !=m_oldFingers.end(); j++)
 		{
-			float dist = norm(blobCenter - j->blobCenter);
+			double dist = norm(blobCenter - j->blobCenter);
 			if(dist < closestDistance)
 			{
 				closestDistance = dist;
@@ -409,7 +411,7 @@ void PMDCamera::BlobsToFingers()
 		for(vector<KeyPoint>::iterator k = blobCopy.begin(); k !=blobCopy.end() && fingerBlobMatch; k++)
 		{
 			if(k == i) continue;
-			float dist = norm(k->pt - m_oldFingers[closestIndex].blobCenter);
+			double dist = norm(k->pt - m_oldFingers[closestIndex].blobCenter);
 			if(dist < closestDistance) fingerBlobMatch = false;
 		}
 
@@ -485,13 +487,26 @@ Point2f PMDCamera::FindFingerPos(vector<Finger>::iterator f)
 
 Point2f PMDCamera::FindFingerPosUsingTracker(vector<Finger>::iterator f)
 {
-	FindBlobsInIntensityImage();
 	Point2f result(0,0);
+	
+	// make a copy of the intensities
+	float amplitudesCopy [PMDIMAGESIZE];
+		
+	memcpy(amplitudesCopy, m_pmdIntensitiesBuffer, PMDIMAGESIZE * sizeof(float));
+	// zero out everything that's not in the finger
+	for (int i = 0; i < PMDIMAGESIZE; i++)
+	{
+		if(m_fingerIdMask[i] != f->id) amplitudesCopy[i] = 0;
+	}
 
-	// for each finger
+	// find all blobs in this image
+	PMDUtils::AmplitudesToImage(amplitudesCopy, m_pmdIntensitiesRGB);
+	m_intensitiesBlobDetector->detect(m_pmdIntensitiesRGB, m_blobPointsIntensity);
+
 	// for each blob in the intensity image
 	for(vector<KeyPoint>::iterator j = m_blobPointsIntensity.begin(); j < m_blobPointsIntensity.end(); j++)
 	{
+		// do everything per  blob
 		int idx = (int)j->pt.y * PMDNUMCOLS + (int)j->pt.x;
 		if(m_fingerIdMask[idx] != f->id) continue;
 		// if the blob's center is in the finger's mask
@@ -538,11 +553,11 @@ void PMDCamera::UpdateFingerPositions()
 		// update world coords
 
 		float* pWorld = (float*)m_pmdCoords->imageData;
-
+		float* pDistancesProcessed = (float*)m_pmdDistancesProcessed->imageData;
 		// get world coord by averaging over world coordinates in small region of finger
 		int searchSize = 5;
 		int numItems = 0;
-		Point3f world(0,0,0);
+		Point3f world(PMD_INVALID_DISTANCE,PMD_INVALID_DISTANCE,PMD_INVALID_DISTANCE);
 		for(int dy = -searchSize; dy < searchSize; dy++)
 		{
 			int y = j->screenCoords.y + dy;
@@ -551,14 +566,30 @@ void PMDCamera::UpdateFingerPositions()
 				int x = j->screenCoords.x + dx;
 				if(x < 0 || x >= PMDNUMROWS) continue;
 				int idx = y * PMDNUMCOLS + x;
-				if(m_fingerIdMask[idx] != j->id) continue;
+				//if(m_fingerIdMask[idx] != j->id) continue;
+				if(pDistancesProcessed[idx] == PMD_INVALID_DISTANCE) continue;
+				if(world.x == PMD_INVALID_DISTANCE)
+				{
+					world.x = pWorld[3 * idx];
+					world.y = pWorld[3 * idx + 1];
+					world.z = pWorld[3 * idx + 2];
+				}else
+				{
+					world.x += pWorld[3 * idx];
+					world.y += pWorld[3 * idx + 1];
+					world.z += pWorld[3 * idx + 2];
+				}
+
 				numItems++;
-				world.x += pWorld[3 * idx];
-				world.y += pWorld[3 * idx + 1];
-				world.z += pWorld[3 * idx + 2];
+				
 			}
 		}
-		if(numItems > 0) world = world * (1 / (float) numItems);
+		// if the world coordinates are invalid (numItems == 0), don't update the finger
+		if(numItems == 0) continue;
+
+		// average out world position
+		world = world * (1 / (float) numItems);
+		
 		// smooth world coords
 		if(newFinger)
 		{
@@ -566,7 +597,6 @@ void PMDCamera::UpdateFingerPositions()
 		} else
 		{
 			j->worldCoords = j->worldCoords * g_fingerSmoothing + (1 - g_fingerWorldSmoothing) * world;
-			
 		}
 
 		// update phone coords
@@ -596,8 +626,11 @@ void PMDCamera::UpdateFingers()
 	// screen coords are still the old screen coords
 	BlobsToFingers();
 
-	FindBlobsInIntensityImage();
 
+	if(m_useIrTracker)
+	{
+		FindBlobsInIntensityImage();
+	}
 	UpdateFingerIdMask();
 
 	UpdateFingerPositions();
@@ -664,6 +697,12 @@ void PMDCamera::RemoveOutsidePhone()
 
 void PMDCamera::FindBlobs()
 {
+	// make current distances black and white
+	//Mat bw = Mat(m_pmdDistancesProcessed) > 0.1f;
+	//Mat labelImage(cvSize(PMDNUMCOLS, PMDNUMROWS), CV_32S);
+	//int nLabels = connectedComponents(labelImage, bw, 8);
+
+	
 	PMDUtils::DistancesToImage((const float *)m_pmdDistancesProcessed->imageData, m_pmdDistancesProcessedRGB);
 	m_blobDetector->detect(m_pmdDistancesProcessedRGB, m_blobPoints);
 }
@@ -676,6 +715,8 @@ void PMDCamera::FindBlobsInIntensityImage()
 	m_intensitiesBlobDetector->detect(m_pmdIntensitiesRGB, m_blobPointsIntensity);
 	m_blobIntensitiesFound = true;
 }
+
+
 
 
 

@@ -64,6 +64,8 @@ PhoneCalibration::~PhoneCalibration(void){}
 
 Point3f PhoneCalibration::ToPhoneSpace(Point3f coord)
 {
+	if(coord.x == PMD_INVALID_DISTANCE)
+		return Point3f(PMD_INVALID_DISTANCE, PMD_INVALID_DISTANCE, PMD_INVALID_DISTANCE);
 	Mat tmp = Mat(coord) - m_origin;
 	double x = tmp.dot(m_unitX);
 	double y = tmp.dot(m_unitY);

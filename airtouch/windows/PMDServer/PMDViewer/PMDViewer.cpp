@@ -87,14 +87,6 @@ bool update()
 	PMDUtils::AmplitudesToImage(_pmdCamera.GetIntensitiesBuffer(), (unsigned char*) _images[imageIndex]->imageData,  
 		_images[imageIndex]->widthStep / sizeof(unsigned char), _images[imageIndex]->nChannels);
 
-	
-	_pmdCamera.FindBlobsInIntensityImage();
-	vector<KeyPoint> blobs = _pmdCamera.GetBlobPointsIntensities();
-	for(vector<KeyPoint>::iterator i = blobs.begin(); i < blobs.end(); i++)
-	{
-		cvCircle(_images[imageIndex], i->pt, i->size, CV_RGB(0, 255, 0), 5);
-	}
-
 	imageIndex++;
 	
 	// draw distances
@@ -127,7 +119,7 @@ bool update()
 	// draw the final image
 	memcpy(_images[imageIndex]->imageData, _pmdCamera.GetDistancesProcessedRGB()->imageData, _pmdCamera.GetDistancesProcessedRGB()->imageSize);
 
-	blobs = _pmdCamera.GetBlobPoints();
+	vector<KeyPoint> blobs = _pmdCamera.GetBlobPoints();
 	for(vector<KeyPoint>::iterator i = blobs.begin(); i < blobs.end(); i++)
 	{
 		cvCircle(_images[imageIndex], i->pt, i->size, CV_RGB(0, 255, 0));
@@ -168,6 +160,9 @@ void setup(int argc, char* argv[])
 	if(!SUCCEEDED(hr)) error("Error: Background subtraction failed");
 
 	_phoneSpace = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), IPL_DEPTH_32F, 3);
+
+	_pmdCamera.m_useIrTracker = false;
+
 }
 void getFps()
 {
@@ -190,8 +185,6 @@ void getFps()
 bool draw()
 {
 	getFps();
-
-
 
 	ostringstream str;
 	str.precision(2);
@@ -240,6 +233,18 @@ int  main(int argc, char* argv[])
 		if(!draw()) break;
 		int key = cvWaitKey(1);
 		if(key == 'q') break;
+		if(key == ' ')
+		{
+			// print out the finger positions
+			vector<Finger> fingers = _pmdCamera.GetFingers();
+			for(vector<Finger>::iterator i = fingers.begin(); i !=fingers.end(); i++)
+			{
+				fprintf(stdout, "finger %i: world(%.3f, %.3f, %.3f) phone(%.3f, %.3f, %.3f)\n", i - fingers.begin(), 
+					i->worldCoords.x, i->worldCoords.y, i->worldCoords.z,
+					i->phoneCoords.x, i->phoneCoords.y, i->phoneCoords.z
+					);
+			}
+		}
 	}
 	destroyImages();
 	return 0;
