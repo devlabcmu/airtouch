@@ -377,8 +377,8 @@ void PMDCamera::UpdateFingerIdMask()
 void PMDCamera::BlobsToFingers()
 {
 	// reduce number of blobs to max_fingers
-	vector<KeyPoint> blobCopy;
-	for (vector<KeyPoint>::iterator i = m_blobPoints.begin(); i < m_blobPoints.end(); i++)
+	vector<BlobPoint> blobCopy;
+	for (vector<BlobPoint>::iterator i = m_blobPoints.begin(); i < m_blobPoints.end(); i++)
 	{
 		blobCopy.push_back(*i);
 	}
@@ -391,7 +391,7 @@ void PMDCamera::BlobsToFingers()
 
 	if(blobCopy.size() == 0) return;
 
-	for(vector<KeyPoint>::iterator i = blobCopy.begin(); i !=blobCopy.end(); i++)
+	for(vector<BlobPoint>::iterator i = blobCopy.begin(); i !=blobCopy.end(); i++)
 	{
 		Finger newFinger;
 
@@ -411,7 +411,7 @@ void PMDCamera::BlobsToFingers()
 
 		bool fingerBlobMatch = m_oldFingers.size() > 0;
 		// check if there are any other blobs that are closer to this finger
-		for(vector<KeyPoint>::iterator k = blobCopy.begin(); k !=blobCopy.end() && fingerBlobMatch; k++)
+		for(vector<BlobPoint>::iterator k = blobCopy.begin(); k !=blobCopy.end() && fingerBlobMatch; k++)
 		{
 			if(k == i) continue;
 			double dist = norm(k->pt - m_oldFingers[closestIndex].blobCenter);
@@ -503,11 +503,12 @@ Point2f PMDCamera::FindFingerPosUsingTracker(vector<Finger>::iterator f)
 	}
 
 	// find all blobs in this image
+	vector<KeyPoint> blobsInSubImage;
 	PMDUtils::AmplitudesToImage(amplitudesCopy, m_pmdIntensitiesRGB);
-	m_intensitiesBlobDetector->detect(m_pmdIntensitiesRGB, m_blobPointsIntensity);
+	m_intensitiesBlobDetector->detect(m_pmdIntensitiesRGB, blobsInSubImage);
 
 	// for each blob in the intensity image
-	for(vector<KeyPoint>::iterator j = m_blobPointsIntensity.begin(); j < m_blobPointsIntensity.end(); j++)
+	for(vector<KeyPoint>::iterator j = blobsInSubImage.begin(); j < blobsInSubImage.end(); j++)
 	{
 		// do everything per  blob
 		int idx = (int)j->pt.y * PMDNUMCOLS + (int)j->pt.x;
@@ -713,18 +714,39 @@ void PMDCamera::FindBlobs()
 	//Mat labelImage(cvSize(PMDNUMCOLS, PMDNUMROWS), CV_32S);
 	//int nLabels = connectedComponents(labelImage, bw, 8);
 
-	
+	vector<KeyPoint> tmp;
+
 	PMDUtils::DistancesToImage((const float *)m_pmdDistancesProcessed->imageData, m_pmdDistancesProcessedRGB);
-	m_blobDetector->detect(m_pmdDistancesProcessedRGB, m_blobPoints);
+	m_blobDetector->detect(m_pmdDistancesProcessedRGB, tmp);
+	m_blobPoints.clear();
+	for(vector<KeyPoint>::iterator i = tmp.begin(); i < tmp.end(); i++)
+	{
+		BlobPoint toAdd;
+		toAdd.pt = i->pt;
+		toAdd.size = i->size;
+		m_blobPoints.push_back(toAdd);
+	}
 }
 
 
 void PMDCamera::FindBlobsInIntensityImage()
 {
 	if(m_blobIntensitiesFound) return;
+	vector<KeyPoint> tmp;
 	PMDUtils::AmplitudesToImage(m_pmdIntensitiesBuffer, m_pmdIntensitiesRGB);
-	m_intensitiesBlobDetector->detect(m_pmdIntensitiesRGB, m_blobPointsIntensity);
+	m_intensitiesBlobDetector->detect(m_pmdIntensitiesRGB, tmp);
+	
+	m_blobPointsIntensity.clear();
+	for(vector<KeyPoint>::iterator i = tmp.begin(); i < tmp.end(); i++)
+	{
+		BlobPoint toAdd;
+		toAdd.pt = i->pt;
+		toAdd.size = i->size;
+		m_blobPointsIntensity.push_back(toAdd);
+	}
+
 	m_blobIntensitiesFound = true;
+
 }
 
 

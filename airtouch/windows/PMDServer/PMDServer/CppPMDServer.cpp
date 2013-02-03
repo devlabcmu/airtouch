@@ -38,7 +38,10 @@ bool communicateWithClient(SOCKET* hClient);
 void error(string msg)
 {
 	fprintf(stderr, "%s\n", msg);
+	cout << "Press any key to quit..."<<endl;
+	char c = getchar();
 	exit(EXIT_FAILURE);
+
 }
 
 //

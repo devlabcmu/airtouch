@@ -33,6 +33,11 @@ typedef struct {
 } Finger;
 
 typedef struct {
+	Point2f pt;
+	float size;
+} BlobPoint;
+
+typedef struct {
 	Point2f blobPoint;
 	Point2f fingerPoint;
 	int blobIndex;
@@ -91,8 +96,8 @@ public:
 	IplImage const* const GetDistancesProcessedRGB() {return m_pmdDistancesProcessedRGB;}
 	IplImage const* const GetCoordsPhoneSpace() { return m_pmdPhoneSpace; }
 	char const* const GetFingerIdMask() {return m_fingerIdMask;}
-	vector<KeyPoint> GetBlobPoints() {return m_blobPoints;}
-	vector<KeyPoint> GetBlobPointsIntensities() {return m_blobPointsIntensity;}
+	vector<BlobPoint> GetBlobPoints() {return m_blobPoints;}
+	vector<BlobPoint> GetBlobPointsIntensities() {return m_blobPointsIntensity;}
 	vector<Finger> GetFingers() {return m_newFingers;}
 	BackgroundSubtractionData const* const GetBackgroundSubtractionData() {return &m_backgroundSubtractionData;}
 	
@@ -166,8 +171,8 @@ private:
 	BackgroundSubtractionData m_backgroundSubtractionData;
 	Ptr<FeatureDetector> m_blobDetector;
 	Ptr<FeatureDetector> m_intensitiesBlobDetector;
-	vector<KeyPoint> m_blobPoints;
-	vector<KeyPoint> m_blobPointsIntensity;
+	vector<BlobPoint> m_blobPoints;
+	vector<BlobPoint> m_blobPointsIntensity;
 
 	// Calibration
 	PhoneCalibration m_phoneCalibration;
@@ -180,6 +185,6 @@ private:
 	char m_fingerIdMask[PMDIMAGESIZE];
 	
 	void UpdateFingerPositions();
-	static bool blobCompare(KeyPoint a, KeyPoint b) { return a.size > b.size;}
+	static bool blobCompare(BlobPoint a, BlobPoint b) { return a.size > b.size;}
 };
 

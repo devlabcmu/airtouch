@@ -119,8 +119,8 @@ bool update()
 	// draw the final image
 	memcpy(_images[imageIndex]->imageData, _pmdCamera.GetDistancesProcessedRGB()->imageData, _pmdCamera.GetDistancesProcessedRGB()->imageSize);
 
-	vector<KeyPoint> blobs = _pmdCamera.GetBlobPoints();
-	for(vector<KeyPoint>::iterator i = blobs.begin(); i < blobs.end(); i++)
+	vector<BlobPoint> blobs = _pmdCamera.GetBlobPoints();
+	for(vector<BlobPoint>::iterator i = blobs.begin(); i < blobs.end(); i++)
 	{
 		cvCircle(_images[imageIndex], i->pt, i->size, CV_RGB(0, 255, 0));
 	}
