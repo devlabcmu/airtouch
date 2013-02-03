@@ -547,7 +547,8 @@ void PMDCamera::UpdateFingerPositions()
 		} else
 		{
 			// otherwise, smooth
-			j->screenCoords = j->screenCoords * g_fingerSmoothing + fingerPos * (1 - g_fingerSmoothing);
+			j->screenCoords.x = j->screenCoords.x * g_fingerSmoothing + fingerPos.x * (1 - g_fingerSmoothing);
+			j->screenCoords.y = j->screenCoords.y * g_fingerSmoothing + fingerPos.y * (1 - g_fingerSmoothing);
 		}
 
 		// update world coords
@@ -561,10 +562,11 @@ void PMDCamera::UpdateFingerPositions()
 		for(int dy = -searchSize; dy < searchSize; dy++)
 		{
 			int y = j->screenCoords.y + dy;
+			if(y < 0 || y >= PMDNUMROWS) continue;
 			for( int dx = -searchSize; dx < searchSize; dx++)
 			{
 				int x = j->screenCoords.x + dx;
-				if(x < 0 || x >= PMDNUMROWS) continue;
+				if(x < 0 || x >= PMDNUMCOLS) continue;
 				int idx = y * PMDNUMCOLS + x;
 				//if(m_fingerIdMask[idx] != j->id) continue;
 				if(pDistancesProcessed[idx] == PMD_INVALID_DISTANCE) continue;
