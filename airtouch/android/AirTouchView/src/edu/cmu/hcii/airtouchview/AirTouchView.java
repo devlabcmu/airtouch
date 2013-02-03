@@ -149,7 +149,7 @@ public class AirTouchView extends View {
 		int height = display.getHeight();
 		
 		result.x =  x / realWidth * width;
-		result.y = z / realHeight * height + 200;
+		result.y = z / realHeight * height;
 		result.z = y / realDepth;
 		return result;
 	}
