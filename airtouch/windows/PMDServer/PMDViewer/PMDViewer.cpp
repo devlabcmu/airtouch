@@ -239,9 +239,9 @@ int  main(int argc, char* argv[])
 			vector<Finger> fingers = _pmdCamera.GetFingers();
 			for(vector<Finger>::iterator i = fingers.begin(); i !=fingers.end(); i++)
 			{
-				fprintf(stdout, "finger %i: world(%.3f, %.3f, %.3f) phone(%.3f, %.3f, %.3f)\n", i - fingers.begin(), 
-					i->worldCoords.x, i->worldCoords.y, i->worldCoords.z,
-					i->phoneCoords.x, i->phoneCoords.y, i->phoneCoords.z
+				fprintf(stdout, "finger %i: phone(%.3f, %.3f, %.3f) world(%.3f, %.3f, %.3f)\n", i - fingers.begin(), 
+					i->phoneCoords.x, i->phoneCoords.y, i->phoneCoords.z,
+					i->worldCoords.x, i->worldCoords.y, i->worldCoords.z
 					);
 			}
 		}

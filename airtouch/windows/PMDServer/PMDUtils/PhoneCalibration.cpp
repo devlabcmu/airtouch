@@ -1,7 +1,7 @@
 #include "PhoneCalibration.h"
 #include "PMDConstants.h"
 
-#define PHONE_IPHONE
+#define PHONE_ANDROID
 
 #ifdef PHONE_ANDROID
 #define ORIGINX 0.0387f

@@ -9,6 +9,7 @@
 
 #define FILE_SOURCE_PLUGIN "pmdfile"
 
+
 const int g_numFramesForBackgroundSubtraction = 50;
 
 const float g_fingerSmoothing = 0.0f;
@@ -19,6 +20,7 @@ PMDCamera::PMDCamera(void)
 	m_useIrTracker = false;
 	
 	// create all opencv images
+
 	m_pmdDistancesProcessed = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), IPL_DEPTH_32F, 1);
 	m_pmdPhoneSpace = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), IPL_DEPTH_32F, 3);
 	m_pmdCoords = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), IPL_DEPTH_32F, 3);
@@ -63,6 +65,7 @@ PMDCamera::PMDCamera(void)
 PMDCamera::~PMDCamera(void)
 {
 	// release all opencv images
+	// breaks
 	cvReleaseImage(&m_pmdDistancesProcessed);
 	cvReleaseImage(&m_pmdCoords);
 	cvReleaseImage(&m_pmdPhoneSpace);
@@ -117,7 +120,7 @@ HRESULT PMDCamera::InitializeBackgroundSubtraction()
 	// fill in the frames
 	for (int i = 0; i < g_numFramesForBackgroundSubtraction; i++)
 	{
-		float* frame = new float[PMDIMAGESIZE];
+		float* frame = (float*) malloc(sizeof(float) * PMDIMAGESIZE); // new float[PMDIMAGESIZE];
 		frames[i] = frame;
 		// fill the frame with data
 		HRESULT hr = UpdateCameraData();
@@ -196,7 +199,7 @@ HRESULT PMDCamera::InitializeBackgroundSubtraction()
 	// free all the frames
 	for (int i = 0; i < g_numFramesForBackgroundSubtraction; i++)
 	{
-		delete frames[i];
+		free(frames[i]);
 	}
 	return 0;
 }
@@ -322,7 +325,7 @@ void PMDCamera::UpdateBackgroundSubtraction()
 // call after blobstofingers but before findfingerpositions
 void PMDCamera::UpdateFingerIdMask()
 {
-	memset(m_fingerIdMask, -2, PMDIMAGESIZE * sizeof(int));
+	memset(m_fingerIdMask, -2, PMDIMAGESIZE * sizeof(char));
 	
 	float* pDistancesProcessed = (float*)m_pmdDistancesProcessed->imageData;
 	// -2 means unexplored
