@@ -1,7 +1,7 @@
 #include "PhoneCalibration.h"
 #include "PMDConstants.h"
 
-#define PHONE_ANDROID_1_31
+#define PHONE_IPHONE
 
 #ifdef PHONE_ANDROID
 #define ORIGINX 0.0387f
@@ -34,17 +34,17 @@
 
 #ifdef PHONE_IPHONE
 // calibration for iphone
-#define ORIGINX 0.0387f
-#define ORIGINY -0.0329f
-#define ORIGINZ 0.0644
+#define ORIGINX 0.0137f
+#define ORIGINY -0.0098f
+#define ORIGINZ 0.0147
 
-#define P1X -0.0169f
-#define P1Y -0.0271f
-#define P1Z 0.0548f
+#define P1X -0.0174f
+#define P1Y -0.0221f
+#define P1Z  0.0401f
 
-#define P2X 0.0392f
-#define P2Y -0.0196f
-#define P2Z  0.1555f
+#define P2X  0.0352f
+#define P2Y -0.0067f
+#define P2Z  0.1238f
 #endif
 
 PhoneCalibration::PhoneCalibration(void)
