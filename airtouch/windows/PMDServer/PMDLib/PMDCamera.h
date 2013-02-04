@@ -144,20 +144,13 @@ public:
 	// Finger tracking
 	void UpdateFingers();
 
+
 private:
 	// flags
 	bool m_blobIntensitiesFound;
 
 	// methods
 
-	// Finds the finger position using information about the blob
-	// Assumes user is wearing an IR reflective marker
-	// Returns the 2d position in screen space
-	Point2f FindFingerPosUsingTracker(vector<Finger>::iterator f);
-
-	// Finds the finger position using information about the blob
-	// Returns the 2d position in screen space
-	Point2f FindFingerPos(vector<Finger>::iterator f);
 	
 	PMDDataDescription m_pmdDataDescription;
 	PMDHandle m_pmdHandle;
@@ -186,14 +179,25 @@ private:
 	// Calibration
 	PhoneCalibration m_phoneCalibration;
 
-	
+	// Finger Tracking
+	void UpdateFingerPositions();
+	// Gets the position of fingers in screen space based
+	// on the FingerTrackingMode variable.
+	Point2f GetFingerPositionScreenSpace(vector<Finger>::iterator f);
+	// Finds the finger position using information about the blob
+	// Assumes user is wearing an IR reflective marker
+	// Returns the 2d position in screen space
+	Point2f FindFingerPosBrightest(vector<Finger>::iterator f);
+	// Finds the finger position using information about the blob
+	// Returns the 2d position in screen space
+	Point2f FindFingerPosInterpolateClosest(vector<Finger>::iterator f);
 
-	// FInger Tracking
+	static bool blobCompare(BlobPoint a, BlobPoint b) { return a.size > b.size;}
+	
 	vector<Finger> m_oldFingers;
 	vector<Finger> m_newFingers;
 	char m_fingerIdMask[PMDIMAGESIZE];
 	
-	void UpdateFingerPositions();
-	static bool blobCompare(BlobPoint a, BlobPoint b) { return a.size > b.size;}
+	
 };
 

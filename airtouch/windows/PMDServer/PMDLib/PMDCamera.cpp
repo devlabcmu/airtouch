@@ -450,7 +450,7 @@ void PMDCamera::BlobsToFingers()
 
 }
 
-Point2f PMDCamera::FindFingerPos(vector<Finger>::iterator f)
+Point2f PMDCamera::FindFingerPosInterpolateClosest(vector<Finger>::iterator f)
 {
 	float* pDistances = (float*) m_pmdDistancesProcessed->imageData;
 	int x, y;
@@ -488,7 +488,7 @@ Point2f PMDCamera::FindFingerPos(vector<Finger>::iterator f)
 	return Point2f(minX, minY);
 }
 
-Point2f PMDCamera::FindFingerPosUsingTracker(vector<Finger>::iterator f)
+Point2f PMDCamera::FindFingerPosBrightest(vector<Finger>::iterator f)
 {
 	Point2f result(0,0);
 	
@@ -522,6 +522,19 @@ Point2f PMDCamera::FindFingerPosUsingTracker(vector<Finger>::iterator f)
 	return result;
 }
 
+// Add code here to add new finger tracking algorithms
+Point2f PMDCamera::GetFingerPositionScreenSpace(vector<Finger>::iterator f)
+{
+	switch(FingerTrackingMode)
+	{
+		case FINGER_TRACKING_BRIGHTEST:
+			return FindFingerPosBrightest(f);
+		case FINGER_TRACKING_INTERPOLATE_BRIGHTEST:
+		case FINGER_TRACKING_INTERPOLATE_CLOSEST:
+			return FindFingerPosInterpolateClosest(f);
+	}
+}
+
 void PMDCamera::UpdateFingerPositions()
 {
 	float* pDistances = (float*) m_pmdDistancesProcessed->imageData;
@@ -534,13 +547,10 @@ void PMDCamera::UpdateFingerPositions()
 		
 		// find the finger position in screen space using info about the blog
 		Point2f fingerPos(0,0);
-		if(FingerTrackingMode == FINGER_TRACKING_BRIGHTEST) 
-		{
-			fingerPos = FindFingerPosUsingTracker(j);
-		}
-		if(fingerPos.x  == 0)
-			fingerPos = FindFingerPos(j);
 
+		// First get the finger posisiton in screen space, then we will smooth the world coordinates
+		fingerPos = GetFingerPositionScreenSpace(j);
+	
 		// smooth finger position screen space
 		if(newFinger)
 		{
@@ -606,7 +616,6 @@ void PMDCamera::UpdateFingerPositions()
 			j->worldCoords.x = j->worldCoords.x * g_fingerSmoothing + (1 - g_fingerSmoothing) * world.x;
 			j->worldCoords.y = j->worldCoords.y * g_fingerSmoothing + (1 - g_fingerSmoothing) * world.y;
 			j->worldCoords.z = j->worldCoords.z * g_fingerSmoothing + (1 - g_fingerSmoothing) * world.z;
-			//j->worldCoords = j->worldCoords * g_fingerSmoothing + (1 - g_fingerWorldSmoothing) * world;
 		}
 
 		// update phone coords
