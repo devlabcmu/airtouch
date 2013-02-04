@@ -12,14 +12,14 @@ int _fpsCounter = 0;
 
 // UI
 vector<IplImage*> _images;
-string _frameTitles[4] = {"amplitudes", "distances", "finger mask", "final"};
+string _frameTitles[6] = {"amplitudes", "distances", "finger mask", "f0intensity", "f1intensity", "final"};
 
 Mat _phoneSpace;
 PhoneCalibration _phoneCalibration;
 
-float _xBuffer[PMDIMAGESIZE];
-float _yBuffer[PMDIMAGESIZE];
-float _zBuffer[PMDIMAGESIZE];
+float _finger0Masked[PMDIMAGESIZE];
+float _finger1Masked[PMDIMAGESIZE];
+float _maskedDistances[PMDIMAGESIZE];
 
 void mouse_callback(int event, int x, int y, int flags, void* param)
 {
@@ -95,28 +95,55 @@ bool update()
 	_pmdCamera.UpdateFingers();
 	vector<Finger> fingers = _pmdCamera.GetFingers();
 	CvScalar fingerColors[2] = {CV_RGB(255,0,0), CV_RGB(0,0,255)};
-	
 	// draw finger mask
 	cvSet(_images[imageIndex], CV_RGB(0,0,0));
 	const char* pFingerIdMask = _pmdCamera.GetFingerIdMask();
 	for(vector<Finger>::iterator i = fingers.begin(); i !=fingers.end(); i++)
 	{
 		int id = i->id;
-		int mask[PMDIMAGESIZE];
-		ZeroMemory(mask, PMDIMAGESIZE * sizeof(int));
 		for(int j = 0; j < PMDIMAGESIZE; j++)
 		{
 			if(pFingerIdMask[j] == id) 
 			{
 				cvSet1D(_images[imageIndex], j, fingerColors[id % 2]);
+			} 
+		}
+	}
+
+	for(int i = 0; i < PMDIMAGESIZE; i++)
+	{
+		if(pFingerIdMask[i] >= 0)
+		{
+			_maskedDistances[i] = _pmdCamera.GetDistanceBuffer()[i];
+			if(pFingerIdMask[i]%2 == 1)
+			{
+				_finger1Masked[i] = _pmdCamera.GetIntensitiesBuffer()[i];
+				_finger0Masked[i] = PMD_INVALID_DISTANCE;
+			} else
+			{
+				_finger0Masked[i] = _pmdCamera.GetIntensitiesBuffer()[i];
+				_finger1Masked[i] = PMD_INVALID_DISTANCE;
 			}
+		}else 
+		{
+			_finger1Masked[i] = PMD_INVALID_DISTANCE;
+			_finger0Masked[i] = PMD_INVALID_DISTANCE;
+			_maskedDistances[i] = PMD_INVALID_DISTANCE;
 		}
 	}
 
 	imageIndex++;
 
+	// f0 intensity
+	PMDUtils::AmplitudesToImage(_finger0Masked, _images[imageIndex]);
+	imageIndex++;
+
+	PMDUtils::AmplitudesToImage(_finger1Masked, _images[imageIndex]);
+	imageIndex++;
+
+
 	// draw the final image
-	memcpy(_images[imageIndex]->imageData, _pmdCamera.GetDistancesProcessedRGB()->imageData, _pmdCamera.GetDistancesProcessedRGB()->imageSize);
+	PMDUtils::DistancesToImage(_maskedDistances, _images[imageIndex]);
 
 	vector<BlobPoint> blobs = _pmdCamera.GetBlobPoints();
 	for(vector<BlobPoint>::iterator i = blobs.begin(); i < blobs.end(); i++)

@@ -363,6 +363,11 @@ Point2f PMDCamera::FindFingerPosInterpolateClosest(vector<Finger>::iterator f)
 	return Point2f(minX, minY);
 }
 
+Point2f FindFingerPosInterpolateBrightest(vector<Finger>::iterator f)
+{
+
+}
+
 Point2f PMDCamera::FindFingerPosBrightest(vector<Finger>::iterator f)
 {
 	Point2f result(0,0);

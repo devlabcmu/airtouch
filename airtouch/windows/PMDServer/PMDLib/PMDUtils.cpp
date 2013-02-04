@@ -18,7 +18,7 @@ void PMDUtils::DistancesToImage( float const* pDepthData, unsigned char* imgPtr,
             }
             else
             {
-                val = 255 - (unsigned char) (*pDepthData * 255.0f);
+				val = 255 - (unsigned char) (*pDepthData  * 255.0f);
             }
 			currentRow[0] = val;
 			currentRow[1] = val;
@@ -40,7 +40,12 @@ void PMDUtils::AmplitudesToImage( float const* pAmplitudes, unsigned char* imgPt
 		currentRow = &imgPtr[y * rowStep];
 		for (int x = 0; x < PMDNUMCOLS; ++x, currentRow += step, ++pAmplitudes)
         {
-			unsigned char val = (char)(*pAmplitudes / maxAmp * 255.0f);
+			unsigned char val = 0;
+			if(*pAmplitudes != PMD_INVALID_DISTANCE) 
+			{
+				val = (char)(*pAmplitudes / maxAmp * 255.0f);
+			}
+			
             // Clamp at 1 meters and scale the values in between to fit the image
 			currentRow[0] = val;
 			currentRow[1] = val;

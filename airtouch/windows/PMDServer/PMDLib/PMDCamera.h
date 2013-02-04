@@ -192,6 +192,7 @@ private:
 	// Returns the 2d position in screen space
 	Point2f FindFingerPosInterpolateClosest(vector<Finger>::iterator f);
 
+	Point2f FindFingerPosInterpolateBrightest(vector<Finger>::iterator f);
 	static bool blobCompare(BlobPoint a, BlobPoint b) { return a.size > b.size;}
 	
 	vector<Finger> m_oldFingers;
