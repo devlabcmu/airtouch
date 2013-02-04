@@ -42,8 +42,7 @@ void error(string msg)
 void welcomeMessage()
 {
 	cout << "PMDViewer shows PMD data and various stages of processing algorithm" << endl;
-	cout << "Usage: PMDViewer.exe to read from camera" << endl;
-	cout << "Usage: PMDViewer.exe [filename.pmd] to read from .pmd file" << endl;
+	PMDOptions::PrintHelp();
 }
 
 void showBackgroundImage()
@@ -144,24 +143,24 @@ void setup(int argc, char* argv[])
 
 	// Initialize the PMD camera
 	// check if we have parameters, if so first param is filename
-	if(argc > 1)
-	{
-		char* filename = argv[1];
-		cout << "Reading data from file " << filename << endl;
-		hr = _pmdCamera.InitializeCameraFromFile(filename);
-		if(!SUCCEEDED(hr)) error("Error: failed to initialize from file");
-	} else 
+	PMDOptions opts = PMDOptions::ParseArgs(argc, argv);
+
+	_pmdCamera.FingerTrackingMode = opts.TrackingMode;
+
+	if(opts.FileName.empty())
 	{
 		hr = _pmdCamera.InitializeCamera();
 		if(!SUCCEEDED(hr)) error("Error: failed to initialize PMD camera");
+	} else
+	{
+		hr = _pmdCamera.InitializeCameraFromFile(opts.FileName.c_str());
+		if(!SUCCEEDED(hr)) error("Error: failed to initialize PMD from file");
 	}
 
 	hr = _pmdCamera.InitializeBackgroundSubtraction();
 	if(!SUCCEEDED(hr)) error("Error: Background subtraction failed");
 
 	_phoneSpace = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), IPL_DEPTH_32F, 3);
-
-	_pmdCamera.m_useIrTracker = false;
 
 }
 void getFps()

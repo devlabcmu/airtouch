@@ -18,6 +18,13 @@
 using namespace cv;
 using namespace std;
 
+enum PMDFingerTrackingMode
+{
+	FINGER_TRACKING_INTERPOLATE_CLOSEST = 0,
+	FINGER_TRACKING_INTERPOLATE_BRIGHTEST,
+	FINGER_TRACKING_BRIGHTEST
+};
+
 typedef struct {
 	float means[PMDIMAGESIZE];
 	float stdevs[PMDIMAGESIZE];
@@ -48,14 +55,16 @@ typedef struct {
 class PMDCamera
 {
 public:
-	bool m_useIrTracker;
-
 	PMDCamera(void);
 	~PMDCamera(void);
 
+	// public vars
+	PMDFingerTrackingMode FingerTrackingMode;
+
+
 	// Initialization
 	HRESULT InitializeCamera();
-	HRESULT InitializeCameraFromFile(char* filename);
+	HRESULT InitializeCameraFromFile(const char* filename);
 	HRESULT UpdateCameraData();
 	HRESULT InitializeBackgroundSubtraction();
 

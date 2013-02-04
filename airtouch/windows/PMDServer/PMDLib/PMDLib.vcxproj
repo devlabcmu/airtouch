@@ -15,6 +15,7 @@
     <ClInclude Include="PMDCamera.h" />
     <ClInclude Include="PMDConstants.h" />
     <ClInclude Include="pmddata.h" />
+    <ClInclude Include="PMDOptions.h" />
     <ClInclude Include="PMDUtils.h" />
     <ClInclude Include="simplewinsock.h" />
     <ClInclude Include="strutils.h" />
@@ -22,6 +23,7 @@
   <ItemGroup>
     <ClCompile Include="PhoneCalibration.cpp" />
     <ClCompile Include="PMDCamera.cpp" />
+    <ClCompile Include="PMDOptions.cpp" />
     <ClCompile Include="PMDUtils.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

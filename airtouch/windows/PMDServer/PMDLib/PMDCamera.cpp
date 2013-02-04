@@ -17,7 +17,7 @@ const float g_fingerWorldSmoothing = 0.7f;
 
 PMDCamera::PMDCamera(void)
 {
-	m_useIrTracker = false;
+	FingerTrackingMode = FINGER_TRACKING_INTERPOLATE_CLOSEST;
 	
 	// create all opencv images
 
@@ -90,7 +90,7 @@ HRESULT PMDCamera::InitializeCamera()
 	return 0;
 }
 
-HRESULT PMDCamera::InitializeCameraFromFile(char* filename)
+HRESULT PMDCamera::InitializeCameraFromFile(const char* filename)
 {
 	int res;
 
@@ -536,7 +536,7 @@ void PMDCamera::UpdateFingerPositions()
 		
 		// find the finger position in screen space using info about the blog
 		Point2f fingerPos(0,0);
-		if(m_useIrTracker) 
+		if(FingerTrackingMode == FINGER_TRACKING_BRIGHTEST) 
 		{
 			fingerPos = FindFingerPosUsingTracker(j);
 		}
