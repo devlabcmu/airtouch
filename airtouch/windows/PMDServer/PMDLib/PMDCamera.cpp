@@ -35,7 +35,7 @@ PMDCamera::PMDCamera(void)
 	blobParams.minDistBetweenBlobs = 1.0f;
 
 	blobParams.filterByArea = true;
-	blobParams.minArea = 300.0f;
+	blobParams.minArea = 200.0f;
 	blobParams.maxArea = 100000.0f;
 
 	blobParams.filterByCircularity = false;
@@ -325,13 +325,12 @@ void PMDCamera::UpdateBackgroundSubtraction()
 // Add new finger tracking algorithm here
 //***************************************
 
-Point2f PMDCamera::FindFingerPosInterpolateClosest(vector<Finger>::iterator f)
+Point2f PMDCamera::FindFingerPosInterpolateClosest(vector<Finger>::iterator f, bool newFinger)
 {
 	float* pDistances = (float*) m_pmdDistancesProcessed->imageData;
 	int x, y;
 	float minZ = 1000.0f;
 	float minX = 0, minY = 0;
-	bool newFinger = f->screenCoords.x < 0;
 	int searchSize = newFinger ? f->blobSize : 20;
 	bool first = true;
 	for(int dy = -searchSize; dy < searchSize; dy++)
@@ -363,12 +362,59 @@ Point2f PMDCamera::FindFingerPosInterpolateClosest(vector<Finger>::iterator f)
 	return Point2f(minX, minY);
 }
 
-Point2f FindFingerPosInterpolateBrightest(vector<Finger>::iterator f)
+Point2f PMDCamera::FindFingerPosInterpolateBrightest(vector<Finger>::iterator f, bool newFinger)
 {
+	Point2f result(0,0);
+	
+	// make a copy of the intensities
+	float amplitudesCopy [PMDIMAGESIZE];
+		
+	memcpy(amplitudesCopy, m_pmdIntensitiesBuffer, PMDIMAGESIZE * sizeof(float));
+	// zero out everything that's not in the finger
+	// multiply amplitudes by distance to finger center
+	float maxdst = sqrt(pow((float)PMDNUMCOLS,2)+pow((float)PMDNUMROWS,2));
+
+	for (int i = 0; i < PMDIMAGESIZE; i++)
+	{
+		if(m_fingerIdMask[i] != f->id){
+			amplitudesCopy[i] = 0;
+			continue;
+		}
+		// if this is new finger, don't multiply by previous position
+		if(newFinger) continue;
+		float y = i / PMDNUMCOLS;
+		float x = i % PMDNUMCOLS;
+		float dx = x - f->screenCoords.x;
+		float dy = y - f->screenCoords.y;
+		float dst = sqrt(pow(dx,2) + pow(dy, 2));
+		// normalize by the size of the image
+		dst /= maxdst;
+		dst = 1 - dst;
+		dst = pow(dst,2);
+		amplitudesCopy[i] *= dst;
+	}
+
+	// find all blobs in this image
+	vector<KeyPoint> blobsInSubImage;
+	PMDUtils::AmplitudesToImage(amplitudesCopy, m_pmdIntensitiesRGB);
+	m_intensitiesBlobDetector->detect(m_pmdIntensitiesRGB, blobsInSubImage);
+
+	// for each blob in the intensity image
+	for(vector<KeyPoint>::iterator j = blobsInSubImage.begin(); j < blobsInSubImage.end(); j++)
+	{
+		// do everything per  blob
+		int idx = (int)j->pt.y * PMDNUMCOLS + (int)j->pt.x;
+		if(m_fingerIdMask[idx] != f->id) continue;
+		// if the blob's center is in the finger's mask
+		result = j->pt;
+		break;
+	}
+
+	return result;
 
 }
 
-Point2f PMDCamera::FindFingerPosBrightest(vector<Finger>::iterator f)
+Point2f PMDCamera::FindFingerPosBrightest(vector<Finger>::iterator f, bool newFinger)
 {
 	Point2f result(0,0);
 	
@@ -403,15 +449,16 @@ Point2f PMDCamera::FindFingerPosBrightest(vector<Finger>::iterator f)
 }
 
 // Add code here to add new finger tracking algorithms
-Point2f PMDCamera::GetFingerPositionScreenSpace(vector<Finger>::iterator f)
+Point2f PMDCamera::GetFingerPositionScreenSpace(vector<Finger>::iterator f, bool newFinger)
 {
 	switch(FingerTrackingMode)
 	{
 		case FINGER_TRACKING_BRIGHTEST:
-			return FindFingerPosBrightest(f);
+			return FindFingerPosBrightest(f, newFinger);
 		case FINGER_TRACKING_INTERPOLATE_BRIGHTEST:
+			return FindFingerPosInterpolateBrightest(f, newFinger);
 		case FINGER_TRACKING_INTERPOLATE_CLOSEST:
-			return FindFingerPosInterpolateClosest(f);
+			return FindFingerPosInterpolateClosest(f, newFinger);
 	}
 }
 
@@ -561,7 +608,7 @@ void PMDCamera::UpdateFingerPositions()
 		Point2f fingerPos(0,0);
 
 		// First get the finger posisiton in screen space, then we will smooth the world coordinates
-		fingerPos = GetFingerPositionScreenSpace(j);
+		fingerPos = GetFingerPositionScreenSpace(j, newFinger);
 	
 		// smooth finger position screen space
 		if(newFinger)

@@ -183,16 +183,16 @@ private:
 	void UpdateFingerPositions();
 	// Gets the position of fingers in screen space based
 	// on the FingerTrackingMode variable.
-	Point2f GetFingerPositionScreenSpace(vector<Finger>::iterator f);
+	Point2f GetFingerPositionScreenSpace(vector<Finger>::iterator f, bool newFinger);
 	// Finds the finger position using information about the blob
 	// Assumes user is wearing an IR reflective marker
 	// Returns the 2d position in screen space
-	Point2f FindFingerPosBrightest(vector<Finger>::iterator f);
+	Point2f FindFingerPosBrightest(vector<Finger>::iterator f, bool newFinger);
 	// Finds the finger position using information about the blob
 	// Returns the 2d position in screen space
-	Point2f FindFingerPosInterpolateClosest(vector<Finger>::iterator f);
+	Point2f FindFingerPosInterpolateClosest(vector<Finger>::iterator f, bool newFinger);
 
-	Point2f FindFingerPosInterpolateBrightest(vector<Finger>::iterator f);
+	Point2f FindFingerPosInterpolateBrightest(vector<Finger>::iterator f, bool newFinger);
 	static bool blobCompare(BlobPoint a, BlobPoint b) { return a.size > b.size;}
 	
 	vector<Finger> m_oldFingers;

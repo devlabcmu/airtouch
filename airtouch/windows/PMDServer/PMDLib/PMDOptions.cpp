@@ -27,7 +27,7 @@ PMDOptions PMDOptions::ParseArgs(int argc, char** argv)
 		if(strcmp(argv[argi], "--use-ir-tracker") == 0)
 		{
 			result.TrackingMode = FINGER_TRACKING_BRIGHTEST;
-		} else if (strcmp(argv[argi], "--interpolate-intensity"))
+		} else if (strcmp(argv[argi], "--interpolate-intensity") == 0)
 		{
 			result.TrackingMode = FINGER_TRACKING_INTERPOLATE_BRIGHTEST;
 		} else if(strcmp(argv[argi], "--interpolate-distance"))
