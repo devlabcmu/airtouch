@@ -514,8 +514,6 @@ Point2f PMDCamera::FindFingerPosUsingTracker(vector<Finger>::iterator f)
 		int idx = (int)j->pt.y * PMDNUMCOLS + (int)j->pt.x;
 		if(m_fingerIdMask[idx] != f->id) continue;
 		// if the blob's center is in the finger's mask
-		// screen position is average of all points in blob's radius
-
 		result = j->pt;
 
 		break;
@@ -639,10 +637,6 @@ void PMDCamera::UpdateFingers()
 	BlobsToFingers();
 
 
-	if(m_useIrTracker)
-	{
-		FindBlobsInIntensityImage();
-	}
 	UpdateFingerIdMask();
 
 	UpdateFingerPositions();
