@@ -27,7 +27,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{ADEB6233-FA5D-4C68-828E-12B88949635F}</ProjectGuid>
     <RootNamespace>PMDUtils</RootNamespace>
-    <ProjectName>PMDUtils</ProjectName>
+    <ProjectName>PMDLib</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
