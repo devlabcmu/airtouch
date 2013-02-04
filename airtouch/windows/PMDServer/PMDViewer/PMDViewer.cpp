@@ -29,6 +29,13 @@ void mouse_callback(int event, int x, int y, int flags, void* param)
 		Point3f phone = _phoneCalibration.ToPhoneSpace(p);
 		fprintf(stdout, "mouse: (%d, %d), world:(%.4f,%.4f,%.4f), phone: (%.4f,%.4f,%.4f) \n", x, y, p.x, p.y, p.z, phone.x, phone.y, phone.z);
 	}
+	if(event == CV_EVENT_RBUTTONDOWN)
+	{
+		IplImage* image = (IplImage*) param;
+		Point3f p = _pmdCamera.GetCoord(image->height -y, image->width - x);
+		Point3f phone = _phoneCalibration.ToPhoneSpace(p);
+		fprintf(stdout, "#define X %.4ff\n#define Y %.4ff\n#define Z %.4ff\n\n",phone.x, phone.y, phone.z);
+	}
 }
 
 void error(string msg)
