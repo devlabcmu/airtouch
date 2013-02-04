@@ -61,7 +61,6 @@ PMDCamera::PMDCamera(void)
 	m_intensitiesBlobDetector->create("IntensitiesBlob");
 }
 
-
 PMDCamera::~PMDCamera(void)
 {
 	// release all opencv images
@@ -305,7 +304,6 @@ void PMDCamera::Threshold(float maxDistance)
 	}
 }
 
-
 void PMDCamera::UpdateBackgroundSubtraction()
 {
 	// in the depthbuffer, make anything that is within stdev of mean -1
@@ -321,6 +319,100 @@ void PMDCamera::UpdateBackgroundSubtraction()
 		}
 	}
 }
+
+
+//***************************************
+// Add new finger tracking algorithm here
+//***************************************
+
+Point2f PMDCamera::FindFingerPosInterpolateClosest(vector<Finger>::iterator f)
+{
+	float* pDistances = (float*) m_pmdDistancesProcessed->imageData;
+	int x, y;
+	float minZ = 1000.0f;
+	float minX = 0, minY = 0;
+	bool newFinger = f->screenCoords.x < 0;
+	int searchSize = newFinger ? f->blobSize : 20;
+	bool first = true;
+	for(int dy = -searchSize; dy < searchSize; dy++)
+	{
+		y = (newFinger ? f->blobCenter.y : f->screenCoords.y) + dy;
+		if(y < 0 || y > PMDNUMROWS || abs(y - f->blobCenter.y) > f->blobSize * 1.5) continue;
+		for(int dx = -searchSize; dx < searchSize; dx++)
+		{
+			x = (newFinger ? f->blobCenter.x : f->screenCoords.x) + dx;
+			if(first)
+			{
+				minX = x;
+				minY = y;
+				first = false;
+			}
+			if(x < 0 || x > PMDNUMCOLS || abs(x - f->blobCenter.x) > f->blobSize * 1.5) continue;
+			int idx = y * PMDNUMCOLS + x;
+			if(m_pmdFlags[idx] & PMD_FLAG_INVALID) continue;
+			float dst = pDistances[idx];
+			if(dst == PMD_INVALID_DISTANCE) continue;
+			if(dst < minZ)
+			{
+				minX = x;
+				minY = y;
+				minZ = dst;
+			}
+		}
+	}
+	return Point2f(minX, minY);
+}
+
+Point2f PMDCamera::FindFingerPosBrightest(vector<Finger>::iterator f)
+{
+	Point2f result(0,0);
+	
+	// make a copy of the intensities
+	float amplitudesCopy [PMDIMAGESIZE];
+		
+	memcpy(amplitudesCopy, m_pmdIntensitiesBuffer, PMDIMAGESIZE * sizeof(float));
+	// zero out everything that's not in the finger
+	for (int i = 0; i < PMDIMAGESIZE; i++)
+	{
+		if(m_fingerIdMask[i] != f->id) amplitudesCopy[i] = 0;
+	}
+
+	// find all blobs in this image
+	vector<KeyPoint> blobsInSubImage;
+	PMDUtils::AmplitudesToImage(amplitudesCopy, m_pmdIntensitiesRGB);
+	m_intensitiesBlobDetector->detect(m_pmdIntensitiesRGB, blobsInSubImage);
+
+	// for each blob in the intensity image
+	for(vector<KeyPoint>::iterator j = blobsInSubImage.begin(); j < blobsInSubImage.end(); j++)
+	{
+		// do everything per  blob
+		int idx = (int)j->pt.y * PMDNUMCOLS + (int)j->pt.x;
+		if(m_fingerIdMask[idx] != f->id) continue;
+		// if the blob's center is in the finger's mask
+		result = j->pt;
+
+		break;
+	}
+
+	return result;
+}
+
+// Add code here to add new finger tracking algorithms
+Point2f PMDCamera::GetFingerPositionScreenSpace(vector<Finger>::iterator f)
+{
+	switch(FingerTrackingMode)
+	{
+		case FINGER_TRACKING_BRIGHTEST:
+			return FindFingerPosBrightest(f);
+		case FINGER_TRACKING_INTERPOLATE_BRIGHTEST:
+		case FINGER_TRACKING_INTERPOLATE_CLOSEST:
+			return FindFingerPosInterpolateClosest(f);
+	}
+}
+
+//***************************************
+// End Finger Tracking Algorithms
+//***************************************
 
 // call after blobstofingers but before findfingerpositions
 void PMDCamera::UpdateFingerIdMask()
@@ -450,91 +542,6 @@ void PMDCamera::BlobsToFingers()
 
 }
 
-Point2f PMDCamera::FindFingerPosInterpolateClosest(vector<Finger>::iterator f)
-{
-	float* pDistances = (float*) m_pmdDistancesProcessed->imageData;
-	int x, y;
-	float minZ = 1000.0f;
-	float minX = 0, minY = 0;
-	bool newFinger = f->screenCoords.x < 0;
-	int searchSize = newFinger ? f->blobSize : 20;
-	bool first = true;
-	for(int dy = -searchSize; dy < searchSize; dy++)
-	{
-		y = (newFinger ? f->blobCenter.y : f->screenCoords.y) + dy;
-		if(y < 0 || y > PMDNUMROWS || abs(y - f->blobCenter.y) > f->blobSize * 1.5) continue;
-		for(int dx = -searchSize; dx < searchSize; dx++)
-		{
-			x = (newFinger ? f->blobCenter.x : f->screenCoords.x) + dx;
-			if(first)
-			{
-				minX = x;
-				minY = y;
-				first = false;
-			}
-			if(x < 0 || x > PMDNUMCOLS || abs(x - f->blobCenter.x) > f->blobSize * 1.5) continue;
-			int idx = y * PMDNUMCOLS + x;
-			if(m_pmdFlags[idx] & PMD_FLAG_INVALID) continue;
-			float dst = pDistances[idx];
-			if(dst == PMD_INVALID_DISTANCE) continue;
-			if(dst < minZ)
-			{
-				minX = x;
-				minY = y;
-				minZ = dst;
-			}
-		}
-	}
-	return Point2f(minX, minY);
-}
-
-Point2f PMDCamera::FindFingerPosBrightest(vector<Finger>::iterator f)
-{
-	Point2f result(0,0);
-	
-	// make a copy of the intensities
-	float amplitudesCopy [PMDIMAGESIZE];
-		
-	memcpy(amplitudesCopy, m_pmdIntensitiesBuffer, PMDIMAGESIZE * sizeof(float));
-	// zero out everything that's not in the finger
-	for (int i = 0; i < PMDIMAGESIZE; i++)
-	{
-		if(m_fingerIdMask[i] != f->id) amplitudesCopy[i] = 0;
-	}
-
-	// find all blobs in this image
-	vector<KeyPoint> blobsInSubImage;
-	PMDUtils::AmplitudesToImage(amplitudesCopy, m_pmdIntensitiesRGB);
-	m_intensitiesBlobDetector->detect(m_pmdIntensitiesRGB, blobsInSubImage);
-
-	// for each blob in the intensity image
-	for(vector<KeyPoint>::iterator j = blobsInSubImage.begin(); j < blobsInSubImage.end(); j++)
-	{
-		// do everything per  blob
-		int idx = (int)j->pt.y * PMDNUMCOLS + (int)j->pt.x;
-		if(m_fingerIdMask[idx] != f->id) continue;
-		// if the blob's center is in the finger's mask
-		result = j->pt;
-
-		break;
-	}
-
-	return result;
-}
-
-// Add code here to add new finger tracking algorithms
-Point2f PMDCamera::GetFingerPositionScreenSpace(vector<Finger>::iterator f)
-{
-	switch(FingerTrackingMode)
-	{
-		case FINGER_TRACKING_BRIGHTEST:
-			return FindFingerPosBrightest(f);
-		case FINGER_TRACKING_INTERPOLATE_BRIGHTEST:
-		case FINGER_TRACKING_INTERPOLATE_CLOSEST:
-			return FindFingerPosInterpolateClosest(f);
-	}
-}
-
 void PMDCamera::UpdateFingerPositions()
 {
 	float* pDistances = (float*) m_pmdDistancesProcessed->imageData;
@@ -651,8 +658,6 @@ void PMDCamera::UpdateFingers()
 	UpdateFingerPositions();
 }
 
-
-
 // Applies a median filter to the distances image
 // overrides the distances image
 void PMDCamera::MedianFilter()
@@ -676,7 +681,6 @@ void PMDCamera::Erode(int erosionSize)
 	memcpy_s(m_pmdDistancesProcessed->imageData, PMDIMAGESIZE * sizeof(float), tmp->imageData, PMDIMAGESIZE * sizeof(float));
 	cvReleaseImage(&tmp);
 }
-
 
 void PMDCamera::RemoveReflection()
 {
