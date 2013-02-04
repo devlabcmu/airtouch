@@ -14,7 +14,7 @@ PMDOptions::~PMDOptions(void)
 
 void PMDOptions::PrintHelp()
 {
-	fprintf(stdout, "PMD arguments: [--use-ir-tracker|--interpolate-intensity|--interpolate-distance] [filename.pmd]\n\tfirst argument specifies finger tracking algorithm to use. \n\tDefault is interpolate based on distance. \n\n\tsecond argument specifies file to use. \n\tIf not present uses camera stream."); 
+	fprintf(stdout, "PMD arguments: [--use-ir-tracker|--interpolate-intensity|--interpolate-distance] [filename.pmd]\n\tfirst argument specifies finger tracking algorithm to use. \n\tDefault is interpolate based on distance. \n\n\tsecond argument specifies file to use. \n\tIf not present uses camera stream.\n"); 
 }
 
 PMDOptions PMDOptions::ParseArgs(int argc, char** argv)

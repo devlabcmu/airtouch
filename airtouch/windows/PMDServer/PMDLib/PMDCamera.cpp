@@ -390,7 +390,7 @@ Point2f PMDCamera::FindFingerPosInterpolateBrightest(vector<Finger>::iterator f,
 		// normalize by the size of the image
 		dst /= maxdst;
 		dst = 1 - dst;
-		dst = pow(dst,2);
+		dst = pow(dst,5);
 		amplitudesCopy[i] *= dst;
 	}
 
