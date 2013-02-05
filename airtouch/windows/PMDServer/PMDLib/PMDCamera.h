@@ -137,6 +137,7 @@ public:
 	// Blob tracking
 	void BlobsToFingers();
 	void FindBlobs();
+	bool validPoint(Point2i pt);
 	void UpdateFingerIdMask();
 	void FindBlobsInIntensityImage();
 

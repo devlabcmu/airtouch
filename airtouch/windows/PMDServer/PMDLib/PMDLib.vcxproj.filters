@@ -13,6 +13,9 @@
     <ClCompile Include="PMDOptions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ConnectedComponents.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PhoneCalibration.h">
@@ -39,6 +42,9 @@
     <ClInclude Include="PMDOptions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ConnectedComponents.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
@@ -47,7 +53,7 @@
     </Filter>
     <Filter Include="Source Files">
       <UniqueIdentifier>{29cd9087-8f72-4898-a1fb-442605d34efe}</UniqueIdentifier>
-      <Extensions>.cpp</Extensions>
+      <Extensions>cpp;c</Extensions>
     </Filter>
   </ItemGroup>
 </Project>

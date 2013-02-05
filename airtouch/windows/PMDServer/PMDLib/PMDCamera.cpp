@@ -35,7 +35,7 @@ PMDCamera::PMDCamera(void)
 	blobParams.minDistBetweenBlobs = 1.0f;
 
 	blobParams.filterByArea = true;
-	blobParams.minArea = 100.0f;
+	blobParams.minArea = 200.0f;
 	blobParams.maxArea = 100000.0f;
 
 	blobParams.filterByCircularity = false;
@@ -47,7 +47,6 @@ PMDCamera::PMDCamera(void)
 	blobParams.filterByInertia = false;
 	
 
-	blobParams.blobColor = 255;
 	m_blobDetector = new SimpleBlobDetector(blobParams);
 	m_blobDetector->create("DistancesBlob");
 
@@ -56,7 +55,7 @@ PMDCamera::PMDCamera(void)
 	blobParams.thresholdStep = 50;
 	
 	blobParams.minArea = 1.0f;
-	blobParams.maxArea = 100000.0f;
+	blobParams.maxArea = 1000000.0f;
 	m_intensitiesBlobDetector = new SimpleBlobDetector(blobParams);
 	m_intensitiesBlobDetector->create("IntensitiesBlob");
 }
@@ -466,6 +465,14 @@ Point2f PMDCamera::GetFingerPositionScreenSpace(vector<Finger>::iterator f, bool
 // End Finger Tracking Algorithms
 //***************************************
 
+// helper for UpdateFingerIdMask
+bool PMDCamera::validPoint(Point2i pt)
+{
+	int idx = pt.y * PMDNUMCOLS + pt.x;
+	float* pDistancesProcessed = (float*)m_pmdDistancesProcessed->imageData;
+	return pDistancesProcessed[idx] != PMD_INVALID_DISTANCE;
+}
+
 // call after blobstofingers but before findfingerpositions
 void PMDCamera::UpdateFingerIdMask()
 {
@@ -480,7 +487,31 @@ void PMDCamera::UpdateFingerIdMask()
 	{
 		queue<Point2i> pointsToExplore;
 
-		pointsToExplore.push(Point2i(i->blobCenter));
+		// explore around region of bloc until we find a valid point
+		Point2i seedPoint = i->blobCenter;
+		while(!validPoint(seedPoint))
+		{
+			// explore around the region and find a valid point
+			for(int dy = -1; dy <=1; dy++)
+			{ 
+				for(int dx = -1; dx <=1; dx++)
+				{
+					if(dx == 0 && dy == 0) continue;
+					int x = seedPoint.x + dx;
+					int y = seedPoint.y + dy;
+					if(x < 0 || x >= PMDNUMCOLS || y < 0 || y >= PMDNUMROWS) continue;
+					pointsToExplore.push(Point2i(x,y));
+				}
+			}
+			seedPoint = pointsToExplore.front();
+			pointsToExplore.pop();
+		}
+		// clear out all points
+		while(!pointsToExplore.empty()) pointsToExplore.pop();
+
+		// now we are starting with a valid seed point
+		pointsToExplore.push(seedPoint);
+
 		int id = i->id;
 		while(!pointsToExplore.empty())
 		{
