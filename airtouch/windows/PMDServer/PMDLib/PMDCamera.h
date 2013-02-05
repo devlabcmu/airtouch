@@ -158,6 +158,7 @@ private:
 	BackgroundSubtractionData m_backgroundSubtractionData;
 	Ptr<FeatureDetector> m_blobDetector;
 	Ptr<FeatureDetector> m_intensitiesBlobDetector;
+
 	vector<BlobPoint> m_blobPoints;
 	vector<BlobPoint> m_blobPointsIntensity;
 
@@ -168,7 +169,6 @@ private:
 	char m_fingerIdMask[PMDIMAGESIZE];
 
 	// Image Processing
-
 	void MedianFilter();
 	void UpdateBackgroundSubtraction();
 	void RemoveReflection();
@@ -177,8 +177,9 @@ private:
 	void Erode(int erosionSize);
 
 	// Blob Tracking
+	void FindConnectedComponentsInDistanceImage();
 	void BlobsToFingers();
-	void FindBlobs();
+	void FindBlobsInDistanceImage();
 	bool validPoint(Point2i pt);
 	void UpdateFingerIdMask();
 	void FindBlobsInIntensityImage();

@@ -26,6 +26,7 @@ PMDCamera::PMDCamera(void)
 	m_pmdCoords = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), IPL_DEPTH_32F, 3);
 	m_pmdDistancesProcessedRGB = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), 8, 3); 
 	m_pmdIntensitiesRGB = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), 8, 3);
+	m_connectedComponents = Mat(PMDNUMROWS, PMDNUMCOLS, CV_8U);
 
 	SimpleBlobDetector::Params blobParams;
 	blobParams.minThreshold = 1;
@@ -549,6 +550,52 @@ void PMDCamera::UpdateFingerIdMask()
 	
 }
 
+void PMDCamera::FindConnectedComponentsInDistanceImage()
+{
+	// threshold the current processed image
+	Mat thresholded;
+	cv::threshold(Mat(m_pmdDistancesProcessed), thresholded, 0.0, 1.0, 0);
+	
+	// find the connected components, output to the matrix
+	int nlabels = connectedComponents(m_connectedComponents, thresholded);
+	//Mat result = Mat(PMDNUMROWS, PMDNUMCOLS,  CV_8UC3);
+	//Scalar colors[4] = {Scalar(0,0,0), Scalar(255, 0, 0), Scalar(0, 255, 0), Scalar(0,0,255)};
+	//
+	//for(int i = 0; i < nlabels; i++)
+	//{
+	//	Mat mask;
+	//	threshold(labeled, mask, i-1, i+1, 0);
+	//	result.setTo(colors[i%4], mask);
+	//}
+
+	//imshow("connected components", result);
+}
+
+
+void PMDCamera::FindBlobsInDistanceImage()
+{
+	// TODO: use the connected components to update this
+
+	// make current distances black and white
+	//Mat bw = Mat(m_pmdDistancesProcessed) > 0.1f;
+	//Mat labelImage(cvSize(PMDNUMCOLS, PMDNUMROWS), CV_32S);
+	//int nLabels = connectedComponents(labelImage, bw, 8);
+
+	vector<KeyPoint> tmp;
+
+	PMDUtils::DistancesToImage((const float *)m_pmdDistancesProcessed->imageData, m_pmdDistancesProcessedRGB);
+	m_blobDetector->detect(m_pmdDistancesProcessedRGB, tmp);
+	m_blobPoints.clear();
+	for(vector<KeyPoint>::iterator i = tmp.begin(); i < tmp.end(); i++)
+	{
+		BlobPoint toAdd;
+		toAdd.pt = i->pt;
+		toAdd.size = i->size;
+		m_blobPoints.push_back(toAdd);
+	}
+}
+
+
 void PMDCamera::BlobsToFingers()
 {
 	// reduce number of blobs to max_fingers
@@ -719,8 +766,9 @@ void PMDCamera::UpdateFingers()
 	UpdateBackgroundSubtraction();
 	MedianFilter();
 	RemoveReflection();
-	//RemoveOutsidePhone();
-	FindBlobs();
+
+	FindConnectedComponentsInDistanceImage();
+	FindBlobsInDistanceImage();
 	
 	// copy all new fingers to old fingers
 	m_oldFingers.clear();
@@ -794,27 +842,6 @@ void PMDCamera::RemoveOutsidePhone()
 			// try removing anything outside phone as well
 
 		}
-	}
-}
-
-void PMDCamera::FindBlobs()
-{
-	// make current distances black and white
-	//Mat bw = Mat(m_pmdDistancesProcessed) > 0.1f;
-	//Mat labelImage(cvSize(PMDNUMCOLS, PMDNUMROWS), CV_32S);
-	//int nLabels = connectedComponents(labelImage, bw, 8);
-
-	vector<KeyPoint> tmp;
-
-	PMDUtils::DistancesToImage((const float *)m_pmdDistancesProcessed->imageData, m_pmdDistancesProcessedRGB);
-	m_blobDetector->detect(m_pmdDistancesProcessedRGB, tmp);
-	m_blobPoints.clear();
-	for(vector<KeyPoint>::iterator i = tmp.begin(); i < tmp.end(); i++)
-	{
-		BlobPoint toAdd;
-		toAdd.pt = i->pt;
-		toAdd.size = i->size;
-		m_blobPoints.push_back(toAdd);
 	}
 }
 
