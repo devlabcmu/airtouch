@@ -74,7 +74,6 @@ public class AirTouchViewMain extends Activity {
 	    	try {
 				_clientSocket.close();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 	    	_statusTextView.setText("Disconnected");
