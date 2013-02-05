@@ -12,7 +12,7 @@ int _fpsCounter = 0;
 
 // UI
 vector<IplImage*> _images;
-string _frameTitles[6] = {"amplitudes", "distances", "finger mask", "f0intensity", "f1intensity", "final"};
+string _frameTitles[6] = {"amplitudes", "distances", "finger mask", "f0contours", "f1contours", "final"};
 
 Mat _phoneSpace;
 PhoneCalibration _phoneCalibration;
@@ -101,6 +101,7 @@ bool update()
 	_pmdCamera.UpdateFingers();
 	vector<Finger> fingers = _pmdCamera.GetFingers();
 	CvScalar fingerColors[2] = {CV_RGB(255,0,0), CV_RGB(0,0,255)};
+
 	// draw finger mask
 	cvSet(_images[imageIndex], CV_RGB(0,0,0));
 	const char* pFingerIdMask = _pmdCamera.GetFingerIdMask();
@@ -140,7 +141,8 @@ bool update()
 
 	imageIndex++;
 
-	// f0 intensity
+	// draw the contours on f0
+
 	PMDUtils::AmplitudesToImage(_finger0Masked, _images[imageIndex]);
 	imageIndex++;
 

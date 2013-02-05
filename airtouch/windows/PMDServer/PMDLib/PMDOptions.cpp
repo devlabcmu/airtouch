@@ -30,7 +30,7 @@ PMDOptions PMDOptions::ParseArgs(int argc, char** argv)
 		} else if (strcmp(argv[argi], "--interpolate-intensity") == 0)
 		{
 			result.TrackingMode = FINGER_TRACKING_INTERPOLATE_BRIGHTEST;
-		} else if(strcmp(argv[argi], "--interpolate-distance"))
+		} else if(strcmp(argv[argi], "--interpolate-distance") == 0)
 		{
 			result.TrackingMode = FINGER_TRACKING_INTERPOLATE_CLOSEST;
 		}

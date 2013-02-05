@@ -35,7 +35,7 @@ PMDCamera::PMDCamera(void)
 	blobParams.minDistBetweenBlobs = 1.0f;
 
 	blobParams.filterByArea = true;
-	blobParams.minArea = 200.0f;
+	blobParams.minArea = 100.0f;
 	blobParams.maxArea = 100000.0f;
 
 	blobParams.filterByCircularity = false;
