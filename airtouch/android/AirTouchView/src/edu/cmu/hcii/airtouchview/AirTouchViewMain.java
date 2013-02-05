@@ -22,7 +22,7 @@ import android.widget.TextView;
 public class AirTouchViewMain extends Activity {
 	// Constants
 		static final int DEFAULT_SERVER_PORT = 10000;
-		static final String DEFAULT_IP_STRING = "128.237.230.246";
+		static final String DEFAULT_IP_STRING = "128.237.255.31";
 		static final String TAG = "AirTouchView"; 
 		static final int MAX_TCP_DATAGRAM_LEN = 1024;
 		
