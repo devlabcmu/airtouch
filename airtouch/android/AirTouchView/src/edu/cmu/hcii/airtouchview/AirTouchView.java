@@ -115,7 +115,6 @@ public class AirTouchView extends View {
 
 	public AirTouchView(Context context) {
 		super(context);
-		// TODO Auto-generated constructor stubrere
 	}
 
 	public AirTouchView(Context context, AttributeSet attrs) {
@@ -220,7 +219,6 @@ public class AirTouchView extends View {
 
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
-		// TODO Auto-generated method stub
 		String touchStr = "";
 		AirTouchPoint.TouchType type;
 		int action = event.getActionMasked();
@@ -397,7 +395,6 @@ public class AirTouchView extends View {
 
 		@Override
 		protected void onPostExecute(Void result) {
-			// TODO Auto-generated method stub
 			super.onPostExecute(result);
 			_errorText  = "Error: disconnected from server due to an error";
 			postInvalidate();
@@ -408,12 +405,10 @@ public class AirTouchView extends View {
 	{
 		@Override
 		protected void onPreExecute() {
-			// TODO Auto-generated method stub
 			super.onPreExecute();
 		}
 		@Override
 		protected Boolean doInBackground(Void... params) {
-			// TODO Auto-generated method stub
 		   // Log.v(TAG, "in SendReceiveData");
 			try {
 				// send 'gimme'
@@ -453,7 +448,6 @@ public class AirTouchView extends View {
 		}
 		@Override
 		protected void onPostExecute(Boolean succeeded) {
-			// TODO Auto-generated method stub
 			//Log.v(TAG, "in post execute");
 			// if we failed, then we should disconnect and go back to the home page
 			if(!succeeded) {
