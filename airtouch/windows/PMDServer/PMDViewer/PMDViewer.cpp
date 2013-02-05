@@ -33,8 +33,7 @@ void mouse_callback(int event, int x, int y, int flags, void* param)
 	{
 		IplImage* image = (IplImage*) param;
 		Point3f p = _pmdCamera.GetCoord(image->height -y, image->width - x);
-		Point3f phone = _phoneCalibration.ToPhoneSpace(p);
-		fprintf(stdout, "#define X %.4ff\n#define Y %.4ff\n#define Z %.4ff\n\n",phone.x, phone.y, phone.z);
+		fprintf(stdout, "#define X %.4ff\n#define Y %.4ff\n#define Z %.4ff\n\n",p.x, p.y, p.z);
 	}
 }
 

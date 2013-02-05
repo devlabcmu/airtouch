@@ -4,17 +4,18 @@
 #define PHONE_ANDROID
 
 #ifdef PHONE_ANDROID
-#define ORIGINX 0.0071f
-#define ORIGINY -0.0044f
-#define ORIGINZ -0.0034f
+#define ORIGINX 0.0387f
+#define ORIGINY -0.0425f
+#define ORIGINZ 0.0721f
 
-#define P1X 0.0546f
-#define P1Y -0.0067f
-#define P1Z -0.0028f
+#define P1X -0.0188f
+#define P1Y -0.0392f
+#define P1Z 0.0698f
 
-#define P2X -0.0251f
-#define P2Y -0.0177f
-#define P2Z 0.1433f
+#define P2X 0.0308f
+#define P2Y -0.0316f
+#define P2Z 0.1653f
+
 #endif
 
 
