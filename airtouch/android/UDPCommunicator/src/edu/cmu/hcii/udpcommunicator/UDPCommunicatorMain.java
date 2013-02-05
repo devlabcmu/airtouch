@@ -127,7 +127,6 @@ public class UDPCommunicatorMain extends Activity {
     	}
 		@Override
 		protected String doInBackground(Void... params) {
-			// TODO Auto-generated method stub
 			if(_socket == null) return null;
 			if(_socket.isClosed()) return null;
 			String result;
