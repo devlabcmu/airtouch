@@ -72,7 +72,7 @@ public:
 	// OpenCV UI
 	IplImage* GetCvBackgroundImage();
 
-	
+
 	// Getters
 	PMDFingerData const const GetFingerData()
 	{ 
@@ -109,7 +109,7 @@ public:
 	vector<BlobPoint> GetBlobPointsIntensities() {return m_blobPointsIntensity;}
 	vector<Finger> GetFingers() {return m_newFingers;}
 	BackgroundSubtractionData const* const GetBackgroundSubtractionData() {return &m_backgroundSubtractionData;}
-	
+
 	Point3f GetCoord(int row, int col)
 	{ 
 		Point3f result;
@@ -126,20 +126,6 @@ public:
 		return result;
 	};
 
-	// Image Processing
-	void MedianFilter();
-	void UpdateBackgroundSubtraction();
-	void RemoveReflection();
-	void RemoveOutsidePhone();
-	void Threshold(float maxdistance);
-	void Erode(int erosionSize);
-
-	// Blob tracking
-	void BlobsToFingers();
-	void FindBlobs();
-	bool validPoint(Point2i pt);
-	void UpdateFingerIdMask();
-	void FindBlobsInIntensityImage();
 
 
 	// Finger tracking
@@ -152,10 +138,10 @@ private:
 
 	// methods
 
-	
+
 	PMDDataDescription m_pmdDataDescription;
 	PMDHandle m_pmdHandle;
-	
+
 	char m_pmdErrorBuffer[BUFSIZE];
 
 	// Data
@@ -169,16 +155,33 @@ private:
 	IplImage* m_pmdIntensitiesRGB;
 	PMDFingerData m_pmdFingerData;
 
-
-	// Image Processing
 	BackgroundSubtractionData m_backgroundSubtractionData;
 	Ptr<FeatureDetector> m_blobDetector;
 	Ptr<FeatureDetector> m_intensitiesBlobDetector;
 	vector<BlobPoint> m_blobPoints;
 	vector<BlobPoint> m_blobPointsIntensity;
 
-	// Calibration
 	PhoneCalibration m_phoneCalibration;
+
+	vector<Finger> m_oldFingers;
+	vector<Finger> m_newFingers;
+	char m_fingerIdMask[PMDIMAGESIZE];
+
+	// Image Processing
+
+	void MedianFilter();
+	void UpdateBackgroundSubtraction();
+	void RemoveReflection();
+	void RemoveOutsidePhone();
+	void Threshold(float maxdistance);
+	void Erode(int erosionSize);
+
+	// Blob Tracking
+	void BlobsToFingers();
+	void FindBlobs();
+	bool validPoint(Point2i pt);
+	void UpdateFingerIdMask();
+	void FindBlobsInIntensityImage();
 
 	// Finger Tracking
 	void UpdateFingerPositions();
@@ -195,11 +198,6 @@ private:
 
 	Point2f FindFingerPosInterpolateBrightest(vector<Finger>::iterator f, bool newFinger);
 	static bool blobCompare(BlobPoint a, BlobPoint b) { return a.size > b.size;}
-	
-	vector<Finger> m_oldFingers;
-	vector<Finger> m_newFingers;
-	char m_fingerIdMask[PMDIMAGESIZE];
-	
-	
+
 };
 
