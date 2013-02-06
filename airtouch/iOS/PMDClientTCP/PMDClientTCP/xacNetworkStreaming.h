@@ -7,18 +7,30 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <QuartzCore/QuartzCore.h>
 #import "xacAirTouchProfile.h"
+
+#import <sys/types.h>
+#import <sys/socket.h>
+#import <netinet/in.h>
+#import <arpa/inet.h>
+#import <poll.h>
+#import <netdb.h>
+#import <sys/types.h>
+#import <sys/sysctl.h>
+#include <time.h>
 
 @interface xacNetworkStreaming : NSObject
 
 @property bool isConnected;
 @property xacAirTouchProfile* atp;
-@property NSString* ipAddr;
+@property char* ipAddr;
 @property int port;
+@property int fps;
 
 - (id) init:(xacAirTouchProfile*) atp;
 - (void) connectToServer;
-- (void) connectToServer:(NSString *) urlStr portNo: (uint) portNo;
+- (void) connectToServer:(char *) urlStr portNo: (uint) portNo;
 - (void) sendToServer:(NSData *) msg;
 - (void) sendStrToServer:(NSString *) msg;
 

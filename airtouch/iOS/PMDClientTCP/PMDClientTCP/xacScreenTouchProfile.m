@@ -10,6 +10,8 @@
 
 @implementation xacScreenTouchProfile
 
+
+
 - (id) init
 {
     self = [super init];
@@ -21,17 +23,19 @@
 
 - (void) updateTouchPoints:(int)id :(float)x :(float)y
 {
-    xacTouchPoint* tmpPnt = [[xacTouchPoint alloc] init];
-    tmpPnt.x = x;
-    tmpPnt.y = y;
+//    id<xacTouchPoint> tmpPnt;// = new xacTouchPoint();// [[xacTouchPoint alloc] init];
+//    tmpPnt.x = x;
+//    tmpPnt.y = y;
+    
+    CGPoint pnt = CGPointMake(x, y);
     
     if(_points.count < id + 1)
     {
-        [_points addObject:tmpPnt];
+        [_points addObject:pnt];
     }
     else
     {
-        [_points replaceObjectAtIndex:id withObject:tmpPnt];
+        [_points replaceObjectAtIndex:id withObject:pnt];
     }
 }
 
