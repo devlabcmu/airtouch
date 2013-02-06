@@ -3,6 +3,8 @@
 #include <queue>
 #include "ConnectedComponents.h"
 #include <unordered_map>
+#include "strutils.h"
+#include "opencvutils.h"
 
 #define SOURCE_PLUGIN "camboardnano"
 #define SOURCE_PARAM ""
@@ -15,9 +17,10 @@
 const int g_numFramesForBackgroundSubtraction = 50;
 const int g_minBlobSize = 200;
 const int g_maxBlobSize = 1000000;
-const float g_fingerSmoothing = 0.0f;
+const float g_fingerScreenSmoothing = 0.0f;
 const float g_fingerWorldSmoothing = 0.7f;
-
+const float g_convexHullStdDevDistances = 0.018;
+const float g_convexHullStDevCenterDst = 6;
 PMDCamera::PMDCamera(void)
 {
 	FingerTrackingMode = FINGER_TRACKING_INTERPOLATE_CLOSEST;
@@ -419,6 +422,96 @@ Point2f PMDCamera::FindFingerPosInterpolateBrightest(vector<Finger>::iterator f,
 
 }
 
+Point2f PMDCamera::FindFingerPosContours(vector<Finger>::iterator f, bool newFinger)
+{
+	// Get mask of just finger
+	int blobid = f->blobId;
+	Mat fingerMask;
+	Mat debugImage = Mat(PMDNUMROWS, PMDNUMCOLS, CV_8UC3);
+	bandpass(m_connectedComponents, fingerMask, blobid, blobid, 1);
+
+	debugImage.setTo(0);
+	debugImage.setTo(Scalar(255,255,255), fingerMask);
+
+	Mat canny_output;
+	vector<vector<Point> > contours;
+	vector<Vec4i> hierarchy;
+	/// Detect edges using canny
+	Canny( fingerMask, canny_output, 0, 1, 3 );
+	
+	/// Find contour and hull (should only be 1)
+	findContours( canny_output, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+
+	int maxContourIndex = 0;
+	int maxContourSize = 0;
+	// keep only the biggest contour
+	for(vector<vector<Point>>::iterator i = contours.begin(); i != contours.end(); i++)
+	{
+		if(i->size() > maxContourSize)
+		{
+			maxContourIndex = i - contours.begin();
+			maxContourSize = i->size();
+		}
+	}
+
+	vector<Point>hull;
+
+	convexHull(Mat(contours[maxContourIndex]), hull, false);
+
+	Scalar color = Scalar( 0, 0, 255 );
+	
+	drawContours(debugImage, contours, maxContourIndex, color);
+	vector<vector<Point>> hullWrapper;
+	hullWrapper.push_back(hull);
+	drawContours(debugImage, hullWrapper, 0, color,1, 8, vector<Vec4i>(), 0, Point() );
+
+	Vec2f orientation = Vec2f(f->screenCoords - f->blobCenter);
+
+	// if the hull is too round, then just use brightest point interpolation
+	float meanDst = 0;
+	for (int i = 0; i < hull.size(); i++)
+	{
+		meanDst += norm(Point2f(hull[i]) - f->blobCenter);
+	}
+	meanDst /= hull.size();
+	float stDevDst = 0;
+	for (int i = 0; i < hull.size(); i++)
+	{
+		stDevDst += pow(norm(Point2f(hull[i]) - f->blobCenter) - meanDst,2);
+	}
+	stDevDst /= hull.size();
+	stDevDst = sqrt(stDevDst);
+	
+
+	vector<HullInfo> hullInfo;
+	for (int i = 0; i < hull.size(); i++)
+	{
+		HullInfo hi;
+		Vec2f v1 = Vec2f(Point2f(hull[i]) - f->blobCenter);
+		if(v1.dot(orientation) < 0) continue;
+		hi.pt = hull[i];
+		hi.dstBlobCenter = norm(Point2f(hull[i]) - f->blobCenter);
+		hi.dstFingerCenter = norm(Point2f(hull[i]) - f->screenCoords);
+		hullInfo.push_back(hi);
+	}
+	sort(hullInfo.begin(), hullInfo.end(), HullInfoCompareBlobDst);
+	int topN = 3;
+	if(hullInfo.size() > topN)
+		hullInfo.erase(hullInfo.begin() + topN, hullInfo.end());
+	sort(hullInfo.begin(), hullInfo.end(), HullInfoCompareFingerDst);
+
+	for (int i = 0; i < 1; i++)
+	{
+		circle(debugImage, hullInfo[i].pt, 10, Scalar(0,255,0));
+	}
+
+	if(f->stDevDistances  > g_convexHullStDevCenterDst)
+		return hullInfo[0].pt;
+	if(f->stDevDistances  > g_convexHullStdDevDistances)
+		return FindFingerPosInterpolateBrightest(f, newFinger);
+	return hullInfo[0].pt;
+}
+
 Point2f PMDCamera::FindFingerPosBrightest(vector<Finger>::iterator f, bool newFinger)
 {
 	Point2f result(0,0);
@@ -465,8 +558,12 @@ Point2f PMDCamera::GetFingerPositionScreenSpace(vector<Finger>::iterator f, bool
 			return FindFingerPosInterpolateBrightest(f, newFinger);
 		case FINGER_TRACKING_INTERPOLATE_CLOSEST:
 			return FindFingerPosInterpolateClosest(f, newFinger);
+		case FINGER_TRACKING_CONTOURS:
+			return FindFingerPosContours(f, newFinger);
 	}
 }
+
+
 
 //***************************************
 // End Finger Tracking Algorithms
@@ -484,111 +581,21 @@ bool PMDCamera::validPoint(Point2i pt)
 void PMDCamera::UpdateFingerIdMask()
 {
 	Mat mask;
-	threshold(m_connectedComponents, mask, -1,1,0);
+	bandpass(m_connectedComponents, mask, 0,0,1);
 	m_fingerIdMask.setTo(Scalar(-1), mask);
 	for (vector<Finger>::iterator i = m_newFingers.begin(); i < m_newFingers.end(); i++)
 	{
 		int id = i->blobId;
-		threshold(m_connectedComponents, mask, id-1, id+1, 0);
+		bandpass(m_connectedComponents, mask, id, id, 1);
 		m_fingerIdMask.setTo(Scalar(i->id), mask);
 	}
-	//	// threshold the current processed image
-	//Mat thresholded;
-	//cv::threshold(Mat(m_pmdDistancesProcessed), thresholded, 0.0, 1.0, 0);
-	//
-	//// find the connected components, output to the matrix
-	//int nlabels = connectedComponents(m_connectedComponents, thresholded);
-	////Mat result = Mat(PMDNUMROWS, PMDNUMCOLS,  CV_8UC3);
-	////Scalar colors[4] = {Scalar(0,0,0), Scalar(255, 0, 0), Scalar(0, 255, 0), Scalar(0,0,255)};
-	////
-	////for(int i = 0; i < nlabels; i++)
-	////{
-	////	Mat mask;
-	////	threshold(labeled, mask, i-1, i+1, 0);
-	////	result.setTo(colors[i%4], mask);
-	////}
-
-	////imshow("connected components", result);
-
-
-	//memset(m_fingerIdMask, -2, PMDIMAGESIZE * sizeof(char));
-	//
-	//float* pDistancesProcessed = (float*)m_pmdDistancesProcessed->imageData;
-	//// -2 means unexplored
-	//// -1 means invalid
-	//// > 0 means the finger id
-	//CvScalar fingerColors[2] = {CV_RGB(255,0,0), CV_RGB(0,0,255)};
-	//for (vector<Finger>::iterator i = m_newFingers.begin(); i < m_newFingers.end(); i++)
-	//{
-	//	queue<Point2i> pointsToExplore;
-
-	//	// explore around region of bloc until we find a valid point
-	//	Point2i seedPoint = i->blobCenter;
-	//	while(!validPoint(seedPoint))
-	//	{
-	//		// explore around the region and find a valid point
-	//		for(int dy = -1; dy <=1; dy++)
-	//		{ 
-	//			for(int dx = -1; dx <=1; dx++)
-	//			{
-	//				if(dx == 0 && dy == 0) continue;
-	//				int x = seedPoint.x + dx;
-	//				int y = seedPoint.y + dy;
-	//				if(x < 0 || x >= PMDNUMCOLS || y < 0 || y >= PMDNUMROWS) continue;
-	//				pointsToExplore.push(Point2i(x,y));
-	//			}
-	//		}
-	//		seedPoint = pointsToExplore.front();
-	//		pointsToExplore.pop();
-	//	}
-	//	// clear out all points
-	//	while(!pointsToExplore.empty()) pointsToExplore.pop();
-
-	//	// now we are starting with a valid seed point
-	//	pointsToExplore.push(seedPoint);
-
-	//	int id = i->id;
-	//	while(!pointsToExplore.empty())
-	//	{
-	//		Point2i toExplore = pointsToExplore.front();
-	//		pointsToExplore.pop();
-	//		int idx = toExplore.y * PMDNUMCOLS + toExplore.x;
-	//		
-	//		// if the point has been explored already, continue
-	//		if(m_fingerIdMask[idx] > -2) continue;
-	//		// if the point is an invalid distance, mark the point in mask as invalid and continue
-	//		if(pDistancesProcessed[idx] == PMD_INVALID_DISTANCE)
-	//		{
-	//			m_fingerIdMask[idx] = -1;
-	//			continue;
-	//		}
-
-	//		// otherwise the point is a member of the blob, set mask value
-	//		m_fingerIdMask[idx] = id;
-	//		// also set color value
-
-	//		// add all of its neighbors that are valid coordinates
-	//		for(int dy = -1; dy <=1; dy++)
-	//		{ 
-	//			for(int dx = -1; dx <=1; dx++)
-	//			{
-	//				if(dx == 0 && dy == 0) continue;
-	//				int x = toExplore.x + dx;
-	//				int y = toExplore.y + dy;
-	//				if(x < 0 || x >= PMDNUMCOLS || y < 0 || y >= PMDNUMROWS) continue;
-	//				pointsToExplore.push(Point2i(x,y));
-	//			}
-	//		}
-	//	}
-	//}
-	
 }
 
 void PMDCamera::FindConnectedComponentsInDistanceImage()
 {
 	// threshold the current processed image
 	Mat thresholded;
-	cv::threshold(Mat(m_pmdDistancesProcessed), thresholded, 0.0, 1.0, 0);
+	threshold(Mat(m_pmdDistancesProcessed), thresholded, 0.0, 1.0, 0);
 	
 	// find the connected components, output to the matrix
 	m_nLabels = connectedComponents(m_connectedComponents, thresholded);
@@ -598,21 +605,26 @@ void PMDCamera::FindBlobsInDistanceImage()
 {
 	BlobPoint* blobPoints = new BlobPoint[m_nLabels];
 
-	for(int i = 1; i < m_nLabels; i++)
+	for(int i = 1; i < m_nLabels + 1; i++)
 	{
 		blobPoints[i-1].blobId = i;
 		blobPoints[i-1].pt = Point2f();
 		blobPoints[i-1].size = 0;
+		blobPoints[i-1].meanDistance = 0;
+		blobPoints[i-1].stDevDistances = 0;
 	}
 	// get center point and area
+	float* pDistances = (float*)m_pmdDistancesProcessed->imageData;
 	for(int row = 0; row < m_connectedComponents.rows; ++row) {
 		uchar* p = m_connectedComponents.ptr(row);
-		for(int col = 0; col < m_connectedComponents.cols; ++col, p++) {
+		for(int col = 0; col < m_connectedComponents.cols; ++col, p++, pDistances++) {
 			int id = *p;
 			if(id == 0) continue;
+			if(*pDistances == PMD_INVALID_DISTANCE) continue;
 			blobPoints[id-1].size++;
 			blobPoints[id-1].pt.x += col;
 			blobPoints[id-1].pt.y += row;
+			blobPoints[id-1].meanDistance += *pDistances;
 		}
 	}
 
@@ -623,6 +635,17 @@ void PMDCamera::FindBlobsInDistanceImage()
 		if(blobPoints[i].size > g_maxBlobSize || blobPoints[i].size < g_minBlobSize) continue;
 		blobPoints[i].pt.x /= blobPoints[i].size;
 		blobPoints[i].pt.y /= blobPoints[i].size;
+		blobPoints[i].meanDistance /= blobPoints[i].size;
+		pDistances = (float*)m_pmdDistancesProcessed->imageData;
+		for(int row = 0; row < m_connectedComponents.rows; ++row) {
+			uchar* p = m_connectedComponents.ptr(row);
+			for(int col = 0; col < m_connectedComponents.cols; ++col, p++, pDistances++) {
+				if(*p-1 == i)
+				blobPoints[i].stDevDistances += pow(*pDistances - blobPoints[i].meanDistance,2) ;
+			}
+		}
+		blobPoints[i].stDevDistances /= blobPoints[i].size;
+		blobPoints[i].stDevDistances = sqrt(blobPoints[i].stDevDistances);
 		m_blobPoints.push_back(blobPoints[i]);
 	}
 
@@ -701,6 +724,8 @@ void PMDCamera::BlobsToFingers()
 		newFinger.blobId = i->blobId;
 		newFinger.blobCenter = i->pt;
 		newFinger.blobSize = i->size;
+		newFinger.stDevDistances = i->stDevDistances;
+		newFinger.meanDistance = i->meanDistance;
 		m_newFingers.push_back(newFinger);
 	}
 
@@ -730,8 +755,8 @@ void PMDCamera::UpdateFingerPositions()
 		} else
 		{
 			// otherwise, smooth
-			j->screenCoords.x = j->screenCoords.x * g_fingerSmoothing + fingerPos.x * (1 - g_fingerSmoothing);
-			j->screenCoords.y = j->screenCoords.y * g_fingerSmoothing + fingerPos.y * (1 - g_fingerSmoothing);
+			j->screenCoords.x = j->screenCoords.x * g_fingerScreenSmoothing + fingerPos.x * (1 - g_fingerScreenSmoothing);
+			j->screenCoords.y = j->screenCoords.y * g_fingerScreenSmoothing + fingerPos.y * (1 - g_fingerScreenSmoothing);
 		}
 
 		// update world coords
@@ -784,9 +809,9 @@ void PMDCamera::UpdateFingerPositions()
 			j->worldCoords = world;
 		} else
 		{
-			j->worldCoords.x = j->worldCoords.x * g_fingerSmoothing + (1 - g_fingerSmoothing) * world.x;
-			j->worldCoords.y = j->worldCoords.y * g_fingerSmoothing + (1 - g_fingerSmoothing) * world.y;
-			j->worldCoords.z = j->worldCoords.z * g_fingerSmoothing + (1 - g_fingerSmoothing) * world.z;
+			j->worldCoords.x = j->worldCoords.x * g_fingerScreenSmoothing + (1 - g_fingerScreenSmoothing) * world.x;
+			j->worldCoords.y = j->worldCoords.y * g_fingerScreenSmoothing + (1 - g_fingerScreenSmoothing) * world.y;
+			j->worldCoords.z = j->worldCoords.z * g_fingerScreenSmoothing + (1 - g_fingerScreenSmoothing) * world.z;
 		}
 
 		// update phone coords

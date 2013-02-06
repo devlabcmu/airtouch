@@ -33,6 +33,9 @@ PMDOptions PMDOptions::ParseArgs(int argc, char** argv)
 		} else if(strcmp(argv[argi], "--interpolate-distance") == 0)
 		{
 			result.TrackingMode = FINGER_TRACKING_INTERPOLATE_CLOSEST;
+		} else if(strcmp(argv[argi], "--contours") == 0)
+		{
+			result.TrackingMode = FINGER_TRACKING_CONTOURS;
 		}
 		else  if(argi == argc - 1)
 		{
