@@ -31,6 +31,6 @@
 @property float caliY;
 @property float caliZ;
 
-- (void) updateRawData: (float)x: (float)y: (float)z;
+- (void) updateRawData :(float)x :(float)y :(float)z;
 
 @end

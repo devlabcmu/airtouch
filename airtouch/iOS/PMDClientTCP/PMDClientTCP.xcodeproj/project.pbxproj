@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		15BAE6E716C1D0C900622633 /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 15BAE6E616C1D0C900622633 /* CFNetwork.framework */; };
+		15DA7EE216C2DE410027D16C /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 15DA7EE116C2DE410027D16C /* QuartzCore.framework */; };
 		15E1CB2B1698AAC300571098 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 15E1CB2A1698AAC300571098 /* UIKit.framework */; };
 		15E1CB2D1698AAC300571098 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 15E1CB2C1698AAC300571098 /* Foundation.framework */; };
 		15E1CB2F1698AAC300571098 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 15E1CB2E1698AAC300571098 /* CoreGraphics.framework */; };
@@ -20,11 +22,11 @@
 		15E1CB471698AAC300571098 /* xacViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 15E1CB461698AAC300571098 /* xacViewController.m */; };
 		15E1CB4F1698AC3300571098 /* xacNetworkStreaming.m in Sources */ = {isa = PBXBuildFile; fileRef = 15E1CB4E1698AC3300571098 /* xacNetworkStreaming.m */; };
 		15E1CB521699F6F200571098 /* xacAirTouchProfile.m in Sources */ = {isa = PBXBuildFile; fileRef = 15E1CB511699F6F200571098 /* xacAirTouchProfile.m */; };
-		15E1CB55169A044300571098 /* xacScreenTouchProfile.m in Sources */ = {isa = PBXBuildFile; fileRef = 15E1CB54169A044300571098 /* xacScreenTouchProfile.m */; };
-		15E1CB58169A0C9D00571098 /* xacTouchPoint.m in Sources */ = {isa = PBXBuildFile; fileRef = 15E1CB57169A0C9D00571098 /* xacTouchPoint.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		15BAE6E616C1D0C900622633 /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = System/Library/Frameworks/CFNetwork.framework; sourceTree = SDKROOT; };
+		15DA7EE116C2DE410027D16C /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		15E1CB261698AAC300571098 /* PMDClientTCP.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PMDClientTCP.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		15E1CB2A1698AAC300571098 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		15E1CB2C1698AAC300571098 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -45,10 +47,6 @@
 		15E1CB4E1698AC3300571098 /* xacNetworkStreaming.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = xacNetworkStreaming.m; sourceTree = "<group>"; };
 		15E1CB501699F6F200571098 /* xacAirTouchProfile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xacAirTouchProfile.h; sourceTree = "<group>"; };
 		15E1CB511699F6F200571098 /* xacAirTouchProfile.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = xacAirTouchProfile.m; sourceTree = "<group>"; };
-		15E1CB53169A044300571098 /* xacScreenTouchProfile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xacScreenTouchProfile.h; sourceTree = "<group>"; };
-		15E1CB54169A044300571098 /* xacScreenTouchProfile.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = xacScreenTouchProfile.m; sourceTree = "<group>"; };
-		15E1CB56169A0C9D00571098 /* xacTouchPoint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xacTouchPoint.h; sourceTree = "<group>"; };
-		15E1CB57169A0C9D00571098 /* xacTouchPoint.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = xacTouchPoint.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -56,6 +54,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				15DA7EE216C2DE410027D16C /* QuartzCore.framework in Frameworks */,
+				15BAE6E716C1D0C900622633 /* CFNetwork.framework in Frameworks */,
 				15E1CB2B1698AAC300571098 /* UIKit.framework in Frameworks */,
 				15E1CB2D1698AAC300571098 /* Foundation.framework in Frameworks */,
 				15E1CB2F1698AAC300571098 /* CoreGraphics.framework in Frameworks */,
@@ -85,6 +85,8 @@
 		15E1CB291698AAC300571098 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				15DA7EE116C2DE410027D16C /* QuartzCore.framework */,
+				15BAE6E616C1D0C900622633 /* CFNetwork.framework */,
 				15E1CB2A1698AAC300571098 /* UIKit.framework */,
 				15E1CB2C1698AAC300571098 /* Foundation.framework */,
 				15E1CB2E1698AAC300571098 /* CoreGraphics.framework */,
@@ -105,10 +107,6 @@
 				15E1CB311698AAC300571098 /* Supporting Files */,
 				15E1CB501699F6F200571098 /* xacAirTouchProfile.h */,
 				15E1CB511699F6F200571098 /* xacAirTouchProfile.m */,
-				15E1CB53169A044300571098 /* xacScreenTouchProfile.h */,
-				15E1CB54169A044300571098 /* xacScreenTouchProfile.m */,
-				15E1CB56169A0C9D00571098 /* xacTouchPoint.h */,
-				15E1CB57169A0C9D00571098 /* xacTouchPoint.m */,
 			);
 			path = PMDClientTCP;
 			sourceTree = "<group>";
@@ -199,8 +197,6 @@
 				15E1CB471698AAC300571098 /* xacViewController.m in Sources */,
 				15E1CB4F1698AC3300571098 /* xacNetworkStreaming.m in Sources */,
 				15E1CB521699F6F200571098 /* xacAirTouchProfile.m in Sources */,
-				15E1CB55169A044300571098 /* xacScreenTouchProfile.m in Sources */,
-				15E1CB58169A0C9D00571098 /* xacTouchPoint.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -317,6 +313,7 @@
 				15E1CB4C1698AAC300571098 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

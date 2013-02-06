@@ -7,7 +7,13 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "xacTouchPoint.h"
+//#import "xacTouchPoint.h"
+
+typedef struct
+{
+    float x;
+    float y;
+} xacTouchPoint;
 
 @interface xacScreenTouchProfile : NSObject
 
