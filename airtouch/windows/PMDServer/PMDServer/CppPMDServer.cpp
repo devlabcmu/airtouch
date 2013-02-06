@@ -4,6 +4,8 @@
 
 #include "PMDCamera.h"
 #include "PMDUtils.h"
+#include "PMDOptions.h"
+
 // #define NETWORK_DEBUG
 
 /* Globar vars */
@@ -21,13 +23,13 @@ IplImage* _distancesAndFingerLocation;
 // UI
 void welcomeMessage();
 
-
 bool _stayAlive = true;
 
 // FPS
 time_t _fpsStart, _fpsEnd;
 double _fps = 0;
 int _fpsCounter = 0;
+
 
 // Random
 void error(string msg);
@@ -51,8 +53,7 @@ void welcomeMessage()
 {
 	// add welcome here
 	cout << "PMDServer sends data from pmd camera or a file" << endl;
-	cout << "Usage: PMDServer.exe to read from camera" << endl;
-	cout << "Usage: PMDServer.exe [--use-ir-tracker] [filename.pmd] to read from .pmd file" << endl;
+	PMDOptions::PrintHelp();
 }
 
 bool fingerCompare(Finger a, Finger b){ return a.id < b.id;}
@@ -61,7 +62,7 @@ void updateUI()
 {
 	// calculate current fps
 	time(&_fpsEnd);
-	
+
 	double sec = difftime(_fpsEnd, _fpsStart);
 	if(sec > 1)
 	{
@@ -84,17 +85,17 @@ void updateUI()
 		cvCircle(_distancesAndFingerLocation, i->screenCoords, 10, fingerColors[i - fingers.begin()]);
 	}
 
-    cvFlip (_distancesAndFingerLocation, _distancesAndFingerLocation, -1);
+	cvFlip (_distancesAndFingerLocation, _distancesAndFingerLocation, -1);
 
 	ostringstream str;
 	str.precision(2);
 	str << "fps: " << _fps;
-    // Display the image
+	// Display the image
 	// to do: use consistent method calls (all 2.1 or all 1.*)
 	Mat img = _distancesAndFingerLocation;
 	putText(img, str.str(), cvPoint(10,20), FONT_HERSHEY_COMPLEX_SMALL, 1.0f,CV_RGB(255,0,0)) ;
 	cvShowImage ("Server", _distancesAndFingerLocation);
-	
+
 	cvWaitKey (1);
 }
 
@@ -105,11 +106,11 @@ void showBackgroundImage()
 	BackgroundSubtractionData const* const backgroundData = _pmdCamera.GetBackgroundSubtractionData();
 	IplImage* toShow = cvCreateImage(cvSize(PMDNUMCOLS,PMDNUMROWS), 8, 3);
 	PMDUtils::DistancesToImage(backgroundData->means, toShow);
-	
+
 	cvFlip (toShow, toShow, 0);
 
-    // Display the image
-    cvShowImage ("Background Image", toShow);
+	// Display the image
+	cvShowImage ("Background Image", toShow);
 	cvWaitKey(1);
 
 	cvReleaseImage(&toShow);
@@ -144,7 +145,7 @@ bool communicateWithClient(SOCKET* hClient)
 		cout << "failed to receive data from client, disconnecting..." << endl;
 		return true;
 	}
-	
+
 	cout << "client first message: " << _fromClient.buffer << endl;
 
 	// send a reply, simply echo for now
@@ -170,7 +171,7 @@ bool communicateWithClient(SOCKET* hClient)
 
 		if(command == 'q') return false;
 		if(command == 'd') return true;
-		
+
 		// send the data
 		// make sure to lock it so it doesn't get overridden in the middle
 		if(command == 'f')
@@ -179,9 +180,9 @@ bool communicateWithClient(SOCKET* hClient)
 			WaitForSingleObject(_pmdDataMutex, INFINITE);
 			hr = sendData(*hClient, (char*)&_pmdData, sizeof(PMDFingerData), 0);	
 			ReleaseMutex(_pmdDataMutex);
-			
+
 #ifdef NETWORK_DEBUG
-		cout << "sent finger data "<< endl;
+			cout << "sent finger data "<< endl;
 #endif
 
 		} else
@@ -190,7 +191,7 @@ bool communicateWithClient(SOCKET* hClient)
 			hr = sendData(*hClient, (char*)&_pmdData, sizeof(PMDData), 0);	
 			ReleaseMutex(_pmdDataMutex);
 		}
-		
+
 
 		if(!SUCCEEDED(hr)) return true;
 
@@ -264,7 +265,7 @@ int main(int argc, char* argv[])
 {
 	// welcome message
 	welcomeMessage();
-	
+
 	// initialize opencv frame
 	_distancesAndFingerLocation = cvCreateImage(cvSize(PMDNUMCOLS,PMDNUMROWS), 8, 3);
 
@@ -272,39 +273,23 @@ int main(int argc, char* argv[])
 
 	// Initialize the PMD camera
 	// check if we have parameters, if so first param is filename
-	int argi = 1;
-	bool fromCamera = true;
-	while(argc > argi)
-	{
-		if(strcmp(argv[argi], "--use-ir-tracker") == 0)
-		{
-			_pmdCamera.m_useIrTracker = true;
-			cout << "using ir tracker" << endl;
-		} else  if(argi == argc - 1)
-		{
-			char* filename = argv[argi];
+	PMDOptions opts = PMDOptions::ParseArgs(argc, argv);
 
-			cout << "Reading data from file " << filename << endl;
-			hr = _pmdCamera.InitializeCameraFromFile(filename);
-			if(!SUCCEEDED(hr)) error("Error: failed to initialize from file");
-			fromCamera = false;
-		} else 
-		{
-			cout << "Unknown argument: " << argv[argi] << endl;
-		}
-		argi++;
+	_pmdCamera.FingerTrackingMode = opts.TrackingMode;
 
-	}
-
-	if(fromCamera)
+	if(opts.FileName.empty())
 	{
 		hr = _pmdCamera.InitializeCamera();
 		if(!SUCCEEDED(hr)) error("Error: failed to initialize PMD camera");
+	} else
+	{
+		hr = _pmdCamera.InitializeCameraFromFile(opts.FileName.c_str());
+		if(!SUCCEEDED(hr)) error("Error: failed to initialize PMD from file");
 	}
 
 	hr = _pmdCamera.InitializeBackgroundSubtraction();
 	if(!SUCCEEDED(hr)) error("Error: Background subtraction failed");
-	
+
 	// initialize the pmd data mutex
 	_pmdDataMutex = CreateMutex(NULL, FALSE, NULL);
 
@@ -319,7 +304,7 @@ int main(int argc, char* argv[])
 		hr = _pmdCamera.UpdateCameraData();
 
 		_pmdCamera.UpdateFingers();
-		
+
 		// lock the pmd data
 		WaitForSingleObject(_pmdDataMutex, INFINITE);
 		// update the pmddata to send
@@ -335,10 +320,10 @@ int main(int argc, char* argv[])
 	}
 
 	cvReleaseImage (&_distancesAndFingerLocation);
-	
+
 	cout << "Waiting for network thread to die..." << endl;
 	WaitForSingleObject(networkThread, INFINITE);
-	
+
 	CloseHandle(_pmdDataMutex);
 
 }

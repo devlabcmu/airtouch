@@ -12,14 +12,14 @@ int _fpsCounter = 0;
 
 // UI
 vector<IplImage*> _images;
-string _frameTitles[4] = {"amplitudes", "distances", "finger mask", "final"};
+string _frameTitles[5] = {"amplitudes", "distances",  "f0contours", "f1contours", "final"};
 
 Mat _phoneSpace;
 PhoneCalibration _phoneCalibration;
 
-float _xBuffer[PMDIMAGESIZE];
-float _yBuffer[PMDIMAGESIZE];
-float _zBuffer[PMDIMAGESIZE];
+float _finger0Masked[PMDIMAGESIZE];
+float _finger1Masked[PMDIMAGESIZE];
+float _maskedDistances[PMDIMAGESIZE];
 
 void mouse_callback(int event, int x, int y, int flags, void* param)
 {
@@ -28,6 +28,12 @@ void mouse_callback(int event, int x, int y, int flags, void* param)
 		Point3f p = _pmdCamera.GetCoord(image->height -y, image->width - x);
 		Point3f phone = _phoneCalibration.ToPhoneSpace(p);
 		fprintf(stdout, "mouse: (%d, %d), world:(%.4f,%.4f,%.4f), phone: (%.4f,%.4f,%.4f) \n", x, y, p.x, p.y, p.z, phone.x, phone.y, phone.z);
+	}
+	if(event == CV_EVENT_RBUTTONDOWN)
+	{
+		IplImage* image = (IplImage*) param;
+		Point3f p = _pmdCamera.GetCoord(image->height -y, image->width - x);
+		fprintf(stdout, "#define X %.4ff\n#define Y %.4ff\n#define Z %.4ff\n\n",p.x, p.y, p.z);
 	}
 }
 
@@ -42,8 +48,7 @@ void error(string msg)
 void welcomeMessage()
 {
 	cout << "PMDViewer shows PMD data and various stages of processing algorithm" << endl;
-	cout << "Usage: PMDViewer.exe to read from camera" << endl;
-	cout << "Usage: PMDViewer.exe [filename.pmd] to read from .pmd file" << endl;
+	PMDOptions::PrintHelp();
 }
 
 void showBackgroundImage()
@@ -95,30 +100,45 @@ bool update()
 
 	_pmdCamera.UpdateFingers();
 	vector<Finger> fingers = _pmdCamera.GetFingers();
-	CvScalar fingerColors[2] = {CV_RGB(255,0,0), CV_RGB(0,0,255)};
-	
-	// draw finger mask
-	cvSet(_images[imageIndex], CV_RGB(0,0,0));
-	const char* pFingerIdMask = _pmdCamera.GetFingerIdMask();
-	for(vector<Finger>::iterator i = fingers.begin(); i !=fingers.end(); i++)
+	Scalar fingerColors[2] = {Scalar(255,0,0), Scalar(0,0,255)};
+
+	Mat im = Mat(_images[imageIndex]);
+	im.setTo(Scalar(0));
+	Mat fingerIdMask = _pmdCamera.GetFingerIdMask();
+
+	char* pFingerIdMask = (char*)fingerIdMask.ptr();
+	for(int i = 0; i < PMDIMAGESIZE; i++)
 	{
-		int id = i->id;
-		int mask[PMDIMAGESIZE];
-		ZeroMemory(mask, PMDIMAGESIZE * sizeof(int));
-		for(int j = 0; j < PMDIMAGESIZE; j++)
+		if(pFingerIdMask[i] >= 0)
 		{
-			if(pFingerIdMask[j] == id) 
+			_maskedDistances[i] = _pmdCamera.GetDistanceBuffer()[i];
+			if(pFingerIdMask[i]%2 == 1)
 			{
-				cvSet1D(_images[imageIndex], j, fingerColors[id % 2]);
+				_finger1Masked[i] = _pmdCamera.GetIntensitiesBuffer()[i];
+				_finger0Masked[i] = PMD_INVALID_DISTANCE;
+			} else
+			{
+				_finger0Masked[i] = _pmdCamera.GetIntensitiesBuffer()[i];
+				_finger1Masked[i] = PMD_INVALID_DISTANCE;
 			}
+		}else 
+		{
+			_finger1Masked[i] = PMD_INVALID_DISTANCE;
+			_finger0Masked[i] = PMD_INVALID_DISTANCE;
+			_maskedDistances[i] = PMD_INVALID_DISTANCE;
 		}
 	}
 
+	PMDUtils::AmplitudesToImage(_finger0Masked, _images[imageIndex]);
 	imageIndex++;
 
-	// draw the final image
-	memcpy(_images[imageIndex]->imageData, _pmdCamera.GetDistancesProcessedRGB()->imageData, _pmdCamera.GetDistancesProcessedRGB()->imageSize);
+	PMDUtils::AmplitudesToImage(_finger1Masked, _images[imageIndex]);
+	imageIndex++;
 
+
+	// draw the final image
+	PMDUtils::DistancesToImage(_maskedDistances, _images[imageIndex]);
+	//memcpy(_images[imageIndex]->imageData, _pmdCamera.GetDistancesProcessedRGB()->imageData, PMDIMAGESIZE * 3);
 	vector<BlobPoint> blobs = _pmdCamera.GetBlobPoints();
 	for(vector<BlobPoint>::iterator i = blobs.begin(); i < blobs.end(); i++)
 	{
@@ -132,6 +152,22 @@ bool update()
 	{
 		cvCircle(_images[imageIndex], i->screenCoords, 10, fingerColors[i->id % 2]);
 	}
+
+	// draw the contours on the final image
+	Mat canny_output;
+	vector<vector<Point> > contours;
+	vector<Vec4i> hierarchy;
+	/// Detect edges using canny
+	Canny( Mat(_pmdCamera.GetDistancesProcessedRGB()), canny_output, 100, 200, 3 );
+	/// Find contours
+	findContours( canny_output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+	//fprintf(stdout, "contours: %i\n", contours.size());
+	for( int i = 0; i< contours.size(); i++ )
+	{
+		Scalar color = Scalar( 0, 0, 255 );
+		drawContours(Mat(_images[imageIndex]), contours, i, color);
+	}
+
 	return true;
 }
 
@@ -144,24 +180,24 @@ void setup(int argc, char* argv[])
 
 	// Initialize the PMD camera
 	// check if we have parameters, if so first param is filename
-	if(argc > 1)
-	{
-		char* filename = argv[1];
-		cout << "Reading data from file " << filename << endl;
-		hr = _pmdCamera.InitializeCameraFromFile(filename);
-		if(!SUCCEEDED(hr)) error("Error: failed to initialize from file");
-	} else 
+	PMDOptions opts = PMDOptions::ParseArgs(argc, argv);
+
+	_pmdCamera.FingerTrackingMode = opts.TrackingMode;
+
+	if(opts.FileName.empty())
 	{
 		hr = _pmdCamera.InitializeCamera();
 		if(!SUCCEEDED(hr)) error("Error: failed to initialize PMD camera");
+	} else
+	{
+		hr = _pmdCamera.InitializeCameraFromFile(opts.FileName.c_str());
+		if(!SUCCEEDED(hr)) error("Error: failed to initialize PMD from file");
 	}
 
 	hr = _pmdCamera.InitializeBackgroundSubtraction();
 	if(!SUCCEEDED(hr)) error("Error: Background subtraction failed");
 
 	_phoneSpace = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), IPL_DEPTH_32F, 3);
-
-	_pmdCamera.m_useIrTracker = false;
 
 }
 void getFps()

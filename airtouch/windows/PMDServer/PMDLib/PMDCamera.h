@@ -18,6 +18,13 @@
 using namespace cv;
 using namespace std;
 
+enum PMDFingerTrackingMode
+{
+	FINGER_TRACKING_INTERPOLATE_CLOSEST = 0,
+	FINGER_TRACKING_INTERPOLATE_BRIGHTEST,
+	FINGER_TRACKING_BRIGHTEST
+};
+
 typedef struct {
 	float means[PMDIMAGESIZE];
 	float stdevs[PMDIMAGESIZE];
@@ -29,12 +36,14 @@ typedef struct {
 	float blobSize;
 	Point3f worldCoords;
 	Point3f phoneCoords;
+	int blobId;
 	int id;
 } Finger;
 
 typedef struct {
 	Point2f pt;
 	float size;
+	int blobId;
 } BlobPoint;
 
 typedef struct {
@@ -48,14 +57,16 @@ typedef struct {
 class PMDCamera
 {
 public:
-	bool m_useIrTracker;
-
 	PMDCamera(void);
 	~PMDCamera(void);
 
+	// public vars
+	PMDFingerTrackingMode FingerTrackingMode;
+
+
 	// Initialization
 	HRESULT InitializeCamera();
-	HRESULT InitializeCameraFromFile(char* filename);
+	HRESULT InitializeCameraFromFile(const char* filename);
 	HRESULT UpdateCameraData();
 	HRESULT InitializeBackgroundSubtraction();
 
@@ -63,7 +74,7 @@ public:
 	// OpenCV UI
 	IplImage* GetCvBackgroundImage();
 
-	
+
 	// Getters
 	PMDFingerData const const GetFingerData()
 	{ 
@@ -95,12 +106,12 @@ public:
 	IplImage const* const GetDistancesProcessed() {return m_pmdDistancesProcessed;}
 	IplImage const* const GetDistancesProcessedRGB() {return m_pmdDistancesProcessedRGB;}
 	IplImage const* const GetCoordsPhoneSpace() { return m_pmdPhoneSpace; }
-	char const* const GetFingerIdMask() {return m_fingerIdMask;}
+	Mat GetFingerIdMask() {return m_fingerIdMask;}
 	vector<BlobPoint> GetBlobPoints() {return m_blobPoints;}
 	vector<BlobPoint> GetBlobPointsIntensities() {return m_blobPointsIntensity;}
 	vector<Finger> GetFingers() {return m_newFingers;}
 	BackgroundSubtractionData const* const GetBackgroundSubtractionData() {return &m_backgroundSubtractionData;}
-	
+
 	Point3f GetCoord(int row, int col)
 	{ 
 		Point3f result;
@@ -117,23 +128,11 @@ public:
 		return result;
 	};
 
-	// Image Processing
-	void MedianFilter();
-	void UpdateBackgroundSubtraction();
-	void RemoveReflection();
-	void RemoveOutsidePhone();
-	void Threshold(float maxdistance);
-	void Erode(int erosionSize);
-
-	// Blob tracking
-	void BlobsToFingers();
-	void FindBlobs();
-	void UpdateFingerIdMask();
-	void FindBlobsInIntensityImage();
 
 
 	// Finger tracking
 	void UpdateFingers();
+
 
 private:
 	// flags
@@ -141,18 +140,10 @@ private:
 
 	// methods
 
-	// Finds the finger position using information about the blob
-	// Assumes user is wearing an IR reflective marker
-	// Returns the 2d position in screen space
-	Point2f FindFingerPosUsingTracker(vector<Finger>::iterator f);
 
-	// Finds the finger position using information about the blob
-	// Returns the 2d position in screen space
-	Point2f FindFingerPos(vector<Finger>::iterator f);
-	
 	PMDDataDescription m_pmdDataDescription;
 	PMDHandle m_pmdHandle;
-	
+
 	char m_pmdErrorBuffer[BUFSIZE];
 
 	// Data
@@ -165,26 +156,53 @@ private:
 	IplImage* m_pmdPhoneSpace;
 	IplImage* m_pmdIntensitiesRGB;
 	PMDFingerData m_pmdFingerData;
+	Mat m_connectedComponents;
+	int m_nLabels;
 
-
-	// Image Processing
 	BackgroundSubtractionData m_backgroundSubtractionData;
 	Ptr<FeatureDetector> m_blobDetector;
 	Ptr<FeatureDetector> m_intensitiesBlobDetector;
+
 	vector<BlobPoint> m_blobPoints;
 	vector<BlobPoint> m_blobPointsIntensity;
 
-	// Calibration
 	PhoneCalibration m_phoneCalibration;
 
-	
-
-	// FInger Tracking
 	vector<Finger> m_oldFingers;
 	vector<Finger> m_newFingers;
-	char m_fingerIdMask[PMDIMAGESIZE];
-	
+	Mat m_fingerIdMask;
+
+	// Image Processing
+	void MedianFilter();
+	void UpdateBackgroundSubtraction();
+	void RemoveReflection();
+	void RemoveOutsidePhone();
+	void Threshold(float maxdistance);
+	void Erode(int erosionSize);
+
+	// Blob Tracking
+	void FindConnectedComponentsInDistanceImage();
+	void BlobsToFingers();
+	void FindBlobsInDistanceImage();
+	bool validPoint(Point2i pt);
+	void UpdateFingerIdMask();
+	void FindBlobsInIntensityImage();
+
+	// Finger Tracking
 	void UpdateFingerPositions();
+	// Gets the position of fingers in screen space based
+	// on the FingerTrackingMode variable.
+	Point2f GetFingerPositionScreenSpace(vector<Finger>::iterator f, bool newFinger);
+	// Finds the finger position using information about the blob
+	// Assumes user is wearing an IR reflective marker
+	// Returns the 2d position in screen space
+	Point2f FindFingerPosBrightest(vector<Finger>::iterator f, bool newFinger);
+	// Finds the finger position using information about the blob
+	// Returns the 2d position in screen space
+	Point2f FindFingerPosInterpolateClosest(vector<Finger>::iterator f, bool newFinger);
+
+	Point2f FindFingerPosInterpolateBrightest(vector<Finger>::iterator f, bool newFinger);
 	static bool blobCompare(BlobPoint a, BlobPoint b) { return a.size > b.size;}
+
 };
 
