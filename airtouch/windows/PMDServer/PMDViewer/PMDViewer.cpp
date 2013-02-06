@@ -12,7 +12,7 @@ int _fpsCounter = 0;
 
 // UI
 vector<IplImage*> _images;
-string _frameTitles[6] = {"amplitudes", "distances", "finger mask", "f0contours", "f1contours", "final"};
+string _frameTitles[5] = {"amplitudes", "distances",  "f0contours", "f1contours", "final"};
 
 Mat _phoneSpace;
 PhoneCalibration _phoneCalibration;
@@ -100,23 +100,13 @@ bool update()
 
 	_pmdCamera.UpdateFingers();
 	vector<Finger> fingers = _pmdCamera.GetFingers();
-	CvScalar fingerColors[2] = {CV_RGB(255,0,0), CV_RGB(0,0,255)};
+	Scalar fingerColors[2] = {Scalar(255,0,0), Scalar(0,0,255)};
 
-	// draw finger mask
-	cvSet(_images[imageIndex], CV_RGB(0,0,0));
-	const char* pFingerIdMask = _pmdCamera.GetFingerIdMask();
-	for(vector<Finger>::iterator i = fingers.begin(); i !=fingers.end(); i++)
-	{
-		int id = i->id;
-		for(int j = 0; j < PMDIMAGESIZE; j++)
-		{
-			if(pFingerIdMask[j] == id) 
-			{
-				cvSet1D(_images[imageIndex], j, fingerColors[id % 2]);
-			} 
-		}
-	}
+	Mat im = Mat(_images[imageIndex]);
+	im.setTo(Scalar(0));
+	Mat fingerIdMask = _pmdCamera.GetFingerIdMask();
 
+	char* pFingerIdMask = (char*)fingerIdMask.ptr();
 	for(int i = 0; i < PMDIMAGESIZE; i++)
 	{
 		if(pFingerIdMask[i] >= 0)
@@ -139,9 +129,6 @@ bool update()
 		}
 	}
 
-	imageIndex++;
-
-	
 	PMDUtils::AmplitudesToImage(_finger0Masked, _images[imageIndex]);
 	imageIndex++;
 
@@ -150,8 +137,8 @@ bool update()
 
 
 	// draw the final image
-	//PMDUtils::DistancesToImage(_maskedDistances, _images[imageIndex]);
-	memcpy(_images[imageIndex]->imageData, _pmdCamera.GetDistancesProcessedRGB()->imageData, PMDIMAGESIZE * 3);
+	PMDUtils::DistancesToImage(_maskedDistances, _images[imageIndex]);
+	//memcpy(_images[imageIndex]->imageData, _pmdCamera.GetDistancesProcessedRGB()->imageData, PMDIMAGESIZE * 3);
 	vector<BlobPoint> blobs = _pmdCamera.GetBlobPoints();
 	for(vector<BlobPoint>::iterator i = blobs.begin(); i < blobs.end(); i++)
 	{
@@ -174,7 +161,7 @@ bool update()
 	Canny( Mat(_pmdCamera.GetDistancesProcessedRGB()), canny_output, 100, 200, 3 );
 	/// Find contours
 	findContours( canny_output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
-	fprintf(stdout, "contours: %i\n", contours.size());
+	//fprintf(stdout, "contours: %i\n", contours.size());
 	for( int i = 0; i< contours.size(); i++ )
 	{
 		Scalar color = Scalar( 0, 0, 255 );

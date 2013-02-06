@@ -36,12 +36,14 @@ typedef struct {
 	float blobSize;
 	Point3f worldCoords;
 	Point3f phoneCoords;
+	int blobId;
 	int id;
 } Finger;
 
 typedef struct {
 	Point2f pt;
 	float size;
+	int blobId;
 } BlobPoint;
 
 typedef struct {
@@ -104,7 +106,7 @@ public:
 	IplImage const* const GetDistancesProcessed() {return m_pmdDistancesProcessed;}
 	IplImage const* const GetDistancesProcessedRGB() {return m_pmdDistancesProcessedRGB;}
 	IplImage const* const GetCoordsPhoneSpace() { return m_pmdPhoneSpace; }
-	char const* const GetFingerIdMask() {return m_fingerIdMask;}
+	Mat GetFingerIdMask() {return m_fingerIdMask;}
 	vector<BlobPoint> GetBlobPoints() {return m_blobPoints;}
 	vector<BlobPoint> GetBlobPointsIntensities() {return m_blobPointsIntensity;}
 	vector<Finger> GetFingers() {return m_newFingers;}
@@ -154,6 +156,8 @@ private:
 	IplImage* m_pmdPhoneSpace;
 	IplImage* m_pmdIntensitiesRGB;
 	PMDFingerData m_pmdFingerData;
+	Mat m_connectedComponents;
+	int m_nLabels;
 
 	BackgroundSubtractionData m_backgroundSubtractionData;
 	Ptr<FeatureDetector> m_blobDetector;
@@ -166,7 +170,7 @@ private:
 
 	vector<Finger> m_oldFingers;
 	vector<Finger> m_newFingers;
-	char m_fingerIdMask[PMDIMAGESIZE];
+	Mat m_fingerIdMask;
 
 	// Image Processing
 	void MedianFilter();

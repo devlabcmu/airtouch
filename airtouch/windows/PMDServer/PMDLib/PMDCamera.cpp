@@ -2,6 +2,8 @@
 #include <algorithm>
 #include <queue>
 #include "ConnectedComponents.h"
+#include <unordered_map>
+
 #define SOURCE_PLUGIN "camboardnano"
 #define SOURCE_PARAM ""
 #define PROC_PLUGIN "camboardnanoproc"
@@ -11,7 +13,8 @@
 
 
 const int g_numFramesForBackgroundSubtraction = 50;
-
+const int g_minBlobSize = 200;
+const int g_maxBlobSize = 1000000;
 const float g_fingerSmoothing = 0.0f;
 const float g_fingerWorldSmoothing = 0.7f;
 
@@ -27,6 +30,7 @@ PMDCamera::PMDCamera(void)
 	m_pmdDistancesProcessedRGB = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), 8, 3); 
 	m_pmdIntensitiesRGB = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), 8, 3);
 	m_connectedComponents = Mat(PMDNUMROWS, PMDNUMCOLS, CV_8U);
+	m_fingerIdMask = Mat(PMDNUMROWS, PMDNUMCOLS, CV_8S);
 
 	SimpleBlobDetector::Params blobParams;
 	blobParams.minThreshold = 1;
@@ -374,9 +378,10 @@ Point2f PMDCamera::FindFingerPosInterpolateBrightest(vector<Finger>::iterator f,
 	// multiply amplitudes by distance to finger center
 	float maxdst = sqrt(pow((float)PMDNUMCOLS,2)+pow((float)PMDNUMROWS,2));
 
+	uchar* pFingerIdMask = m_fingerIdMask.ptr();
 	for (int i = 0; i < PMDIMAGESIZE; i++)
 	{
-		if(m_fingerIdMask[i] != f->id){
+		if(pFingerIdMask[i] != f->id){
 			amplitudesCopy[i] = 0;
 			continue;
 		}
@@ -404,7 +409,7 @@ Point2f PMDCamera::FindFingerPosInterpolateBrightest(vector<Finger>::iterator f,
 	{
 		// do everything per  blob
 		int idx = (int)j->pt.y * PMDNUMCOLS + (int)j->pt.x;
-		if(m_fingerIdMask[idx] != f->id) continue;
+		if(pFingerIdMask[idx] != f->id) continue;
 		// if the blob's center is in the finger's mask
 		result = j->pt;
 		break;
@@ -422,10 +427,11 @@ Point2f PMDCamera::FindFingerPosBrightest(vector<Finger>::iterator f, bool newFi
 	float amplitudesCopy [PMDIMAGESIZE];
 		
 	memcpy(amplitudesCopy, m_pmdIntensitiesBuffer, PMDIMAGESIZE * sizeof(float));
+	uchar* pFingerIdMask = m_fingerIdMask.ptr();
 	// zero out everything that's not in the finger
 	for (int i = 0; i < PMDIMAGESIZE; i++)
 	{
-		if(m_fingerIdMask[i] != f->id) amplitudesCopy[i] = 0;
+		if(pFingerIdMask[i] != f->id) amplitudesCopy[i] = 0;
 	}
 
 	// find all blobs in this image
@@ -438,7 +444,7 @@ Point2f PMDCamera::FindFingerPosBrightest(vector<Finger>::iterator f, bool newFi
 	{
 		// do everything per  blob
 		int idx = (int)j->pt.y * PMDNUMCOLS + (int)j->pt.x;
-		if(m_fingerIdMask[idx] != f->id) continue;
+		if(pFingerIdMask[idx] != f->id) continue;
 		// if the blob's center is in the finger's mask
 		result = j->pt;
 
@@ -477,76 +483,104 @@ bool PMDCamera::validPoint(Point2i pt)
 // call after blobstofingers but before findfingerpositions
 void PMDCamera::UpdateFingerIdMask()
 {
-	memset(m_fingerIdMask, -2, PMDIMAGESIZE * sizeof(char));
-	
-	float* pDistancesProcessed = (float*)m_pmdDistancesProcessed->imageData;
-	// -2 means unexplored
-	// -1 means invalid
-	// > 0 means the finger id
-	CvScalar fingerColors[2] = {CV_RGB(255,0,0), CV_RGB(0,0,255)};
+	Mat mask;
+	threshold(m_connectedComponents, mask, -1,1,0);
+	m_fingerIdMask.setTo(Scalar(-1), mask);
 	for (vector<Finger>::iterator i = m_newFingers.begin(); i < m_newFingers.end(); i++)
 	{
-		queue<Point2i> pointsToExplore;
-
-		// explore around region of bloc until we find a valid point
-		Point2i seedPoint = i->blobCenter;
-		while(!validPoint(seedPoint))
-		{
-			// explore around the region and find a valid point
-			for(int dy = -1; dy <=1; dy++)
-			{ 
-				for(int dx = -1; dx <=1; dx++)
-				{
-					if(dx == 0 && dy == 0) continue;
-					int x = seedPoint.x + dx;
-					int y = seedPoint.y + dy;
-					if(x < 0 || x >= PMDNUMCOLS || y < 0 || y >= PMDNUMROWS) continue;
-					pointsToExplore.push(Point2i(x,y));
-				}
-			}
-			seedPoint = pointsToExplore.front();
-			pointsToExplore.pop();
-		}
-		// clear out all points
-		while(!pointsToExplore.empty()) pointsToExplore.pop();
-
-		// now we are starting with a valid seed point
-		pointsToExplore.push(seedPoint);
-
-		int id = i->id;
-		while(!pointsToExplore.empty())
-		{
-			Point2i toExplore = pointsToExplore.front();
-			pointsToExplore.pop();
-			int idx = toExplore.y * PMDNUMCOLS + toExplore.x;
-			
-			// if the point has been explored already, continue
-			if(m_fingerIdMask[idx] > -2) continue;
-			// if the point is an invalid distance, mark the point in mask as invalid and continue
-			if(pDistancesProcessed[idx] == PMD_INVALID_DISTANCE)
-			{
-				m_fingerIdMask[idx] = -1;
-				continue;
-			}
-
-			// otherwise the point is a member of the blob, set mask value
-			m_fingerIdMask[idx] = id;
-			// also set color value
-
-			// add all of its neighbors that are valid coordinates
-			for(int dy = -1; dy <=1; dy++)
-			{ 
-				for(int dx = -1; dx <=1; dx++)
-				{
-					if(dx == 0 && dy == 0) continue;
-					int x = toExplore.x + dx;
-					int y = toExplore.y + dy;
-					if(x < 0 || x >= PMDNUMCOLS || y < 0 || y >= PMDNUMROWS) continue;
-					pointsToExplore.push(Point2i(x,y));
-				}
-			}
-		}
+		int id = i->blobId;
+		threshold(m_connectedComponents, mask, id-1, id+1, 0);
+		m_fingerIdMask.setTo(Scalar(i->id), mask);
 	}
+	//	// threshold the current processed image
+	//Mat thresholded;
+	//cv::threshold(Mat(m_pmdDistancesProcessed), thresholded, 0.0, 1.0, 0);
+	//
+	//// find the connected components, output to the matrix
+	//int nlabels = connectedComponents(m_connectedComponents, thresholded);
+	////Mat result = Mat(PMDNUMROWS, PMDNUMCOLS,  CV_8UC3);
+	////Scalar colors[4] = {Scalar(0,0,0), Scalar(255, 0, 0), Scalar(0, 255, 0), Scalar(0,0,255)};
+	////
+	////for(int i = 0; i < nlabels; i++)
+	////{
+	////	Mat mask;
+	////	threshold(labeled, mask, i-1, i+1, 0);
+	////	result.setTo(colors[i%4], mask);
+	////}
+
+	////imshow("connected components", result);
+
+
+	//memset(m_fingerIdMask, -2, PMDIMAGESIZE * sizeof(char));
+	//
+	//float* pDistancesProcessed = (float*)m_pmdDistancesProcessed->imageData;
+	//// -2 means unexplored
+	//// -1 means invalid
+	//// > 0 means the finger id
+	//CvScalar fingerColors[2] = {CV_RGB(255,0,0), CV_RGB(0,0,255)};
+	//for (vector<Finger>::iterator i = m_newFingers.begin(); i < m_newFingers.end(); i++)
+	//{
+	//	queue<Point2i> pointsToExplore;
+
+	//	// explore around region of bloc until we find a valid point
+	//	Point2i seedPoint = i->blobCenter;
+	//	while(!validPoint(seedPoint))
+	//	{
+	//		// explore around the region and find a valid point
+	//		for(int dy = -1; dy <=1; dy++)
+	//		{ 
+	//			for(int dx = -1; dx <=1; dx++)
+	//			{
+	//				if(dx == 0 && dy == 0) continue;
+	//				int x = seedPoint.x + dx;
+	//				int y = seedPoint.y + dy;
+	//				if(x < 0 || x >= PMDNUMCOLS || y < 0 || y >= PMDNUMROWS) continue;
+	//				pointsToExplore.push(Point2i(x,y));
+	//			}
+	//		}
+	//		seedPoint = pointsToExplore.front();
+	//		pointsToExplore.pop();
+	//	}
+	//	// clear out all points
+	//	while(!pointsToExplore.empty()) pointsToExplore.pop();
+
+	//	// now we are starting with a valid seed point
+	//	pointsToExplore.push(seedPoint);
+
+	//	int id = i->id;
+	//	while(!pointsToExplore.empty())
+	//	{
+	//		Point2i toExplore = pointsToExplore.front();
+	//		pointsToExplore.pop();
+	//		int idx = toExplore.y * PMDNUMCOLS + toExplore.x;
+	//		
+	//		// if the point has been explored already, continue
+	//		if(m_fingerIdMask[idx] > -2) continue;
+	//		// if the point is an invalid distance, mark the point in mask as invalid and continue
+	//		if(pDistancesProcessed[idx] == PMD_INVALID_DISTANCE)
+	//		{
+	//			m_fingerIdMask[idx] = -1;
+	//			continue;
+	//		}
+
+	//		// otherwise the point is a member of the blob, set mask value
+	//		m_fingerIdMask[idx] = id;
+	//		// also set color value
+
+	//		// add all of its neighbors that are valid coordinates
+	//		for(int dy = -1; dy <=1; dy++)
+	//		{ 
+	//			for(int dx = -1; dx <=1; dx++)
+	//			{
+	//				if(dx == 0 && dy == 0) continue;
+	//				int x = toExplore.x + dx;
+	//				int y = toExplore.y + dy;
+	//				if(x < 0 || x >= PMDNUMCOLS || y < 0 || y >= PMDNUMROWS) continue;
+	//				pointsToExplore.push(Point2i(x,y));
+	//			}
+	//		}
+	//	}
+	//}
 	
 }
 
@@ -557,42 +591,42 @@ void PMDCamera::FindConnectedComponentsInDistanceImage()
 	cv::threshold(Mat(m_pmdDistancesProcessed), thresholded, 0.0, 1.0, 0);
 	
 	// find the connected components, output to the matrix
-	int nlabels = connectedComponents(m_connectedComponents, thresholded);
-	//Mat result = Mat(PMDNUMROWS, PMDNUMCOLS,  CV_8UC3);
-	//Scalar colors[4] = {Scalar(0,0,0), Scalar(255, 0, 0), Scalar(0, 255, 0), Scalar(0,0,255)};
-	//
-	//for(int i = 0; i < nlabels; i++)
-	//{
-	//	Mat mask;
-	//	threshold(labeled, mask, i-1, i+1, 0);
-	//	result.setTo(colors[i%4], mask);
-	//}
-
-	//imshow("connected components", result);
+	m_nLabels = connectedComponents(m_connectedComponents, thresholded);
 }
-
 
 void PMDCamera::FindBlobsInDistanceImage()
 {
-	// TODO: use the connected components to update this
+	BlobPoint* blobPoints = new BlobPoint[m_nLabels];
 
-	// make current distances black and white
-	//Mat bw = Mat(m_pmdDistancesProcessed) > 0.1f;
-	//Mat labelImage(cvSize(PMDNUMCOLS, PMDNUMROWS), CV_32S);
-	//int nLabels = connectedComponents(labelImage, bw, 8);
-
-	vector<KeyPoint> tmp;
-
-	PMDUtils::DistancesToImage((const float *)m_pmdDistancesProcessed->imageData, m_pmdDistancesProcessedRGB);
-	m_blobDetector->detect(m_pmdDistancesProcessedRGB, tmp);
-	m_blobPoints.clear();
-	for(vector<KeyPoint>::iterator i = tmp.begin(); i < tmp.end(); i++)
+	for(int i = 1; i < m_nLabels; i++)
 	{
-		BlobPoint toAdd;
-		toAdd.pt = i->pt;
-		toAdd.size = i->size;
-		m_blobPoints.push_back(toAdd);
+		blobPoints[i-1].blobId = i;
+		blobPoints[i-1].pt = Point2f();
+		blobPoints[i-1].size = 0;
 	}
+	// get center point and area
+	for(int row = 0; row < m_connectedComponents.rows; ++row) {
+		uchar* p = m_connectedComponents.ptr(row);
+		for(int col = 0; col < m_connectedComponents.cols; ++col, p++) {
+			int id = *p;
+			if(id == 0) continue;
+			blobPoints[id-1].size++;
+			blobPoints[id-1].pt.x += col;
+			blobPoints[id-1].pt.y += row;
+		}
+	}
+
+	m_blobPoints.clear();
+	for(int i = 0; i < m_nLabels; i++)
+	{
+		// skip over label 0, this is always the background
+		if(blobPoints[i].size > g_maxBlobSize || blobPoints[i].size < g_minBlobSize) continue;
+		blobPoints[i].pt.x /= blobPoints[i].size;
+		blobPoints[i].pt.y /= blobPoints[i].size;
+		m_blobPoints.push_back(blobPoints[i]);
+	}
+
+	delete[] blobPoints;
 }
 
 
@@ -664,7 +698,7 @@ void PMDCamera::BlobsToFingers()
 			// get rid of finger at that index
 			m_oldFingers.erase(m_oldFingers.begin() + closestIndex);
 		}
-
+		newFinger.blobId = i->blobId;
 		newFinger.blobCenter = i->pt;
 		newFinger.blobSize = i->size;
 		m_newFingers.push_back(newFinger);
@@ -766,6 +800,8 @@ void PMDCamera::UpdateFingers()
 	UpdateBackgroundSubtraction();
 	MedianFilter();
 	RemoveReflection();
+
+	PMDUtils::DistancesToImage((float*)m_pmdDistancesProcessed->imageData, m_pmdDistancesProcessedRGB);
 
 	FindConnectedComponentsInDistanceImage();
 	FindBlobsInDistanceImage();
