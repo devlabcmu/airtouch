@@ -21,6 +21,7 @@ const float g_fingerScreenSmoothing = 0.0f;
 const float g_fingerWorldSmoothing = 0.7f;
 const float g_convexHullStdDevDistances = 0.018;
 const float g_convexHullStDevCenterDst = 6;
+const float g_orientationLength = 40;
 PMDCamera::PMDCamera(void)
 {
 	FingerTrackingMode = FINGER_TRACKING_INTERPOLATE_CLOSEST;
@@ -427,11 +428,7 @@ Point2f PMDCamera::FindFingerPosContours(vector<Finger>::iterator f, bool newFin
 	// Get mask of just finger
 	int blobid = f->blobId;
 	Mat fingerMask;
-	Mat debugImage = Mat(PMDNUMROWS, PMDNUMCOLS, CV_8UC3);
 	bandpass(m_connectedComponents, fingerMask, blobid, blobid, 1);
-
-	debugImage.setTo(0);
-	debugImage.setTo(Scalar(255,255,255), fingerMask);
 
 	Mat canny_output;
 	vector<vector<Point> > contours;
@@ -460,10 +457,8 @@ Point2f PMDCamera::FindFingerPosContours(vector<Finger>::iterator f, bool newFin
 
 	Scalar color = Scalar( 0, 0, 255 );
 	
-	drawContours(debugImage, contours, maxContourIndex, color);
 	vector<vector<Point>> hullWrapper;
 	hullWrapper.push_back(hull);
-	drawContours(debugImage, hullWrapper, 0, color,1, 8, vector<Vec4i>(), 0, Point() );
 
 	Vec2f orientation = Vec2f(f->screenCoords - f->blobCenter);
 
@@ -500,10 +495,8 @@ Point2f PMDCamera::FindFingerPosContours(vector<Finger>::iterator f, bool newFin
 		hullInfo.erase(hullInfo.begin() + topN, hullInfo.end());
 	sort(hullInfo.begin(), hullInfo.end(), HullInfoCompareFingerDst);
 
-	for (int i = 0; i < 1; i++)
-	{
-		circle(debugImage, hullInfo[i].pt, 10, Scalar(0,255,0));
-	}
+	if(!newFinger && norm(f->blobCenter - f->screenCoords) > g_orientationLength)
+		return hullInfo[0].pt;
 
 	if(f->stDevDistances  > g_convexHullStDevCenterDst)
 		return hullInfo[0].pt;
