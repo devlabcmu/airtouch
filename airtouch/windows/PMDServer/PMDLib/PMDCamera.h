@@ -49,6 +49,7 @@ typedef struct {
 	int id;
 	float stDevDistances;
 	float meanDistance;
+	int lastTrackingMode;
 } Finger;
 
 typedef struct {
@@ -124,6 +125,8 @@ public:
 	vector<BlobPoint> GetBlobPointsIntensities() {return m_blobPointsIntensity;}
 	vector<Finger> GetFingers() {return m_newFingers;}
 	BackgroundSubtractionData const* const GetBackgroundSubtractionData() {return &m_backgroundSubtractionData;}
+
+	void SetGroundTruth(int fingerId, Point3f groundTruth);
 
 	Point3f GetCoord(int row, int col)
 	{ 
@@ -217,6 +220,8 @@ private:
 	Point2f FindFingerPosContours(vector<Finger>::iterator f, bool newFinger);
 
 	Point2f FindFingerPosInterpolateBrightest(vector<Finger>::iterator f, bool newFinger);
+
+	
 
 	// comparators
 	static bool blobCompare(BlobPoint a, BlobPoint b) { return a.size > b.size;}

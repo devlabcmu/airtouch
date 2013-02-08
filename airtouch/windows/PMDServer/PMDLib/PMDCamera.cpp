@@ -21,7 +21,7 @@ const float g_fingerScreenSmoothing = 0.0f;
 const float g_fingerWorldSmoothing = 0.7f;
 const float g_convexHullStdDevDistances = 0.018;
 const float g_convexHullStDevCenterDst = 6;
-const float g_orientationLength = 40;
+const float g_orientationLength = 50;
 PMDCamera::PMDCamera(void)
 {
 	FingerTrackingMode = FINGER_TRACKING_INTERPOLATE_CLOSEST;
@@ -335,6 +335,7 @@ void PMDCamera::UpdateBackgroundSubtraction()
 
 Point2f PMDCamera::FindFingerPosInterpolateClosest(vector<Finger>::iterator f, bool newFinger)
 {
+	f->lastTrackingMode = FINGER_TRACKING_INTERPOLATE_CLOSEST;
 	float* pDistances = (float*) m_pmdDistancesProcessed->imageData;
 	int x, y;
 	float minZ = 1000.0f;
@@ -372,6 +373,7 @@ Point2f PMDCamera::FindFingerPosInterpolateClosest(vector<Finger>::iterator f, b
 
 Point2f PMDCamera::FindFingerPosInterpolateBrightest(vector<Finger>::iterator f, bool newFinger)
 {
+	f->lastTrackingMode = FINGER_TRACKING_INTERPOLATE_BRIGHTEST;
 	Point2f result(0,0);
 	
 	// make a copy of the intensities
@@ -425,6 +427,7 @@ Point2f PMDCamera::FindFingerPosInterpolateBrightest(vector<Finger>::iterator f,
 
 Point2f PMDCamera::FindFingerPosContours(vector<Finger>::iterator f, bool newFinger)
 {
+	f->lastTrackingMode = FINGER_TRACKING_CONTOURS;
 	// Get mask of just finger
 	int blobid = f->blobId;
 	Mat fingerMask;
@@ -497,18 +500,20 @@ Point2f PMDCamera::FindFingerPosContours(vector<Finger>::iterator f, bool newFin
 
 	if(hullInfo.size() <= 0) return FindFingerPosInterpolateBrightest(f, newFinger);
 
-	if(!newFinger && norm(f->blobCenter - f->screenCoords) > g_orientationLength)
+	float thresholdMultiplier = f->lastTrackingMode == FINGER_TRACKING_CONTOURS ? 0.8f : 1.0f;
+	if(!newFinger && norm(f->blobCenter - f->screenCoords) > thresholdMultiplier * g_orientationLength)
 		return hullInfo[0].pt;
 
-	if(f->stDevDistances  > g_convexHullStDevCenterDst)
+	if(f->stDevDistances  > thresholdMultiplier * g_convexHullStDevCenterDst)
 		return hullInfo[0].pt;
-	if(f->stDevDistances  > g_convexHullStdDevDistances)
+	if(f->stDevDistances  > thresholdMultiplier * g_convexHullStdDevDistances)
 		return FindFingerPosInterpolateBrightest(f, newFinger);
 	return hullInfo[0].pt;
 }
 
 Point2f PMDCamera::FindFingerPosBrightest(vector<Finger>::iterator f, bool newFinger)
 {
+	f->lastTrackingMode = FINGER_TRACKING_BRIGHTEST;
 	Point2f result(0,0);
 	
 	// make a copy of the intensities
@@ -814,13 +819,20 @@ void PMDCamera::UpdateFingerPositions()
 	}
 }
 
+void PMDCamera::SetGroundTruth(int fingerId, Point3f groundTruth)
+{
+	for (int i = 0; i < m_newFingers.size(); i++)
+	{
+		m_newFingers[i].worldCoords = groundTruth;
+	}
+}
+
 void PMDCamera::UpdateFingers()
 {
 	Threshold(PMD_MAX_PHONE_DISTANCE);
 	UpdateBackgroundSubtraction();
 	MedianFilter();
 	RemoveReflection();
-
 	PMDUtils::DistancesToImage((float*)m_pmdDistancesProcessed->imageData, m_pmdDistancesProcessedRGB);
 
 	FindConnectedComponentsInDistanceImage();
