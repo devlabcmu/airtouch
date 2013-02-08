@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConnectedComponents.h" />
+    <ClInclude Include="opencvutils.h" />
     <ClInclude Include="PhoneCalibration.h" />
     <ClInclude Include="PMDCamera.h" />
     <ClInclude Include="PMDConstants.h" />

@@ -22,13 +22,22 @@ enum PMDFingerTrackingMode
 {
 	FINGER_TRACKING_INTERPOLATE_CLOSEST = 0,
 	FINGER_TRACKING_INTERPOLATE_BRIGHTEST,
-	FINGER_TRACKING_BRIGHTEST
+	FINGER_TRACKING_BRIGHTEST,
+	FINGER_TRACKING_CONTOURS
 };
 
 typedef struct {
 	float means[PMDIMAGESIZE];
 	float stdevs[PMDIMAGESIZE];
 } BackgroundSubtractionData;
+
+typedef struct
+{
+	Point2f pt;
+	float dstBlobCenter;
+	float dstFingerCenter;
+} HullInfo;
+
 
 typedef struct {
 	Point2f screenCoords;
@@ -38,12 +47,16 @@ typedef struct {
 	Point3f phoneCoords;
 	int blobId;
 	int id;
+	float stDevDistances;
+	float meanDistance;
 } Finger;
 
 typedef struct {
 	Point2f pt;
 	float size;
 	int blobId;
+	float stDevDistances;
+	float meanDistance;
 } BlobPoint;
 
 typedef struct {
@@ -201,8 +214,14 @@ private:
 	// Returns the 2d position in screen space
 	Point2f FindFingerPosInterpolateClosest(vector<Finger>::iterator f, bool newFinger);
 
+	Point2f FindFingerPosContours(vector<Finger>::iterator f, bool newFinger);
+
 	Point2f FindFingerPosInterpolateBrightest(vector<Finger>::iterator f, bool newFinger);
+
+	// comparators
 	static bool blobCompare(BlobPoint a, BlobPoint b) { return a.size > b.size;}
+	static bool HullInfoCompareBlobDst(HullInfo a, HullInfo b) { return a.dstBlobCenter > b.dstBlobCenter;}
+	static bool HullInfoCompareFingerDst(HullInfo a, HullInfo b) { return a.dstFingerCenter < b.dstFingerCenter;}
 
 };
 

@@ -138,34 +138,18 @@ bool update()
 
 	// draw the final image
 	PMDUtils::DistancesToImage(_maskedDistances, _images[imageIndex]);
-	//memcpy(_images[imageIndex]->imageData, _pmdCamera.GetDistancesProcessedRGB()->imageData, PMDIMAGESIZE * 3);
+
 	vector<BlobPoint> blobs = _pmdCamera.GetBlobPoints();
 	for(vector<BlobPoint>::iterator i = blobs.begin(); i < blobs.end(); i++)
 	{
 		cvCircle(_images[imageIndex], i->pt, i->size, CV_RGB(0, 255, 0));
 	}
-
-
-	Mat img = _images[imageIndex];
-
+	
 	for(vector<Finger>::iterator i = fingers.begin(); i !=fingers.end(); i++)
 	{
 		cvCircle(_images[imageIndex], i->screenCoords, 10, fingerColors[i->id % 2]);
-	}
-
-	// draw the contours on the final image
-	Mat canny_output;
-	vector<vector<Point> > contours;
-	vector<Vec4i> hierarchy;
-	/// Detect edges using canny
-	Canny( Mat(_pmdCamera.GetDistancesProcessedRGB()), canny_output, 100, 200, 3 );
-	/// Find contours
-	findContours( canny_output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
-	//fprintf(stdout, "contours: %i\n", contours.size());
-	for( int i = 0; i< contours.size(); i++ )
-	{
-		Scalar color = Scalar( 0, 0, 255 );
-		drawContours(Mat(_images[imageIndex]), contours, i, color);
+		cvCircle(_images[imageIndex], i->blobCenter, 3, fingerColors[i->id % 2], 3);
+		cvLine(_images[imageIndex], i->blobCenter, i->screenCoords, fingerColors[i->id % 2]);
 	}
 
 	return true;
