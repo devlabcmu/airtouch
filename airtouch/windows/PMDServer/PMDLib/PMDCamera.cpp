@@ -495,6 +495,8 @@ Point2f PMDCamera::FindFingerPosContours(vector<Finger>::iterator f, bool newFin
 		hullInfo.erase(hullInfo.begin() + topN, hullInfo.end());
 	sort(hullInfo.begin(), hullInfo.end(), HullInfoCompareFingerDst);
 
+	if(hullInfo.size() <= 0) return FindFingerPosInterpolateBrightest(f, newFinger);
+
 	if(!newFinger && norm(f->blobCenter - f->screenCoords) > g_orientationLength)
 		return hullInfo[0].pt;
 
