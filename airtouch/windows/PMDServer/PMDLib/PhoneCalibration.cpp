@@ -4,17 +4,17 @@
 #define PHONE_ANDROID
 
 #ifdef PHONE_ANDROID
-#define ORIGINX 0.0387f
-#define ORIGINY -0.0425f
-#define ORIGINZ 0.0721f
+#define ORIGINX 0.0328f
+#define ORIGINY -0.0310f
+#define ORIGINZ 0.0492f
 
-#define P1X -0.0188f
-#define P1Y -0.0392f
-#define P1Z 0.0698f
+#define P1X -0.0098f
+#define P1Y -0.0335f
+#define P1Z 0.0554f
 
-#define P2X 0.0308f
-#define P2Y -0.0316f
-#define P2Z 0.1653f
+#define P2X 0.0364f
+#define P2Y -0.0299f
+#define P2Z 0.1477f
 
 #endif
 
@@ -55,6 +55,10 @@ PhoneCalibration::PhoneCalibration(void)
 	m_unitZ = (Mat_<float>(3,1,IPL_DEPTH_32F) << P2X - ORIGINX , P2Y - ORIGINY, P2Z - ORIGINZ);
 	m_unitY = m_unitX.cross(m_unitZ);
 
+	m_xLength = norm(m_unitX);
+	m_yLength = norm(m_unitY);
+	m_zLength = norm(m_unitZ);
+
 	m_unitX = m_unitX / norm(m_unitX);
 	m_unitY = m_unitY / norm(m_unitY);
 	m_unitZ = m_unitZ / norm(m_unitZ);
@@ -62,6 +66,20 @@ PhoneCalibration::PhoneCalibration(void)
 
 
 PhoneCalibration::~PhoneCalibration(void){}
+
+
+
+Point3f PhoneCalibration::ToPhoneSpaceAsPercentage(Point3f coord)
+{
+	if(coord.x == PMD_INVALID_DISTANCE)
+		return Point3f(PMD_INVALID_DISTANCE, PMD_INVALID_DISTANCE, PMD_INVALID_DISTANCE);
+	Mat tmp = Mat(coord) - m_origin;
+	double x = tmp.dot(m_unitX);
+	double y = tmp.dot(m_unitY);
+	double z = tmp.dot(m_unitZ);
+
+	return Point3f(x / m_xLength,y,z / m_zLength);
+}
 
 Point3f PhoneCalibration::ToPhoneSpace(Point3f coord)
 {

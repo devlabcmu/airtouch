@@ -11,12 +11,15 @@ public:
 	~PhoneCalibration(void);
 	Point3f ToPhoneSpace(Point3f coord);
 	void ToPhoneSpace(float* src, float* dst);
-
+	Point3f ToPhoneSpaceAsPercentage(Point3f coord);
 private:
 	Mat m_origin;
 	Mat m_unitX;
 	Mat m_unitY;
 	Mat m_unitZ;
+	float m_xLength;
+	float m_yLength;
+	float m_zLength;
 };
 
 class RBTPhoneCalibration
@@ -27,6 +30,7 @@ public:
 	~RBTPhoneCalibration(){};
 
 	Point3f ToPhoneSpace(Point3f coord);
+	// returns coords in phone space, x,y are the percentage of the screen width, z is still in meters
 	
 private:
 	Mat m_rotationMatrix;

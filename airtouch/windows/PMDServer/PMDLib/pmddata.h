@@ -3,23 +3,20 @@
 #include "PMDConstants.h"
 
 typedef struct {
-	float finger1X;
-	float finger1Y;
-	float finger1Z;
-
-	float finger2X;
-	float finger2Y;
-	float finger2Z;
-} PMDFingerData;
+	int id; // 4 bytes
+	float x; // 4 bytes
+	float y; // 4 bytes
+	float z; // 4 bytes
+} PMDFinger;
 
 typedef struct {
-	float finger1X;
-	float finger1Y;
-	float finger1Z;
+	PMDFinger fingers[2];
+} PMDFingerData;
 
-	float finger2X;
-	float finger2Y;
-	float finger2Z;
+
+
+typedef struct {
+	PMDFinger fingers[2];
 	float buffer[PMDIMAGESIZE];
 } PMDData;
 

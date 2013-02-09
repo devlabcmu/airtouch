@@ -95,7 +95,11 @@ int main(int argc, char* argv[])
 		int c = cvWaitKey (1);
 		if (c == 'q' || c == 'Q' || c == 27) break;
 
-		cout << _fromServer.finger1X << ", " << _fromServer.finger1Y << ", " << _fromServer.finger1Z << endl;
+		for (int i = 0; i < 2; i++)
+		{
+			cout << _fromServer.fingers[i].id << ":" << "(" << _fromServer.fingers[i].x << ", " << _fromServer.fingers[i].y << ", " << _fromServer.fingers[i].z << ")" << endl;
+		}
+		
 		
 		if(BIT_DEBUG){
 			byte* tmp = (byte*)&_fromServer;

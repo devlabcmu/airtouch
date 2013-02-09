@@ -309,7 +309,7 @@ int main(int argc, char* argv[])
 		WaitForSingleObject(_pmdDataMutex, INFINITE);
 		// update the pmddata to send
 		memset(&_pmdData, 0, sizeof(PMDData));
-		memcpy(&_pmdData, &_pmdCamera.GetFingerData(), sizeof(float) * 6);
+		memcpy(&_pmdData, &_pmdCamera.GetFingerData(), sizeof(PMDFingerData));
 		memcpy_s(_pmdData.buffer,_countof(_pmdData.buffer) * sizeof(float), _pmdCamera.GetDistanceBuffer(), _countof(_pmdData.buffer) * sizeof(float));
 		// unlock pmd data
 		ReleaseMutex(_pmdDataMutex);

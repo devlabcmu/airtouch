@@ -20,8 +20,8 @@ const int g_maxBlobSize = 1000000;
 const float g_fingerScreenSmoothing = 0.0f;
 const float g_fingerWorldSmoothing = 0.7f;
 const float g_convexHullStdDevDistances = 0.018;
-const float g_convexHullStDevCenterDst = 6;
-const float g_orientationLength = 50;
+const float g_convexHullStDevCenterDst = 5;
+const float g_orientationLength = 40;
 PMDCamera::PMDCamera(void)
 {
 	FingerTrackingMode = FINGER_TRACKING_INTERPOLATE_CLOSEST;
@@ -500,13 +500,13 @@ Point2f PMDCamera::FindFingerPosContours(vector<Finger>::iterator f, bool newFin
 
 	if(hullInfo.size() <= 0) return FindFingerPosInterpolateBrightest(f, newFinger);
 
-	float thresholdMultiplier = f->lastTrackingMode == FINGER_TRACKING_CONTOURS ? 0.8f : 1.0f;
+	float thresholdMultiplier = f->lastTrackingMode == FINGER_TRACKING_CONTOURS ? 0.6f : 1.0f;
 	if(!newFinger && norm(f->blobCenter - f->screenCoords) > thresholdMultiplier * g_orientationLength)
 		return hullInfo[0].pt;
 
-	if(f->stDevDistances  > thresholdMultiplier * g_convexHullStDevCenterDst)
+	if(stDevDst  > thresholdMultiplier * g_convexHullStDevCenterDst)
 		return hullInfo[0].pt;
-	if(f->stDevDistances  > thresholdMultiplier * g_convexHullStdDevDistances)
+	if(f->stDevDistances  > g_convexHullStdDevDistances)
 		return FindFingerPosInterpolateBrightest(f, newFinger);
 	return hullInfo[0].pt;
 }

@@ -94,25 +94,26 @@ public:
 	{ 
 		PMDFingerData result;
 		ZeroMemory(&result, sizeof(result));
-		float* pR = (float*)&result;
 		// copy up to MAX_FINGERS fingers worth of data
 		for(int i = 0; i < 2; i++)
 		{
+			PMDFinger newFinger;
+			
 			if(i >= m_newFingers.size()) 
 			{
-				pR[0] = PMD_INVALID_DISTANCE;
-				pR[1] = PMD_INVALID_DISTANCE;
-				pR[2] = PMD_INVALID_DISTANCE;
-				continue;
+				result.fingers[i].id = -1;
+			} else
+			{
+				Point3f phoneCoordsPct = m_phoneCalibration.ToPhoneSpaceAsPercentage(m_newFingers[i].worldCoords);
+				result.fingers[i].id = m_newFingers[i].id;
+				result.fingers[i].x = phoneCoordsPct.x;
+				result.fingers[i].y = phoneCoordsPct.y;
+				result.fingers[i].z = phoneCoordsPct.z;
 			}
-			Point3f p = m_newFingers[i].phoneCoords;
-			pR[0] = p.x;
-			pR[1] = p.y;
-			pR[2] = p.z;
-			pR+=3;
 		}
 		return result;
 	}
+
 	float const* const GetDistanceBuffer() {return m_pmdDistanceBuffer;}
 	float const* const GetIntensitiesBuffer() {return m_pmdIntensitiesBuffer;}
 	UINT const* const GetFlags(){return m_pmdFlags;}
