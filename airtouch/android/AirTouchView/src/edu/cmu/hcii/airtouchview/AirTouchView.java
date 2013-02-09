@@ -4,7 +4,9 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -14,6 +16,8 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Paint.Cap;
+import android.graphics.Paint.Style;
 import android.graphics.RectF;
 import android.os.AsyncTask;
 import android.util.AttributeSet;
@@ -33,11 +37,13 @@ public class AirTouchView extends View {
 	static final int PMD_NUM_COLS = 165;
 	static final int PMD_NUM_ROWS = 120;
 	static final int PMD_SEND_DATA_SIZE = 79212;
-	static final int PMD_FINGER_ONLY_DATA_SIZE = 24;
+	static final int PMD_FINGER_ONLY_DATA_SIZE = 32;
 	static final int PMD_INVALID_DISTANCE = -1000;
 	static final boolean OUTPUT_BITS_DEBUG = false;
 
 	static String TAG = "AirTouchViewView";
+	
+	
 
 	// convenience structs
 	public class Point3f
@@ -48,15 +54,17 @@ public class AirTouchView extends View {
 		
 	}
 	
+	public class PMDFinger {
+		public int id;
+		public float x;
+		public float y;
+		public float z;
+		
+	}
+	
 	// structs from PMD
 	public class PMDSendData {
-		public float finger1X; // 4 bytes
-		public float finger1Y; // 4 bytes
-		public float finger1Z; // 4 bytes
-		
-		public float finger2X; // 4 bytes
-		public float finger2Y; // 4 bytes
-		public float finger2Z; // 4 bytes
+		public PMDFinger[] fingers = new PMDFinger[2]; 
 		public float[] buffer = new float[PMD_IMAGE_SIZE]; // 19800 * 4 bytes
 	}
 
@@ -82,7 +90,9 @@ public class AirTouchView extends View {
 	Matrix _depthMatrix = new Matrix();
 
 	// bitmap to render the depth data
-
+	private Map<Integer, LinkedList<PMDFinger>> _recentPoints = new HashMap<Integer, LinkedList<PMDFinger>>();
+	private int _recentPointsCount = 30;
+	Object _recentPointsLock = new Object();
 	static
 	{
 		defaultPaintBrush = new Paint();
@@ -105,10 +115,12 @@ public class AirTouchView extends View {
 
 		paint = new Paint();
 		paint.setColor(Color.BLUE);
+		paint.setStrokeCap(Cap.ROUND);
 		paintBrushes.put(AirTouchPoint.TouchType.AIR_MOVE1, paint);
 		
 		paint = new Paint();
 		paint.setColor(Color.RED);
+		paint.setStrokeCap(Cap.ROUND);
 		paintBrushes.put(AirTouchPoint.TouchType.AIR_MOVE2, paint);
 		
 	}
@@ -135,11 +147,9 @@ public class AirTouchView extends View {
 		_toServer = toServer;
 	}
 
-	public Point3f PhoneToScreen(float x, float y, float z)
+	public Point3f PhoneToScreen(PMDFinger f)
 	{
 		Point3f result = new Point3f();
-		float realWidth = 0.065f;
-		float realHeight = 0.09f;
 		float realDepth = 0.1f;
 		WindowManager wm = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
 		Display display = wm.getDefaultDisplay();
@@ -147,14 +157,13 @@ public class AirTouchView extends View {
 		int width = display.getWidth();
 		int height = display.getHeight();
 		
-		result.x =  x / realWidth * width;
-		result.y = z / realHeight * height;
-		result.z = y / realDepth;
+		result.x = f.x  * width;
+		result.y = f.z  * height;
+		result.z = f.y / realDepth;
 		return result;
 	}
 	
 	protected void onDraw(Canvas canvas) {
-		Log.v("AirTouchView", "drawing");
 		canvas.drawRGB(255, 255, 255);
 		Paint paint;
 
@@ -184,27 +193,45 @@ public class AirTouchView extends View {
 
 		if(_touchMap.values().size() == 0)
 		{
+			for (int i = 0; i < _dataFromServer.fingers.length; i++) {
+				if(_dataFromServer.fingers[i] == null) continue;
+
+				if(_dataFromServer.fingers[i].id >= 0)
+				{
+					
+					Point3f p = PhoneToScreen(_dataFromServer.fingers[i]);
+					
+					TouchType type = _dataFromServer.fingers[i].id % 2 == 0 ? TouchType.AIR_MOVE1 : TouchType.AIR_MOVE2;
+					paintBrushes.get(type).setAlpha((int)(1 - 255 * Math.max(0, Math.min(1, p.z) ) ));
+					
+					canvas.drawCircle(p.x, p.y, p.z * 500, paintBrushes.get(type));	
+					paintBrushes.get(type).setAlpha(1);
+				}
+			} 
+		} else
+		{
 			
-			// draw a circle at Finger loc
-			if(_dataFromServer.finger1X > PMD_INVALID_DISTANCE )
-			{
-				Point3f p = PhoneToScreen(_dataFromServer.finger1X, _dataFromServer.finger1Y, _dataFromServer.finger1Z);
-//				Log.v("AirTouchView", String.format("finger1 pos: (%f, %f, %f)\n\t(%f, %f, %f)", 
-//						_dataFromServer.finger1X, _dataFromServer.finger1Y, _dataFromServer.finger1Z,
-//						p.x, p.y, p.z
-//						));
+			synchronized(_recentPointsLock){
 				
-				canvas.drawCircle(p.x, p.y, p.z * 500, paintBrushes.get(TouchType.AIR_MOVE1));
-			}
-			
-			if (_dataFromServer.finger2X > PMD_INVALID_DISTANCE)
-			{
-				Point3f p = PhoneToScreen(_dataFromServer.finger2X, _dataFromServer.finger2Y, _dataFromServer.finger2Z);
-//				Log.v("AirTouchView", String.format("finger2 pos: (%f, %f, %f)\n\t(%f, %f, %f)", 
-//						_dataFromServer.finger2X, _dataFromServer.finger2Y, _dataFromServer.finger2Z,
-//						p.x, p.y, p.z
-//						));
-				canvas.drawCircle(p.x, p.y, p.z * 500, paintBrushes.get(TouchType.AIR_MOVE2));			
+				for (Entry<Integer, LinkedList<PMDFinger>> paths : _recentPoints.entrySet()) {
+					
+					int i = 0;
+					PMDFinger prev = new PMDFinger();
+					for (PMDFinger p : paths.getValue()) {
+						System.out.println("drawing points " + p.x + ", " + p.y + "," + p.z);
+						TouchType type = p.id % 2 == 0 ? TouchType.AIR_MOVE1 : TouchType.AIR_MOVE2;
+						
+						paintBrushes.get(type).setAlpha((int)(255 * ( (float)i / paths.getValue().size() )));
+						if(i != 0){
+							paintBrushes.get(type).setStrokeWidth(p.z * 100);
+							canvas.drawLine(prev.x, prev.y, p.x, p.y, paintBrushes.get(type));
+						}
+						prev.x = p.x;
+						prev.y = p.y;
+						//canvas.drawCircle(p.x, p.y, p.z * 100, paintBrushes.get(type));
+						i++;
+					}
+				}	
 			}
 			
 		}
@@ -265,6 +292,13 @@ public class AirTouchView extends View {
 					if(_touchMap.containsKey(id)){
 						_touchMap.remove(id);
 					}
+					if(_touchMap.size() == 0)
+					{
+						synchronized(_recentPointsLock){
+							_recentPoints.clear();	
+						}
+						
+					}
 				}				
 			}
 
@@ -313,6 +347,35 @@ public class AirTouchView extends View {
 		// send disconnect message?
 	}
 
+	public void updateRecentPoints()
+	{
+		if(_touchMap.values().size() > 0) return;
+		synchronized(_recentPointsLock)
+		{
+			for (int i = 0; i < _dataFromServer.fingers.length; i++) {
+				if(_dataFromServer.fingers[i].id < 0) continue;
+				if(!_recentPoints.containsKey(_dataFromServer.fingers[i].id))
+				{
+					_recentPoints.put(_dataFromServer.fingers[i].id, new LinkedList<PMDFinger>());
+				}
+				LinkedList<PMDFinger> lst = _recentPoints.get(_dataFromServer.fingers[i].id);
+				while(lst.size() > _recentPointsCount)
+				{
+					lst.pop();
+				}
+				Point3f p = PhoneToScreen(_dataFromServer.fingers[i]);
+				PMDFinger toAdd = new PMDFinger();
+				toAdd.id = _dataFromServer.fingers[i].id;
+				toAdd.x = p.x;
+				toAdd.y = p.y;
+				toAdd.z = p.z;
+				lst.add(toAdd);			
+			}			
+		}
+
+
+	}
+	
 	//
 	// PMDData methods
 	//
@@ -328,13 +391,14 @@ public class AirTouchView extends View {
 	{
 		if(_dataFromServer == null) return;
 
-		_dataFromServer.finger1X = getFloatInByteArray(in, 0);
-		_dataFromServer.finger1Y = getFloatInByteArray(in, 4);
-		_dataFromServer.finger1Z = getFloatInByteArray(in, 8);
-
-		_dataFromServer.finger2X = getFloatInByteArray(in, 12);
-		_dataFromServer.finger2Y = getFloatInByteArray(in, 16);
-		_dataFromServer.finger2Z = getFloatInByteArray(in, 20);
+		for (int i = 0; i < _dataFromServer.fingers.length; i++) 
+		{
+			_dataFromServer.fingers[i] = new PMDFinger();
+			_dataFromServer.fingers[i].id = getIntInByteArray(in, i * 16);
+			_dataFromServer.fingers[i].x = getFloatInByteArray(in, i * 16 + 4);
+			_dataFromServer.fingers[i].y = getFloatInByteArray(in, i * 16 + 8);
+			_dataFromServer.fingers[i].z = getFloatInByteArray(in, i * 16 + 12);
+		}
 		
 		if(!_getOnlyFingerData)
 		{
@@ -378,6 +442,14 @@ public class AirTouchView extends View {
 				| ((bytes[startOffset + 2] & 0xFF) << 16) 
 				| ((bytes[startOffset + 3] & 0xFF) << 24);
 		return Float.intBitsToFloat(asInt);
+	}
+	
+	public static int getIntInByteArray(byte[] bytes, int startOffset)
+	{
+		return (bytes[startOffset + 0] & 0xFF) 
+				| ((bytes[startOffset + 1] & 0xFF) << 8) 
+				| ((bytes[startOffset + 2] & 0xFF) << 16) 
+				| ((bytes[startOffset + 3] & 0xFF) << 24);
 	}
 
 	class DisconnectTask extends AsyncTask<Void, Void, Void>
@@ -439,6 +511,7 @@ public class AirTouchView extends View {
 				} while (true);
 				//Log.v(TAG, "got data");
 				updatePMDData(lMsg);
+				updateRecentPoints();
 				//Log.v(TAG, "updated data");
 			} catch (IOException e) {
 				Log.v(TAG, e.getMessage());
@@ -459,21 +532,6 @@ public class AirTouchView extends View {
 			
 			if(_stopNetworkConnection) return;
 
-			// invalidate screen
-			// update pixels
-//			int i = 0;
-//			for (int y = 0; y < PMD_NUM_ROWS; y++) {
-//				for (int x = 0; x < PMD_NUM_COLS; x++, i++) {
-//					float val = _dataFromServer.buffer[i];
-//					int v = 0;
-//					if(val <= 1.0f)
-//					{
-//						v = (int)(255 - 255 * val);
-//					}
-//					_pmdDepth.setPixel(x, y, Color.argb(255, v,v,v));
-//				}
-//			}
-			// Log.v(TAG, "invalidating");
 			postInvalidate();
 		}
 	}
