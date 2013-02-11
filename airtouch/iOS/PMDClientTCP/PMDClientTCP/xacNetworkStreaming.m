@@ -23,24 +23,40 @@ NSString *msgFromServer;
 CFReadStreamRef readStream = NULL;
 CFWriteStreamRef writeStream = NULL;
 
+//
+// out of date
+//
+//typedef struct {
+//	float finger1X;
+//	float finger1Y;
+//	float finger1Z;
+//    
+//	float finger2X;
+//	float finger2Y;
+//	float finger2Z;
+//	float buffer[PMDIMAGESIZE];
+//} PMDData;
+
 typedef struct {
-	float finger1X;
-	float finger1Y;
-	float finger1Z;
-    
-	float finger2X;
-	float finger2Y;
-	float finger2Z;
+	int id; // 4 bytes
+	float x; // 4 bytes
+	float y; // 4 bytes
+	float z; // 4 bytes
+} PMDFinger;
+
+typedef struct {
+	PMDFinger fingers[2];
 	float buffer[PMDIMAGESIZE];
 } PMDData;
 
 float t;
 long cntFrames;
 
-- (id) init: (xacAirTouchProfile*) atp
+- (id) init: (xacData*) data
 {
     self = [super init];
-    _atp = atp;
+//    _atp = atp;
+    _airData = data;
     _isConnected = false;
     _fps = 0;
     t = CACurrentMediaTime();
@@ -161,17 +177,19 @@ long cntFrames;
                     
                     PMDData* tmpData = (PMDData*)buf;
 
-                    float xFloat = tmpData->finger1X;
-                    float yFloat = tmpData->finger1Y;
-                    float zFloat = tmpData->finger1Z;
+                    int idData = tmpData->fingers[0].id;
+                    float xFloat = tmpData->fingers[0].x;
+                    float yFloat = tmpData->fingers[0].y;
+                    float zFloat = tmpData->fingers[0].z;
                     
-                    [_atp updateRawData:xFloat :yFloat :zFloat];
+//                    [_atp updateRawData:xFloat :yFloat :zFloat];
+                    [_airData update:xFloat :yFloat :zFloat];
                     
                     // debug routines
 //                    NSString *dataStr = [NSString stringWithFormat:@"%f, %f, %f", _atp.caliX, _atp.caliY, _atp.caliZ];
 //                    NSString *dataStr = [NSString stringWithFormat:@"%f, %f, %f, %f", _atp.rawXMin, xFloat, _atp.rawXMax, _atp.caliX];
-//                    NSString *dataStr = [NSString stringWithFormat:@"%f, %f, %f", xFloat, yFloat, zFloat];
-//                    NSLog(@"%@", dataStr);
+                    NSString *dataStr = [NSString stringWithFormat:@"%d, %f, %f, %f", idData, xFloat, yFloat, zFloat];
+                    NSLog(@"%@", dataStr);
                     
                     double now = CACurrentMediaTime();
                     cntFrames++;

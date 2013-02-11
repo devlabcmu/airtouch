@@ -7,10 +7,14 @@
 //
 
 #import "xacViewController.h"
-#define BASE_RADIUS 50
+#define BASE_RADIUS 25
 #define PORT 10000
-#define IP_CMU "128.237.250.21"
+#define IP_CMU "128.237.238.16"
 #define IP_874 "192.168.8.112"
+#define REQUEST_FREQUENCY 0.01
+#define AIR_BUFFER_SIZE 128
+#define NUM_POINTS 3
+#define MAX_HEIGHT 0.06
 
 @interface xacViewController ()
 
@@ -18,12 +22,10 @@
 
 @implementation xacViewController
 
-//NSString *ipAddr = NULL;
-//int port = 10000;
-float intrvl = 0.01;
 
-//NSString *ipAddr874 = @"192.168.8.112";
-//NSString *ipAddrCMU = @"128.237.250.21";
+float xBuf[NUM_POINTS];
+float yBuf[NUM_POINTS];
+int ptrBuf = 0;
 
 int widthScreen = -1;
 int heightScreen = -1;
@@ -32,12 +34,18 @@ int heightScreen = -1;
 {
     [super viewDidLoad];
 
+    /*
+        air data
+     */
     _atp = [[xacAirTouchProfile alloc] init];
-//    _stp = [[xacScreenTouchProfile alloc] init];
+    _airData = [[xacData alloc] init:AIR_BUFFER_SIZE];
     
+    /*	
+        networking
+     */
     _stream = nil;
     
-    [NSTimer scheduledTimerWithTimeInterval:intrvl
+    [NSTimer scheduledTimerWithTimeInterval:REQUEST_FREQUENCY
                                      target:self
                                    selector:@selector(sendSensorInfoToServer)
                                    userInfo:nil
@@ -55,7 +63,11 @@ int heightScreen = -1;
     _circleView.layer.cornerRadius = 0;
     _circleView.backgroundColor = [UIColor redColor];
     
-    [_mainView addSubview:_circleView];
+    _curveView = [[xacCurve alloc] initWithFrame:CGRectMake(0, 0, widthScreen, heightScreen)];
+    [_curveView setBackgroundColor: [UIColor colorWithRed:255 green:255 blue:255 alpha:0]];
+    
+
+
 }
 
 - (void)didReceiveMemoryWarning
@@ -64,13 +76,27 @@ int heightScreen = -1;
     // Dispose of any resources that can be recreated.
 }
 
-// connect/disconnect to the server
+/*
+    connect/disconnect to the server
+ */
 - (IBAction)connect:(id)sender {
+    
     if(_stream == nil)
     {
-        _stream = [[xacNetworkStreaming alloc] init: _atp];
+//        _stream = [[xacNetworkStreaming alloc] init: _atp];
+        _stream = [[xacNetworkStreaming alloc] init: _airData];
         _stream.ipAddr = IP_CMU;
         _stream.port = PORT;
+        
+        // visualize as circle
+        [_mainView addSubview:_circleView];
+        
+        // visualize as trace
+        [_mainView addSubview:_curveView];
+        
+//        [_curveView updateCurve:125 :150:175 :150:200:100];
+//        [_curveView updateCurve:225 :50 :275 :75 :300 :200];
+
     }
     
     if(!_stream.isConnected)
@@ -86,6 +112,11 @@ int heightScreen = -1;
     }
 }
 
+long cntrTime = 0;
+
+/*
+    requesting sensor data from the server
+ */
 - (void)sendSensorInfoToServer {
     //    NSLog(@"sensor info sent");
     
@@ -93,18 +124,48 @@ int heightScreen = -1;
     {
         [_stream sendStrToServer:@"finger"];
         
-        float xCenter = _stream.atp.caliX * widthScreen;
-        float yCenter = _stream.atp.caliZ * heightScreen;
-        float radius = (1 + _stream.atp.caliY) * BASE_RADIUS;
+        // visualize as a circle
+        xacVector* airCoord = _airData.vecRaw;
+        float xCenter = [self crop: airCoord.rawX * widthScreen: 0: widthScreen];
+        float yCenter = [self crop: airCoord.rawZ * heightScreen: 0: heightScreen];
         
-        _circleView.alpha = 0.75 * (1 - _stream.atp.caliY) + 0.25;
+        float heightRatio = [self crop:airCoord.rawY :0 :MAX_HEIGHT] / MAX_HEIGHT;
+        float radius = (1 + heightRatio) * BASE_RADIUS;
+        
+        _circleView.alpha = 0.75 * (1 - heightRatio) + 0.25;
         _circleView.frame = CGRectMake(0, 0, 2 * radius, 2 * radius);
         _circleView.layer.cornerRadius = radius;
         [_circleView setCenter:CGPointMake(xCenter, yCenter)];
+        
+        // visualize as trace
+        
+        if(cntrTime % 5 == 0)
+        {
+
+            xBuf[ptrBuf] = xCenter;
+            yBuf[ptrBuf] = yCenter;
+            ptrBuf++;
+            
+            if(ptrBuf >= NUM_POINTS)
+            {
+                [_curveView updateCurve:xBuf[0] :yBuf[0] :xBuf[1] :yBuf[1] :xBuf[2] :yBuf[2]];
+//                [_curveView setNeedsDisplay];
+                ptrBuf = 0;
+            }
+        }
+        cntrTime++;
+        _curveView.alpha *= 0.99;
 
         NSString* strFPS = [NSString stringWithFormat:@"fps: %d", _stream.fps];
         [_lbFPS setText:strFPS];
     }
+}
+
+- (float) crop :(float) original :(float) lower :(float) higher
+{
+    if(original < lower) return lower;
+    if(original > higher) return higher;
+    return original;
 }
 
 - (void) touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
@@ -117,7 +178,7 @@ int heightScreen = -1;
 //        NSString* touchEventStr = [NSString stringWithFormat:@"%f, %f, %f", touches.count * 1.0f, pntTouch.x, pntTouch.y];
 //        [_stream sendStrToServer:touchEventStr];
 //    }
-}
+    }
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
 {
@@ -138,5 +199,9 @@ int heightScreen = -1;
 //    NSString* touchEventStr = @"touch ended!";
 //    NSLog();
 //    [_stream sendStrToServer:touchEventStr];
+    
+    _curveView.alpha = 1.0;
+    [_curveView setNeedsDisplay];
+
 }
 @end

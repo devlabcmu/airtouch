@@ -46,28 +46,12 @@
                         <outlet property="btnConnect" destination="ZDT-Sp-uPy" id="OqU-M8-SfY"/>
                         <outlet property="lbFPS" destination="oAM-Rz-4Ut" id="II1-CR-8ks"/>
                         <outlet property="mainView" destination="3" id="XM2-vB-B9R"/>
-                        <outlet property="viewMain" destination="3" id="8BZ-fL-u1a"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="4" sceneMemberID="firstResponder"/>
             </objects>
         </scene>
     </scenes>
-    <classes>
-        <class className="NSLayoutConstraint" superclassName="NSObject">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/NSLayoutConstraint.h"/>
-        </class>
-        <class className="xacViewController" superclassName="UIViewController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/xacViewController.h"/>
-            <relationships>
-                <relationship kind="action" name="connect:"/>
-                <relationship kind="outlet" name="btnConnect" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="lbFPS" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="mainView" candidateClass="UIView"/>
-                <relationship kind="outlet" name="viewMain" candidateClass="UIView"/>
-            </relationships>
-        </class>
-    </classes>
     <simulatedMetricsContainer key="defaultSimulatedMetrics">
         <simulatedStatusBarMetrics key="statusBar"/>
         <simulatedOrientationMetrics key="orientation"/>

@@ -9,6 +9,10 @@
 /* Begin PBXBuildFile section */
 		15BAE6E716C1D0C900622633 /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 15BAE6E616C1D0C900622633 /* CFNetwork.framework */; };
 		15DA7EE216C2DE410027D16C /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 15DA7EE116C2DE410027D16C /* QuartzCore.framework */; };
+		15DA7EE916C2FDB40027D16C /* xacBuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = 15DA7EE416C2FDB40027D16C /* xacBuffer.m */; };
+		15DA7EEA16C2FDB40027D16C /* xacData.m in Sources */ = {isa = PBXBuildFile; fileRef = 15DA7EE616C2FDB40027D16C /* xacData.m */; };
+		15DA7EEB16C2FDB40027D16C /* xacVector.m in Sources */ = {isa = PBXBuildFile; fileRef = 15DA7EE816C2FDB40027D16C /* xacVector.m */; };
+		15DA7EEE16C3011F0027D16C /* xacCurve.m in Sources */ = {isa = PBXBuildFile; fileRef = 15DA7EED16C3011F0027D16C /* xacCurve.m */; };
 		15E1CB2B1698AAC300571098 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 15E1CB2A1698AAC300571098 /* UIKit.framework */; };
 		15E1CB2D1698AAC300571098 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 15E1CB2C1698AAC300571098 /* Foundation.framework */; };
 		15E1CB2F1698AAC300571098 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 15E1CB2E1698AAC300571098 /* CoreGraphics.framework */; };
@@ -27,6 +31,14 @@
 /* Begin PBXFileReference section */
 		15BAE6E616C1D0C900622633 /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = System/Library/Frameworks/CFNetwork.framework; sourceTree = SDKROOT; };
 		15DA7EE116C2DE410027D16C /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		15DA7EE316C2FDB40027D16C /* xacBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xacBuffer.h; sourceTree = "<group>"; };
+		15DA7EE416C2FDB40027D16C /* xacBuffer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = xacBuffer.m; sourceTree = "<group>"; };
+		15DA7EE516C2FDB40027D16C /* xacData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xacData.h; sourceTree = "<group>"; };
+		15DA7EE616C2FDB40027D16C /* xacData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = xacData.m; sourceTree = "<group>"; };
+		15DA7EE716C2FDB40027D16C /* xacVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xacVector.h; sourceTree = "<group>"; };
+		15DA7EE816C2FDB40027D16C /* xacVector.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = xacVector.m; sourceTree = "<group>"; };
+		15DA7EEC16C3011F0027D16C /* xacCurve.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xacCurve.h; sourceTree = "<group>"; };
+		15DA7EED16C3011F0027D16C /* xacCurve.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = xacCurve.m; sourceTree = "<group>"; };
 		15E1CB261698AAC300571098 /* PMDClientTCP.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PMDClientTCP.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		15E1CB2A1698AAC300571098 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		15E1CB2C1698AAC300571098 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -97,6 +109,12 @@
 		15E1CB301698AAC300571098 /* PMDClientTCP */ = {
 			isa = PBXGroup;
 			children = (
+				15DA7EE316C2FDB40027D16C /* xacBuffer.h */,
+				15DA7EE416C2FDB40027D16C /* xacBuffer.m */,
+				15DA7EE516C2FDB40027D16C /* xacData.h */,
+				15DA7EE616C2FDB40027D16C /* xacData.m */,
+				15DA7EE716C2FDB40027D16C /* xacVector.h */,
+				15DA7EE816C2FDB40027D16C /* xacVector.m */,
 				15E1CB4D1698AC3300571098 /* xacNetworkStreaming.h */,
 				15E1CB4E1698AC3300571098 /* xacNetworkStreaming.m */,
 				15E1CB391698AAC300571098 /* xacAppDelegate.h */,
@@ -104,9 +122,11 @@
 				15E1CB421698AAC300571098 /* MainStoryboard.storyboard */,
 				15E1CB451698AAC300571098 /* xacViewController.h */,
 				15E1CB461698AAC300571098 /* xacViewController.m */,
-				15E1CB311698AAC300571098 /* Supporting Files */,
 				15E1CB501699F6F200571098 /* xacAirTouchProfile.h */,
 				15E1CB511699F6F200571098 /* xacAirTouchProfile.m */,
+				15E1CB311698AAC300571098 /* Supporting Files */,
+				15DA7EEC16C3011F0027D16C /* xacCurve.h */,
+				15DA7EED16C3011F0027D16C /* xacCurve.m */,
 			);
 			path = PMDClientTCP;
 			sourceTree = "<group>";
@@ -197,6 +217,10 @@
 				15E1CB471698AAC300571098 /* xacViewController.m in Sources */,
 				15E1CB4F1698AC3300571098 /* xacNetworkStreaming.m in Sources */,
 				15E1CB521699F6F200571098 /* xacAirTouchProfile.m in Sources */,
+				15DA7EE916C2FDB40027D16C /* xacBuffer.m in Sources */,
+				15DA7EEA16C2FDB40027D16C /* xacData.m in Sources */,
+				15DA7EEB16C2FDB40027D16C /* xacVector.m in Sources */,
+				15DA7EEE16C3011F0027D16C /* xacCurve.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
