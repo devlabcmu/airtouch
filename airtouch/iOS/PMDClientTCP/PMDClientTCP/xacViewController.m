@@ -94,6 +94,10 @@ int heightScreen = -1;
         // visualize as trace
         [_mainView addSubview:_curveView];
         
+        // controls
+        [_mainView addSubview:_ctrlView];
+        [_ctrlView setBackgroundColor:[UIColor colorWithRed:255 green:255 blue:255 alpha:0]];
+        
 //        [_curveView updateCurve:125 :150:175 :150:200:100];
 //        [_curveView updateCurve:225 :50 :275 :75 :300 :200];
 
@@ -107,6 +111,7 @@ int heightScreen = -1;
     }
     else
     {
+        [_stream sendStrToServer:@"d"];
         _stream.isConnected = false;
         [_btnConnect setTitle:@"Connect" forState:UIControlStateNormal];
     }
@@ -122,7 +127,7 @@ long cntrTime = 0;
     
     if(_stream.isConnected)
     {
-        [_stream sendStrToServer:@"finger"];
+        [_stream sendStrToServer:@"f"];
         
         // visualize as a circle
         xacVector* airCoord = _airData.vecRaw;

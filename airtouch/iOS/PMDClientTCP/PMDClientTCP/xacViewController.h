@@ -24,6 +24,7 @@
 @property xacData* airData;
 
 @property (strong, nonatomic) IBOutlet UIView *mainView;
+@property (weak, nonatomic) IBOutlet UIView *ctrlView;
 @property UIView* circleView;
 @property xacCurve* curveView;
 
