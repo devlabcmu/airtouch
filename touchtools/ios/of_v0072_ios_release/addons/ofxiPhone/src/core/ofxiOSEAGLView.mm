@@ -225,11 +225,13 @@ static ofxiOSEAGLView * _instanceRef = nil;
 		touchArgs.x = touchPoint.x;
 		touchArgs.y = touchPoint.y;
 		touchArgs.id = touchIndex;
-        touchArgs.type = ofTouchEventArgs::down;
-        float vf = 10.0;
-        id valFloat = [touch valueForKey:@"pathMajorRadius"];
-        if(valFloat != nil) { vf = [valFloat floatValue]; }
-        touchArgs.majoraxis = vf;
+		touchArgs.type = ofTouchEventArgs::down;
+		float vf = 10.0;
+		id valFloat = [touch valueForKey:@"pathMajorRadius"];
+		if(valFloat != nil)
+			vf = [valFloat floatValue];
+		touchArgs.majoraxis = vf;
+
 		if([touch tapCount] == 2) ofNotifyEvent(ofEvents().touchDoubleTap,touchArgs);	// send doubletap
 		ofNotifyEvent(ofEvents().touchDown,touchArgs);	// but also send tap (upto app programmer to ignore this if doubletap came that frame)
 	}	
@@ -263,12 +265,14 @@ static ofxiOSEAGLView * _instanceRef = nil;
 		touchArgs.x = touchPoint.x;
 		touchArgs.y = touchPoint.y;
 		touchArgs.id = touchIndex;
-        touchArgs.type = ofTouchEventArgs::move;
-        // set major axis here
-        float vf = 10.0;
-        id valFloat = [touch valueForKey:@"pathMajorRadius"];
-        if(valFloat != nil) { vf = [valFloat floatValue]; }
-        touchArgs.majoraxis = vf;
+		touchArgs.type = ofTouchEventArgs::move;
+		// set major axis here
+		float vf = 10.0;
+		id valFloat = [touch valueForKey:@"pathMajorRadius"];
+		if(valFloat != nil)
+			vf = [valFloat floatValue];
+		touchArgs.majoraxis = vf;
+
 		ofNotifyEvent(ofEvents().touchMoved, touchArgs);
 	}
 }
@@ -304,7 +308,8 @@ static ofxiOSEAGLView * _instanceRef = nil;
 		touchArgs.x = touchPoint.x;
 		touchArgs.y = touchPoint.y;
 		touchArgs.id = touchIndex;
-        touchArgs.type = ofTouchEventArgs::up;
+		touchArgs.type = ofTouchEventArgs::up;
+
 		ofNotifyEvent(ofEvents().touchUp, touchArgs);
 	}
 }

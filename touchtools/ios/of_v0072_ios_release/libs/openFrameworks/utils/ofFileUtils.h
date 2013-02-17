@@ -248,6 +248,8 @@ public:
 	unsigned int size();
 	int numFiles(); // numFiles is deprecated, use size()
 
+
+
 	//if you want access to a few other things
 	Poco::File & getPocoFile();
 
