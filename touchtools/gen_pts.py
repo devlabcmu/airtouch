@@ -53,6 +53,9 @@ def write_touches(dirs, outf, t=0):
         out += ['x{i},y{i},w{i}'.format(i=i)]
     print >>outf, ','.join(out)
     for dir in dirs:
+        if not os.path.isdir(dir):
+            continue
+
         timestamp, pts, classlabel = get_touches(dir, t)
 
         out = [timestamp, classlabel]
