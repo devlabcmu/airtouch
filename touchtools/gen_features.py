@@ -4,7 +4,6 @@ import os
 import csv
 import numpy as np
 import math
-import pygame # to render images
 from gen_pts import get_touches
 from collections import OrderedDict
 import itertools
@@ -32,7 +31,7 @@ def calc_list_features(out, l, tag):
         out[tag + '_stdev'] = 0
         out[tag + '_min'] = 0
         out[tag + '_max'] = 0
-        
+
 def norm(pt):
     return sum(pt**2)**.5
 
@@ -44,29 +43,6 @@ def calc_features(d, ordered_dict=False):
 
     timestamp, pts, classlabel = get_touches(d, t=DTIME)
     pts = [(pt.pos[0], pt.pos[1], pt.major) for pt in pts.values()]
-
-    # Get bounding box
-    #rects = [pygame.Rect(x-w/2, y-w/2, w, w) for (x,y,w) in pts]
-    #bbox = rects[0].unionall(rects)
-
-    # Render points to image
-    #img = pygame.Surface((TEMPLATESIZE, TEMPLATESIZE), 0, 32)
-    #img.fill((0,0,0))
-    #wr = TEMPLATESIZE / bbox.w
-    #hr = TEMPLATESIZE / bbox.h
-    #for x,y,w in pts:
-    #    ex = ((x - w/2) - bbox.left) * wr
-    #    ey = ((y - w/2) - bbox.top) * hr
-    #    ew = max(w*wr, 4)
-    #    eh = max(w*hr, 4)
-    #    pygame.draw.ellipse(img, (255,255,255), (ex, ey, ew, eh))
-    # pygame.image.save(img, "test-%s.png" % timestamp)
-
-    # Put image in CSV
-    #arr = (pygame.surfarray.pixels2d(img) & 0x0000ff00) >> 15
-    #for y in xrange(TEMPLATESIZE):
-    #    for x in xrange(TEMPLATESIZE):
-    #        out['pixel_r%d_c%d' % (y,x)] = arr[y,x]
 
     np_pts = np.array([pt[:2] for pt in pts])
     centroid = np_pts.mean(axis=0)
@@ -90,9 +66,6 @@ def calc_features(d, ordered_dict=False):
         out['ptcloud_ratioLog'] = 0
 
     out['touchcount'] = len(pts)
-    #out['pixelsum'] = arr.sum()
-    #out['bbox_width'] = bbox.width
-    #out['bbox_height'] = bbox.height
     out['major2_total'] = (pt_majors**2).sum()
     out['major_total'] = pt_majors.sum()
     out['classlabel'] = classlabel
