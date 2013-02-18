@@ -11,6 +11,7 @@
 
 @interface xacUIFade : xacUIBehavior
 
+@property BOOL toPause;
 @property NSMutableArray* uiCtrls;
 
 - (void) addUICtrl :(UIControl*) uic;

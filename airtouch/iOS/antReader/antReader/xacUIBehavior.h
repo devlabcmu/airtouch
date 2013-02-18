@@ -10,6 +10,8 @@
 
 @interface xacUIBehavior : NSObject
 
+//@property BOOL toPause;
+
 - (id) init;
 - (void) update :(float) val;
 - (void) update :(float) x :(float) y :(float)z;

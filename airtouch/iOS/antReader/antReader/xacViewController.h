@@ -12,6 +12,7 @@
 #import "xacData.h"
 #import "xacUIBehavior.h"
 #import "xacUIFade.h"
+#import "xacUIScroll.h"
 //#import "xacConstants.h"
 
 @interface xacViewController : UIViewController
@@ -23,10 +24,14 @@
 
 - (IBAction)connect:(id)sender;
 @property (weak, nonatomic) IBOutlet UIView *ctrlView;
+@property (weak, nonatomic) IBOutlet UITextView *scrollView;
 
 @property xacUIFade* uiFade;
+@property xacUIScroll* uiScroll;
 @property (weak, nonatomic) IBOutlet UIButton *btnSettings;
 @property (weak, nonatomic) IBOutlet UIButton *btnLibrary;
 @property (weak, nonatomic) IBOutlet UISlider *sldChapters;
+
+- (IBAction)manuallyScroll:(id)sender;
 
 @end
