@@ -3,6 +3,8 @@ import os
 import csv
 from collections import namedtuple
 
+DTIME = 100 # ms
+
 Touch = namedtuple('Touch', 'pos major')
 
 # holder for visualization settings
@@ -74,4 +76,4 @@ if __name__ == '__main__':
         sys.exit(-1)
 
     with open('output.csv', 'wb') as outf:
-        write_touches(sys.argv[1:], outf, t=250)
+        write_touches(sys.argv[1:], outf, t=DTIME)
