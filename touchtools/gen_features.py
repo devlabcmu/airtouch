@@ -75,7 +75,7 @@ def calc_features(d, ordered_dict=False):
     calc_list_features(out, [norm(pt) for pt in (np_pts - centroid)], 'centroid_dist')
     angles = [math.atan2(pt[1], pt[0]) for pt in (np_pts - centroid)]
     angles.sort()
-    anglediffs = [(b-a) % 2*math.pi for a,b in zip(angles, angles[1:] + angles[:1])]
+    anglediffs = [(b-a) % (2*math.pi) for a,b in zip(angles, angles[1:] + angles[:1])]
     calc_list_features(out, anglediffs, 'centroid_anglediff')
     pt_majors = np.array([pt[2] for pt in pts])
     calc_list_features(out, pt_majors, 'major')
