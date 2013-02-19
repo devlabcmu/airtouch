@@ -1,0 +1,437 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		154BFE7E16D2906800B4EFCF /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 154BFE7D16D2906800B4EFCF /* UIKit.framework */; };
+		154BFE8016D2906800B4EFCF /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 154BFE7F16D2906800B4EFCF /* Foundation.framework */; };
+		154BFE8216D2906800B4EFCF /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 154BFE8116D2906800B4EFCF /* CoreGraphics.framework */; };
+		154BFE8816D2906800B4EFCF /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 154BFE8616D2906800B4EFCF /* InfoPlist.strings */; };
+		154BFE8A16D2906800B4EFCF /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 154BFE8916D2906800B4EFCF /* main.m */; };
+		154BFE8E16D2906800B4EFCF /* xacAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 154BFE8D16D2906800B4EFCF /* xacAppDelegate.m */; };
+		154BFE9016D2906800B4EFCF /* Default.png in Resources */ = {isa = PBXBuildFile; fileRef = 154BFE8F16D2906800B4EFCF /* Default.png */; };
+		154BFE9216D2906800B4EFCF /* Default@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 154BFE9116D2906800B4EFCF /* Default@2x.png */; };
+		154BFE9416D2906800B4EFCF /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 154BFE9316D2906800B4EFCF /* Default-568h@2x.png */; };
+		154BFE9716D2906800B4EFCF /* MainStoryboard.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 154BFE9516D2906800B4EFCF /* MainStoryboard.storyboard */; };
+		154BFE9A16D2906800B4EFCF /* xacViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 154BFE9916D2906800B4EFCF /* xacViewController.m */; };
+		154BFEAA16D2932B00B4EFCF /* xacBuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = 154BFEA116D2932B00B4EFCF /* xacBuffer.m */; };
+		154BFEAB16D2932B00B4EFCF /* xacCurve.m in Sources */ = {isa = PBXBuildFile; fileRef = 154BFEA316D2932B00B4EFCF /* xacCurve.m */; };
+		154BFEAC16D2932B00B4EFCF /* xacData.m in Sources */ = {isa = PBXBuildFile; fileRef = 154BFEA516D2932B00B4EFCF /* xacData.m */; };
+		154BFEAD16D2932B00B4EFCF /* xacNetworkStreaming.m in Sources */ = {isa = PBXBuildFile; fileRef = 154BFEA716D2932B00B4EFCF /* xacNetworkStreaming.m */; };
+		154BFEAE16D2932B00B4EFCF /* xacVector.m in Sources */ = {isa = PBXBuildFile; fileRef = 154BFEA916D2932B00B4EFCF /* xacVector.m */; };
+		154BFEB216D2BD0F00B4EFCF /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 154BFEB116D2BD0F00B4EFCF /* QuartzCore.framework */; };
+		154BFEB716D2C01000B4EFCF /* GLGestureRecognizer.m in Sources */ = {isa = PBXBuildFile; fileRef = 154BFEB416D2C01000B4EFCF /* GLGestureRecognizer.m */; };
+		154BFEB816D2C01000B4EFCF /* GLGestureRecognizer+JSONTemplates.m in Sources */ = {isa = PBXBuildFile; fileRef = 154BFEB616D2C01000B4EFCF /* GLGestureRecognizer+JSONTemplates.m */; };
+		154BFEBA16D2C11500B4EFCF /* Gestures.json in Resources */ = {isa = PBXBuildFile; fileRef = 154BFEB916D2C11500B4EFCF /* Gestures.json */; };
+		154BFEBD16D2F25200B4EFCF /* xacImageRoll.m in Sources */ = {isa = PBXBuildFile; fileRef = 154BFEBC16D2F25100B4EFCF /* xacImageRoll.m */; };
+		154BFEC016D2F32600B4EFCF /* xacUIBehavior.m in Sources */ = {isa = PBXBuildFile; fileRef = 154BFEBF16D2F32600B4EFCF /* xacUIBehavior.m */; };
+		154BFEE316D2F87200B4EFCF /* calgary00.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 154BFED816D2F87200B4EFCF /* calgary00.jpg */; };
+		154BFEE416D2F87200B4EFCF /* canada00.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 154BFED916D2F87200B4EFCF /* canada00.jpg */; };
+		154BFEE516D2F87200B4EFCF /* canada01.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 154BFEDA16D2F87200B4EFCF /* canada01.jpg */; };
+		154BFEE616D2F87200B4EFCF /* canadaGoose00.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 154BFEDB16D2F87200B4EFCF /* canadaGoose00.jpg */; };
+		154BFEE716D2F87200B4EFCF /* canadaHall.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 154BFEDC16D2F87200B4EFCF /* canadaHall.jpg */; };
+		154BFEE816D2F87200B4EFCF /* montreal.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 154BFEDD16D2F87200B4EFCF /* montreal.jpg */; };
+		154BFEE916D2F87200B4EFCF /* nigara00.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 154BFEDE16D2F87200B4EFCF /* nigara00.jpg */; };
+		154BFEEA16D2F87200B4EFCF /* ottawa00.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 154BFEDF16D2F87200B4EFCF /* ottawa00.jpg */; };
+		154BFEEB16D2F87200B4EFCF /* toronto00.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 154BFEE016D2F87200B4EFCF /* toronto00.jpg */; };
+		154BFEEC16D2F87200B4EFCF /* toronto01.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 154BFEE116D2F87200B4EFCF /* toronto01.jpg */; };
+		154BFEED16D2F87200B4EFCF /* vancouver00.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 154BFEE216D2F87200B4EFCF /* vancouver00.jpg */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		154BFE7A16D2906800B4EFCF /* antGesture.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = antGesture.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		154BFE7D16D2906800B4EFCF /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		154BFE7F16D2906800B4EFCF /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		154BFE8116D2906800B4EFCF /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		154BFE8516D2906800B4EFCF /* antGesture-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "antGesture-Info.plist"; sourceTree = "<group>"; };
+		154BFE8716D2906800B4EFCF /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		154BFE8916D2906800B4EFCF /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		154BFE8B16D2906800B4EFCF /* antGesture-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "antGesture-Prefix.pch"; sourceTree = "<group>"; };
+		154BFE8C16D2906800B4EFCF /* xacAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = xacAppDelegate.h; sourceTree = "<group>"; };
+		154BFE8D16D2906800B4EFCF /* xacAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = xacAppDelegate.m; sourceTree = "<group>"; };
+		154BFE8F16D2906800B4EFCF /* Default.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Default.png; sourceTree = "<group>"; };
+		154BFE9116D2906800B4EFCF /* Default@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default@2x.png"; sourceTree = "<group>"; };
+		154BFE9316D2906800B4EFCF /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
+		154BFE9616D2906800B4EFCF /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard.storyboard; sourceTree = "<group>"; };
+		154BFE9816D2906800B4EFCF /* xacViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = xacViewController.h; sourceTree = "<group>"; };
+		154BFE9916D2906800B4EFCF /* xacViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = xacViewController.m; sourceTree = "<group>"; };
+		154BFEA016D2932B00B4EFCF /* xacBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = xacBuffer.h; path = ../../PMDClientTCP/PMDClientTCP/xacBuffer.h; sourceTree = "<group>"; };
+		154BFEA116D2932B00B4EFCF /* xacBuffer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = xacBuffer.m; path = ../../PMDClientTCP/PMDClientTCP/xacBuffer.m; sourceTree = "<group>"; };
+		154BFEA216D2932B00B4EFCF /* xacCurve.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = xacCurve.h; path = ../../PMDClientTCP/PMDClientTCP/xacCurve.h; sourceTree = "<group>"; };
+		154BFEA316D2932B00B4EFCF /* xacCurve.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = xacCurve.m; path = ../../PMDClientTCP/PMDClientTCP/xacCurve.m; sourceTree = "<group>"; };
+		154BFEA416D2932B00B4EFCF /* xacData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = xacData.h; path = ../../PMDClientTCP/PMDClientTCP/xacData.h; sourceTree = "<group>"; };
+		154BFEA516D2932B00B4EFCF /* xacData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = xacData.m; path = ../../PMDClientTCP/PMDClientTCP/xacData.m; sourceTree = "<group>"; };
+		154BFEA616D2932B00B4EFCF /* xacNetworkStreaming.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = xacNetworkStreaming.h; path = ../../PMDClientTCP/PMDClientTCP/xacNetworkStreaming.h; sourceTree = "<group>"; };
+		154BFEA716D2932B00B4EFCF /* xacNetworkStreaming.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = xacNetworkStreaming.m; path = ../../PMDClientTCP/PMDClientTCP/xacNetworkStreaming.m; sourceTree = "<group>"; };
+		154BFEA816D2932B00B4EFCF /* xacVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = xacVector.h; path = ../../PMDClientTCP/PMDClientTCP/xacVector.h; sourceTree = "<group>"; };
+		154BFEA916D2932B00B4EFCF /* xacVector.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = xacVector.m; path = ../../PMDClientTCP/PMDClientTCP/xacVector.m; sourceTree = "<group>"; };
+		154BFEB116D2BD0F00B4EFCF /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		154BFEB316D2C01000B4EFCF /* GLGestureRecognizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GLGestureRecognizer.h; path = ../GLGestureRecognizer/GLGestureRecognizer.h; sourceTree = "<group>"; };
+		154BFEB416D2C01000B4EFCF /* GLGestureRecognizer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = GLGestureRecognizer.m; path = ../GLGestureRecognizer/GLGestureRecognizer.m; sourceTree = "<group>"; };
+		154BFEB516D2C01000B4EFCF /* GLGestureRecognizer+JSONTemplates.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "GLGestureRecognizer+JSONTemplates.h"; path = "../GLGestureRecognizer/GLGestureRecognizer+JSONTemplates.h"; sourceTree = "<group>"; };
+		154BFEB616D2C01000B4EFCF /* GLGestureRecognizer+JSONTemplates.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "GLGestureRecognizer+JSONTemplates.m"; path = "../GLGestureRecognizer/GLGestureRecognizer+JSONTemplates.m"; sourceTree = "<group>"; };
+		154BFEB916D2C11500B4EFCF /* Gestures.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = Gestures.json; path = antGesture/Gestures.json; sourceTree = "<group>"; };
+		154BFEBB16D2F25100B4EFCF /* xacImageRoll.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xacImageRoll.h; sourceTree = "<group>"; };
+		154BFEBC16D2F25100B4EFCF /* xacImageRoll.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = xacImageRoll.m; sourceTree = "<group>"; };
+		154BFEBE16D2F32600B4EFCF /* xacUIBehavior.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = xacUIBehavior.h; path = ../../antReader/antReader/xacUIBehavior.h; sourceTree = "<group>"; };
+		154BFEBF16D2F32600B4EFCF /* xacUIBehavior.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = xacUIBehavior.m; path = ../../antReader/antReader/xacUIBehavior.m; sourceTree = "<group>"; };
+		154BFED816D2F87200B4EFCF /* calgary00.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = calgary00.jpg; path = antGesture/data/calgary00.jpg; sourceTree = "<group>"; };
+		154BFED916D2F87200B4EFCF /* canada00.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = canada00.jpg; path = antGesture/data/canada00.jpg; sourceTree = "<group>"; };
+		154BFEDA16D2F87200B4EFCF /* canada01.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = canada01.jpg; path = antGesture/data/canada01.jpg; sourceTree = "<group>"; };
+		154BFEDB16D2F87200B4EFCF /* canadaGoose00.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = canadaGoose00.jpg; path = antGesture/data/canadaGoose00.jpg; sourceTree = "<group>"; };
+		154BFEDC16D2F87200B4EFCF /* canadaHall.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = canadaHall.jpg; path = antGesture/data/canadaHall.jpg; sourceTree = "<group>"; };
+		154BFEDD16D2F87200B4EFCF /* montreal.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = montreal.jpg; path = antGesture/data/montreal.jpg; sourceTree = "<group>"; };
+		154BFEDE16D2F87200B4EFCF /* nigara00.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = nigara00.jpg; path = antGesture/data/nigara00.jpg; sourceTree = "<group>"; };
+		154BFEDF16D2F87200B4EFCF /* ottawa00.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = ottawa00.jpg; path = antGesture/data/ottawa00.jpg; sourceTree = "<group>"; };
+		154BFEE016D2F87200B4EFCF /* toronto00.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = toronto00.jpg; path = antGesture/data/toronto00.jpg; sourceTree = "<group>"; };
+		154BFEE116D2F87200B4EFCF /* toronto01.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = toronto01.jpg; path = antGesture/data/toronto01.jpg; sourceTree = "<group>"; };
+		154BFEE216D2F87200B4EFCF /* vancouver00.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = vancouver00.jpg; path = antGesture/data/vancouver00.jpg; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		154BFE7716D2906800B4EFCF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				154BFEB216D2BD0F00B4EFCF /* QuartzCore.framework in Frameworks */,
+				154BFE7E16D2906800B4EFCF /* UIKit.framework in Frameworks */,
+				154BFE8016D2906800B4EFCF /* Foundation.framework in Frameworks */,
+				154BFE8216D2906800B4EFCF /* CoreGraphics.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		154BFE7116D2906800B4EFCF = {
+			isa = PBXGroup;
+			children = (
+				154BFEC116D2F83200B4EFCF /* Images */,
+				154BFE8316D2906800B4EFCF /* antGesture */,
+				154BFE7C16D2906800B4EFCF /* Frameworks */,
+				154BFE7B16D2906800B4EFCF /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		154BFE7B16D2906800B4EFCF /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				154BFE7A16D2906800B4EFCF /* antGesture.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		154BFE7C16D2906800B4EFCF /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				154BFEB116D2BD0F00B4EFCF /* QuartzCore.framework */,
+				154BFE7D16D2906800B4EFCF /* UIKit.framework */,
+				154BFE7F16D2906800B4EFCF /* Foundation.framework */,
+				154BFE8116D2906800B4EFCF /* CoreGraphics.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		154BFE8316D2906800B4EFCF /* antGesture */ = {
+			isa = PBXGroup;
+			children = (
+				154BFEBE16D2F32600B4EFCF /* xacUIBehavior.h */,
+				154BFEBF16D2F32600B4EFCF /* xacUIBehavior.m */,
+				154BFEB016D2937400B4EFCF /* Basics */,
+				154BFEAF16D2935A00B4EFCF /* $1Gesture */,
+				154BFE8C16D2906800B4EFCF /* xacAppDelegate.h */,
+				154BFE8D16D2906800B4EFCF /* xacAppDelegate.m */,
+				154BFE9516D2906800B4EFCF /* MainStoryboard.storyboard */,
+				154BFE9816D2906800B4EFCF /* xacViewController.h */,
+				154BFE9916D2906800B4EFCF /* xacViewController.m */,
+				154BFE8416D2906800B4EFCF /* Supporting Files */,
+				154BFEBB16D2F25100B4EFCF /* xacImageRoll.h */,
+				154BFEBC16D2F25100B4EFCF /* xacImageRoll.m */,
+			);
+			path = antGesture;
+			sourceTree = "<group>";
+		};
+		154BFE8416D2906800B4EFCF /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				154BFE8516D2906800B4EFCF /* antGesture-Info.plist */,
+				154BFE8616D2906800B4EFCF /* InfoPlist.strings */,
+				154BFE8916D2906800B4EFCF /* main.m */,
+				154BFE8B16D2906800B4EFCF /* antGesture-Prefix.pch */,
+				154BFE8F16D2906800B4EFCF /* Default.png */,
+				154BFE9116D2906800B4EFCF /* Default@2x.png */,
+				154BFE9316D2906800B4EFCF /* Default-568h@2x.png */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		154BFEAF16D2935A00B4EFCF /* $1Gesture */ = {
+			isa = PBXGroup;
+			children = (
+				154BFEB916D2C11500B4EFCF /* Gestures.json */,
+				154BFEB316D2C01000B4EFCF /* GLGestureRecognizer.h */,
+				154BFEB416D2C01000B4EFCF /* GLGestureRecognizer.m */,
+				154BFEB516D2C01000B4EFCF /* GLGestureRecognizer+JSONTemplates.h */,
+				154BFEB616D2C01000B4EFCF /* GLGestureRecognizer+JSONTemplates.m */,
+			);
+			name = $1Gesture;
+			path = ..;
+			sourceTree = "<group>";
+		};
+		154BFEB016D2937400B4EFCF /* Basics */ = {
+			isa = PBXGroup;
+			children = (
+				154BFEA216D2932B00B4EFCF /* xacCurve.h */,
+				154BFEA316D2932B00B4EFCF /* xacCurve.m */,
+				154BFEA416D2932B00B4EFCF /* xacData.h */,
+				154BFEA516D2932B00B4EFCF /* xacData.m */,
+				154BFEA616D2932B00B4EFCF /* xacNetworkStreaming.h */,
+				154BFEA716D2932B00B4EFCF /* xacNetworkStreaming.m */,
+				154BFEA816D2932B00B4EFCF /* xacVector.h */,
+				154BFEA916D2932B00B4EFCF /* xacVector.m */,
+				154BFEA016D2932B00B4EFCF /* xacBuffer.h */,
+				154BFEA116D2932B00B4EFCF /* xacBuffer.m */,
+			);
+			name = Basics;
+			sourceTree = "<group>";
+		};
+		154BFEC116D2F83200B4EFCF /* Images */ = {
+			isa = PBXGroup;
+			children = (
+				154BFED816D2F87200B4EFCF /* calgary00.jpg */,
+				154BFED916D2F87200B4EFCF /* canada00.jpg */,
+				154BFEDA16D2F87200B4EFCF /* canada01.jpg */,
+				154BFEDB16D2F87200B4EFCF /* canadaGoose00.jpg */,
+				154BFEDC16D2F87200B4EFCF /* canadaHall.jpg */,
+				154BFEDD16D2F87200B4EFCF /* montreal.jpg */,
+				154BFEDE16D2F87200B4EFCF /* nigara00.jpg */,
+				154BFEDF16D2F87200B4EFCF /* ottawa00.jpg */,
+				154BFEE016D2F87200B4EFCF /* toronto00.jpg */,
+				154BFEE116D2F87200B4EFCF /* toronto01.jpg */,
+				154BFEE216D2F87200B4EFCF /* vancouver00.jpg */,
+			);
+			name = Images;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		154BFE7916D2906800B4EFCF /* antGesture */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 154BFE9D16D2906800B4EFCF /* Build configuration list for PBXNativeTarget "antGesture" */;
+			buildPhases = (
+				154BFE7616D2906800B4EFCF /* Sources */,
+				154BFE7716D2906800B4EFCF /* Frameworks */,
+				154BFE7816D2906800B4EFCF /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = antGesture;
+			productName = antGesture;
+			productReference = 154BFE7A16D2906800B4EFCF /* antGesture.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		154BFE7216D2906800B4EFCF /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				CLASSPREFIX = xac;
+				LastUpgradeCheck = 0460;
+				ORGANIZATIONNAME = hotnAny;
+			};
+			buildConfigurationList = 154BFE7516D2906800B4EFCF /* Build configuration list for PBXProject "antGesture" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 154BFE7116D2906800B4EFCF;
+			productRefGroup = 154BFE7B16D2906800B4EFCF /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				154BFE7916D2906800B4EFCF /* antGesture */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		154BFE7816D2906800B4EFCF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				154BFE8816D2906800B4EFCF /* InfoPlist.strings in Resources */,
+				154BFE9016D2906800B4EFCF /* Default.png in Resources */,
+				154BFE9216D2906800B4EFCF /* Default@2x.png in Resources */,
+				154BFE9416D2906800B4EFCF /* Default-568h@2x.png in Resources */,
+				154BFE9716D2906800B4EFCF /* MainStoryboard.storyboard in Resources */,
+				154BFEBA16D2C11500B4EFCF /* Gestures.json in Resources */,
+				154BFEE316D2F87200B4EFCF /* calgary00.jpg in Resources */,
+				154BFEE416D2F87200B4EFCF /* canada00.jpg in Resources */,
+				154BFEE516D2F87200B4EFCF /* canada01.jpg in Resources */,
+				154BFEE616D2F87200B4EFCF /* canadaGoose00.jpg in Resources */,
+				154BFEE716D2F87200B4EFCF /* canadaHall.jpg in Resources */,
+				154BFEE816D2F87200B4EFCF /* montreal.jpg in Resources */,
+				154BFEE916D2F87200B4EFCF /* nigara00.jpg in Resources */,
+				154BFEEA16D2F87200B4EFCF /* ottawa00.jpg in Resources */,
+				154BFEEB16D2F87200B4EFCF /* toronto00.jpg in Resources */,
+				154BFEEC16D2F87200B4EFCF /* toronto01.jpg in Resources */,
+				154BFEED16D2F87200B4EFCF /* vancouver00.jpg in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		154BFE7616D2906800B4EFCF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				154BFE8A16D2906800B4EFCF /* main.m in Sources */,
+				154BFE8E16D2906800B4EFCF /* xacAppDelegate.m in Sources */,
+				154BFE9A16D2906800B4EFCF /* xacViewController.m in Sources */,
+				154BFEAA16D2932B00B4EFCF /* xacBuffer.m in Sources */,
+				154BFEAB16D2932B00B4EFCF /* xacCurve.m in Sources */,
+				154BFEAC16D2932B00B4EFCF /* xacData.m in Sources */,
+				154BFEAD16D2932B00B4EFCF /* xacNetworkStreaming.m in Sources */,
+				154BFEAE16D2932B00B4EFCF /* xacVector.m in Sources */,
+				154BFEB716D2C01000B4EFCF /* GLGestureRecognizer.m in Sources */,
+				154BFEB816D2C01000B4EFCF /* GLGestureRecognizer+JSONTemplates.m in Sources */,
+				154BFEBD16D2F25200B4EFCF /* xacImageRoll.m in Sources */,
+				154BFEC016D2F32600B4EFCF /* xacUIBehavior.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		154BFE8616D2906800B4EFCF /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				154BFE8716D2906800B4EFCF /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		154BFE9516D2906800B4EFCF /* MainStoryboard.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				154BFE9616D2906800B4EFCF /* en */,
+			);
+			name = MainStoryboard.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		154BFE9B16D2906800B4EFCF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 6.1;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		154BFE9C16D2906800B4EFCF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 6.1;
+				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		154BFE9E16D2906800B4EFCF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "antGesture/antGesture-Prefix.pch";
+				INFOPLIST_FILE = "antGesture/antGesture-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Debug;
+		};
+		154BFE9F16D2906800B4EFCF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "antGesture/antGesture-Prefix.pch";
+				INFOPLIST_FILE = "antGesture/antGesture-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		154BFE7516D2906800B4EFCF /* Build configuration list for PBXProject "antGesture" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				154BFE9B16D2906800B4EFCF /* Debug */,
+				154BFE9C16D2906800B4EFCF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		154BFE9D16D2906800B4EFCF /* Build configuration list for PBXNativeTarget "antGesture" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				154BFE9E16D2906800B4EFCF /* Debug */,
+				154BFE9F16D2906800B4EFCF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 154BFE7216D2906800B4EFCF /* Project object */;
+}
