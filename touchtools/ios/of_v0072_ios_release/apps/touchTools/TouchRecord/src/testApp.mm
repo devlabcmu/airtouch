@@ -190,7 +190,8 @@ void testApp::draw() {
     ofLog(OF_LOG_VERBOSE,"docs dir is %s", [docsDir UTF8String]);
     oss << "files in directory" << endl;
     NSArray *arr = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:docsDir error:nil];
-    for(NSString *path in arr)
+    arr = [arr sortedArrayUsingSelector:@selector(localizedCaseInsensitiveCompare:)];
+    for(NSString *path in [arr reverseObjectEnumerator])
     {
         oss << [path UTF8String] << endl;
     }

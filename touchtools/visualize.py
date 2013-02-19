@@ -31,6 +31,9 @@ def parse_row(row):
     return row['type'], int(row['id']), touch, int(row['time_start'])
 
 def visualize_touches(fn, settings, t=0):
+    if not os.path.isdir(fn):
+        return
+
     with open(os.path.join(fn, 'touches.csv')) as f:
         csvf = csv.DictReader(f)
         touch_rows = iter(list(csvf))
@@ -91,6 +94,7 @@ def visualize_touches(fn, settings, t=0):
             if type in ('TOUCH_DOWN', 'TOUCH_MOVE'):
                 pts[id] = touch
             elif type == 'TOUCH_UP':
+                downs.discard(id)
                 del pts[id]
 
             try:

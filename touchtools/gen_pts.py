@@ -3,6 +3,8 @@ import os
 import csv
 from collections import namedtuple
 
+DTIME = 100 # ms
+
 Touch = namedtuple('Touch', 'pos major')
 
 # holder for visualization settings
@@ -53,6 +55,9 @@ def write_touches(dirs, outf, t=0):
         out += ['x{i},y{i},w{i}'.format(i=i)]
     print >>outf, ','.join(out)
     for dir in dirs:
+        if not os.path.isdir(dir):
+            continue
+
         timestamp, pts, classlabel = get_touches(dir, t)
 
         out = [timestamp, classlabel]
@@ -71,4 +76,4 @@ if __name__ == '__main__':
         sys.exit(-1)
 
     with open('output.csv', 'wb') as outf:
-        write_touches(sys.argv[1:], outf, t=250)
+        write_touches(sys.argv[1:], outf, t=DTIME)
