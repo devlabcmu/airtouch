@@ -250,7 +250,7 @@ int dirScroll = 0;
 
 
 float rateBase = 0;
-float stopHeight = 1;
+float stopHeight = 0;
 float offsetScroll = 0;
 
 - (void) manuallyScroll
@@ -264,14 +264,14 @@ float offsetScroll = 0;
     {
         _scrollEnabled = NO;
         counter = 0;
-        stopHeight = 1;
+        stopHeight = 0;
     }
     
     if(height > MAX_HEIGHT * 2)
     {
         _scrollEnabled = NO;
         counter = 0;
-        stopHeight = 1;
+        stopHeight = 0;
         return;
     }
     
@@ -281,7 +281,7 @@ float offsetScroll = 0;
         {
             _scrollEnabled = NO;
             counter = 0;
-            stopHeight = 1;
+            stopHeight = 0;
         }
     }
     
@@ -309,7 +309,7 @@ float offsetScroll = 0;
             stopHeight = stopHeight * rate + offsetScroll * (1 - rate);
             
             offsetScroll *= dirScroll;//thisY > HEIGHT_SCREEN * 0.75 ? -1 : 1;
-            NSLog(@"%@", [NSString stringWithFormat:@"%f, %f, %f", stopHeight, offsetScroll, thisY]);
+//            NSLog(@"%@", [NSString stringWithFormat:@"%f, %f, %f", stopHeight, offsetScroll, thisY]);
             scrollHeight += offsetScroll;
             CGPoint bottomOffset = CGPointMake(0, scrollHeight);
             dispatch_async(dispatch_get_main_queue(), ^{

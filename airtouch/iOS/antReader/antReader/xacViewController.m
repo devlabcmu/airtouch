@@ -8,7 +8,7 @@
 
 #import "xacViewController.h"
 #define PORT 10000
-#define IP_CMU "128.237.125.31"
+#define IP_CMU "128.237.242.215"
 #define IP_874 "192.168.8.112"
 #define REQUEST_FREQUENCY 0.02
 #define UI_UPDATE_RATE 0.01
