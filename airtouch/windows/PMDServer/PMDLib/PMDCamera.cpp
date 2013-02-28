@@ -464,7 +464,7 @@ Point2f PMDCamera::FindFingerPosContours(vector<Finger>::iterator f, bool newFin
 	hullWrapper.push_back(hull);
 
 	Vec2f orientation = Vec2f(f->screenCoords - f->blobCenter);
-	Point2f center = Point2f(PMDNUMCOLS / 2, PMDNUMROWS / 2);
+	Point2f center = Point2f(PMDNUMCOLS / 2, PMDNUMROWS);
 	
 	// if the hull is too round, then just use brightest point interpolation
 	float meanDst = 0;
@@ -511,10 +511,10 @@ Point2f PMDCamera::FindFingerPosContours(vector<Finger>::iterator f, bool newFin
 		circle(debugImage, hullInfoInOppositeDirection[i].pt, 10, Scalar(0,0,255));
 	}
 	flip(debugImage, debugImage, -1);
-	if(f->id % 2 == 0)
-		imshow("debugEven", debugImage);
-	else
-		imshow("debugOdd", debugImage);
+	//if(f->id % 2 == 0)
+	//	imshow("debugEven", debugImage);
+	//else
+	//	imshow("debugOdd", debugImage);
 
 	// if the orientation and the side the finger is on are in opposite directions, look at the points
 	// on finger orientation 
@@ -860,6 +860,7 @@ void PMDCamera::UpdateFingers()
 	UpdateBackgroundSubtraction();
 	MedianFilter();
 	RemoveReflection();
+	//RemoveOutsidePhone();
 	PMDUtils::DistancesToImage((float*)m_pmdDistancesProcessed->imageData, m_pmdDistancesProcessedRGB);
 
 	FindConnectedComponentsInDistanceImage();
