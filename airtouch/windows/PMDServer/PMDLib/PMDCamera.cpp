@@ -516,10 +516,10 @@ Point2f PMDCamera::FindFingerPosContours(vector<Finger>::iterator f, bool newFin
 	line(debugImage,topLeft, f->blobCenter, Scalar(0, 255, 0));
 	line(debugImage,topRight, f->blobCenter, Scalar(255, 255, 255));
 	flip(debugImage, debugImage, -1);
-	if(f->id % 2 == 0)
-		imshow("debugeven", debugImage);
-	else
-		imshow("debugodd", debugImage);
+	//if(f->id % 2 == 0)
+	//	imshow("debugeven", debugImage);
+	//else
+	//	imshow("debugodd", debugImage);
 
 	// if the orientation and the side the finger is on are in opposite directions, look at the points
 	// on finger orientation 
