@@ -464,7 +464,9 @@ Point2f PMDCamera::FindFingerPosContours(vector<Finger>::iterator f, bool newFin
 	hullWrapper.push_back(hull);
 
 	Vec2f orientation = Vec2f(f->screenCoords - f->blobCenter);
-	Point2f center = Point2f(PMDNUMCOLS / 2, PMDNUMROWS);
+	Point2f center = Point2f(PMDNUMCOLS / 2, PMDNUMROWS / 2	);
+	Point2f topLeft = Point2f(PMDNUMCOLS, PMDNUMROWS);
+	Point2f topRight = Point2f(0, PMDNUMROWS);
 	
 	// if the hull is too round, then just use brightest point interpolation
 	float meanDst = 0;
@@ -510,15 +512,19 @@ Point2f PMDCamera::FindFingerPosContours(vector<Finger>::iterator f, bool newFin
 	{
 		circle(debugImage, hullInfoInOppositeDirection[i].pt, 10, Scalar(0,0,255));
 	}
+	line(debugImage,center, f->blobCenter, Scalar(255, 255, 0));
+	line(debugImage,topLeft, f->blobCenter, Scalar(0, 255, 0));
+	line(debugImage,topRight, f->blobCenter, Scalar(255, 255, 255));
 	flip(debugImage, debugImage, -1);
-	//if(f->id % 2 == 0)
-	//	imshow("debugEven", debugImage);
-	//else
-	//	imshow("debugOdd", debugImage);
+	if(f->id % 2 == 0)
+		imshow("debugeven", debugImage);
+	else
+		imshow("debugodd", debugImage);
 
 	// if the orientation and the side the finger is on are in opposite directions, look at the points
 	// on finger orientation 
-	hullInfo = orientation.dot(center - f->blobCenter) > 0 ? hullInfo : hullInfoInOppositeDirection;
+	Point2f corner = f->blobCenter.x > PMDNUMCOLS / 2 ? topLeft : topRight;
+	hullInfo = orientation.dot(center - f->blobCenter) >= 0 || orientation.dot(corner - f->blobCenter) >= 0 ? hullInfo : hullInfoInOppositeDirection;
 	sort(hullInfo.begin(), hullInfo.end(), HullInfoCompareBlobDst);
 
 	if(hullInfo.size() > topN)
@@ -622,7 +628,8 @@ void PMDCamera::FindConnectedComponentsInDistanceImage()
 {
 	// threshold the current processed image
 	Mat thresholded;
-	threshold(Mat(m_pmdDistancesProcessed), thresholded, 0.0, 1.0, 0);
+	//threshold(Mat(m_pmdDistancesProcessed), thresholded, 0.0, 1.0, THRESH_TOZERO);
+	threshold(Mat(m_pmdDistancesProcessed), thresholded, 0.0, 1.0, THRESH_BINARY);
 
 	// find the connected components, output to the matrix
 	m_nLabels = connectedComponents(m_connectedComponents, thresholded);
