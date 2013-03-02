@@ -12,7 +12,7 @@ class PMDOptions
 public:
 	PMDFingerTrackingMode TrackingMode;
 	string FileName;
-
+	bool backgroundSubtract;
 	static PMDOptions ParseArgs(int argc, char** argv);
 	static void PrintHelp();
 

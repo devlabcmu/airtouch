@@ -178,8 +178,14 @@ void setup(int argc, char* argv[])
 		if(!SUCCEEDED(hr)) error("Error: failed to initialize PMD from file");
 	}
 
-	hr = _pmdCamera.InitializeBackgroundSubtraction();
-	if(!SUCCEEDED(hr)) error("Error: Background subtraction failed");
+	if(opts.backgroundSubtract){
+		cout << "Performing background subtraction..." << endl;
+		hr = _pmdCamera.InitializeBackgroundSubtraction();
+		if(!SUCCEEDED(hr)) error("Error: Background subtraction failed");
+	} else
+	{
+		cout << "Not performing background" << endl;
+	}
 
 	_phoneSpace = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), IPL_DEPTH_32F, 3);
 

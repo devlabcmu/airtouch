@@ -501,21 +501,21 @@ Point2f PMDCamera::FindFingerPosContours(vector<Finger>::iterator f, bool newFin
 		}
 	}
 	int topN = 3;
-	Mat debugImage = Mat(PMDNUMROWS, PMDNUMCOLS, CV_8UC3);
-	debugImage.setTo(0);
-	debugImage.setTo(Scalar(255,255,255), fingerMask);
-	for (int i = 0; i < topN; i++)
-	{
-		circle(debugImage, hullInfo[i].pt, 10, Scalar(0,255,0));
-	}
-	for (int i = 0; i < topN; i++)
-	{
-		circle(debugImage, hullInfoInOppositeDirection[i].pt, 10, Scalar(0,0,255));
-	}
-	line(debugImage,center, f->blobCenter, Scalar(255, 255, 0));
-	line(debugImage,topLeft, f->blobCenter, Scalar(0, 255, 0));
-	line(debugImage,topRight, f->blobCenter, Scalar(255, 255, 255));
-	flip(debugImage, debugImage, -1);
+	//Mat debugImage = Mat(PMDNUMROWS, PMDNUMCOLS, CV_8UC3);
+	//debugImage.setTo(0);
+	//debugImage.setTo(Scalar(255,255,255), fingerMask);
+	//for (int i = 0; i < topN; i++)
+	//{
+	//	circle(debugImage, hullInfo[i].pt, 10, Scalar(0,255,0));
+	//}
+	//for (int i = 0; i < topN; i++)
+	//{
+	//	circle(debugImage, hullInfoInOppositeDirection[i].pt, 10, Scalar(0,0,255));
+	//}
+	//line(debugImage,center, f->blobCenter, Scalar(255, 255, 0));
+	//line(debugImage,topLeft, f->blobCenter, Scalar(0, 255, 0));
+	//line(debugImage,topRight, f->blobCenter, Scalar(255, 255, 255));
+	//flip(debugImage, debugImage, -1);
 	//if(f->id % 2 == 0)
 	//	imshow("debugeven", debugImage);
 	//else
