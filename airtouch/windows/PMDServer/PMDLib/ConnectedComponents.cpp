@@ -1,5 +1,4 @@
 #include "ConnectedComponents.h"
-
 #include <Windows.h>
 #include <iostream>
 
@@ -109,8 +108,9 @@ namespace cv{
                         int gr = r_i + G8[i][0];
                         int gc = c_i + G8[i][1];
                         T[i] = false;
+						// JULIA modified
                         if(gr >= 0 && gr < I.rows && gc >= 0 && gc < I.cols){
-                            if(I.at<PixelT>(gr, gc)){
+                            if(std::abs(I.at<PixelT>(gr, gc) - I.at<PixelT>(r_i, c_i)) < 0.1 ){
                                 T[i] = true;
                             }
                         }

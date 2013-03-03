@@ -30,6 +30,8 @@ time_t _fpsStart, _fpsEnd;
 double _fps = 0;
 int _fpsCounter = 0;
 
+PhoneCalibration* _phoneCalibration;
+
 
 // Random
 void error(string msg);
@@ -84,6 +86,10 @@ void updateUI()
 	{
 		cvCircle(_distancesAndFingerLocation, i->screenCoords, 10, fingerColors[i - fingers.begin()]);
 	}
+
+	cvCircle(_distancesAndFingerLocation, _pmdCamera.WorldToScreenSpace(_phoneCalibration->GetPhoneLowerLeft()), 3, Scalar(255, 0,0));
+	cvCircle(_distancesAndFingerLocation, _pmdCamera.WorldToScreenSpace(_phoneCalibration->GetPhoneUpperLeft()), 3, Scalar(0, 255,0));
+	cvCircle(_distancesAndFingerLocation, _pmdCamera.WorldToScreenSpace(_phoneCalibration->GetPhoneUpperRight()), 3, Scalar(0, 0,255));
 
 	cvFlip (_distancesAndFingerLocation, _distancesAndFingerLocation, -1);
 
@@ -286,6 +292,9 @@ int main(int argc, char* argv[])
 		hr = _pmdCamera.InitializeCameraFromFile(opts.FileName.c_str());
 		if(!SUCCEEDED(hr)) error("Error: failed to initialize PMD from file");
 	}
+
+	_phoneCalibration = _pmdCamera.GetPhoneCalibration();
+	_phoneCalibration->InitFromFile();
 
 	hr = _pmdCamera.InitializeBackgroundSubtraction();
 	if(!SUCCEEDED(hr)) error("Error: Background subtraction failed");
