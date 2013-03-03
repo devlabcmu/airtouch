@@ -87,14 +87,63 @@ HRESULT PMDCamera::InitializeCamera()
 	res = pmdOpen (&m_pmdHandle, SOURCE_PLUGIN, SOURCE_PARAM, PROC_PLUGIN, PROC_PARAM);
 	if (res != PMD_OK)
 	{
-		pmdGetLastError (0, m_pmdErrorBuffer, BUFSIZE);
+		pmdGetLastError (m_pmdHandle, m_pmdErrorBuffer, BUFSIZE);
 		cout << "PMDCamera Error: Could not connect to pmd: " << m_pmdErrorBuffer << endl;
 		return -1;
 	}
 
+	
 	cout << "opened sensor" << endl;  
 
+	// commented out this code because I get errors when reading parameters
+	// says "lens parameters not available"
+	// For now I can just read these from LightVis though as they are per-camera
+	//cout << "reading camera parameters" << endl;
+	// read the pmd camera parameters
+	//char lens[128];
+	//res = pmdProcessingCommand(m_pmdHandle, lens, 128, "GetLensParameters");
+	// fx fy cx cy k1 k2 p1 p2 k3
+	//float fx = ((float*)lens)[0];
+	//float fy = ((float*)lens)[1];
+	//float cx = ((float*)lens)[2];
+	//float cy = ((float*)lens)[3];
+	//float k1 = ((float*)lens)[4];
+	//float k2 = ((float*)lens)[5];
+	//float p1 = ((float*)lens)[6];
+	//float p2 = ((float*)lens)[7];
+	//float k3 = ((float*)lens)[8];
+	//if (res != PMD_OK)
+	//{
+	//	pmdGetLastError (m_pmdHandle, m_pmdErrorBuffer, BUFSIZE);
+	//	cout << "PMDCamera Error: Could not get lens parameters: " << m_pmdErrorBuffer << endl;
+	//	return -1;
+	//}
+
+	float fx = 104.119f;
+	float fy = 103.588f;
+	float cx = 81.9494f;
+	float cy = 59.4392f;
+	float k1 = -0.222609f;
+	float k2 = 0.063022f;
+	float p1 = 0.002865;
+	float p2 = -0.001446;
+	float k3 = 0;
+
+	m_cameraMatrix = (Mat_<float>(3,3) << fx, 0, cx, 0, fy, cy, 0, 0, 1);
+	m_distCoeffs = (Mat_<float>(5,1) << k1,k2,p1,p2,k3);
+	
 	return 0;
+}
+
+Point2f PMDCamera::WorldToScreenSpace(Point3f world)
+{
+	Mat rtvec = (Mat_<float>(3,1)<<0,0,0);
+	Mat w2 = (Mat_<float>(3,1)<<world.x, world.y, world.z);
+	vector<Point2f> imgPts;
+	vector<Point3f> wPts;
+	wPts.push_back(world);
+	projectPoints(wPts, rtvec, rtvec, m_cameraMatrix, m_distCoeffs, imgPts);
+	return imgPts[0];
 }
 
 HRESULT PMDCamera::InitializeCameraFromFile(const char* filename)

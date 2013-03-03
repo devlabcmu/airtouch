@@ -18,6 +18,8 @@
 using namespace cv;
 using namespace std;
 
+
+
 enum PMDFingerTrackingMode
 {
 	FINGER_TRACKING_INTERPOLATE_CLOSEST = 0,
@@ -78,6 +80,7 @@ public:
 	PMDFingerTrackingMode FingerTrackingMode;
 
 
+
 	// Initialization
 	HRESULT InitializeCamera();
 	HRESULT InitializeCameraFromFile(const char* filename);
@@ -88,6 +91,7 @@ public:
 	// OpenCV UI
 	IplImage* GetCvBackgroundImage();
 
+	PhoneCalibration* GetPhoneCalibration(){ return &m_phoneCalibration;}
 
 	// Getters
 	PMDFingerData const const GetFingerData()
@@ -145,7 +149,7 @@ public:
 		return result;
 	};
 
-
+	Point2f WorldToScreenSpace(Point3f world);
 
 	// Finger tracking
 	void UpdateFingers();
@@ -162,6 +166,11 @@ private:
 	PMDHandle m_pmdHandle;
 
 	char m_pmdErrorBuffer[BUFSIZE];
+
+	// PMD Camera parameters
+	// pmdProcessingCommand(hnd, lens, 128, "GetLensParameters")
+	Mat m_cameraMatrix; // [fx 0 cx; 0 fy cy; 0 0 1]
+	Mat m_distCoeffs; // k1 k2 p1 p2 k3
 
 	// Data
 	unsigned int m_pmdFlags[PMDIMAGESIZE];
