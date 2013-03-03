@@ -64,21 +64,6 @@
             </objects>
         </scene>
     </scenes>
-    <classes>
-        <class className="NSLayoutConstraint" superclassName="NSObject">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/NSLayoutConstraint.h"/>
-        </class>
-        <class className="xacViewController" superclassName="UIViewController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/xacViewController.h"/>
-            <relationships>
-                <relationship kind="action" name="connect:"/>
-                <relationship kind="outlet" name="btnConnect" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="ctrlView" candidateClass="UIView"/>
-                <relationship kind="outlet" name="lbFPS" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="mainView" candidateClass="UIView"/>
-            </relationships>
-        </class>
-    </classes>
     <simulatedMetricsContainer key="defaultSimulatedMetrics">
         <simulatedStatusBarMetrics key="statusBar"/>
         <simulatedOrientationMetrics key="orientation"/>

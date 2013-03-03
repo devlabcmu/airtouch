@@ -24,7 +24,7 @@ CFReadStreamRef readStream = NULL;
 CFWriteStreamRef writeStream = NULL;
 
 //
-// out of date
+// out of date finger ds
 //
 //typedef struct {
 //	float finger1X;
@@ -37,6 +37,9 @@ CFWriteStreamRef writeStream = NULL;
 //	float buffer[PMDIMAGESIZE];
 //} PMDData;
 
+//
+// updated with server side code
+//
 typedef struct {
 	int id; // 4 bytes
 	float x; // 4 bytes
@@ -189,7 +192,7 @@ long cntFrames;
 //                    NSString *dataStr = [NSString stringWithFormat:@"%f, %f, %f", _atp.caliX, _atp.caliY, _atp.caliZ];
 //                    NSString *dataStr = [NSString stringWithFormat:@"%f, %f, %f, %f", _atp.rawXMin, xFloat, _atp.rawXMax, _atp.caliX];
                     NSString *dataStr = [NSString stringWithFormat:@"%d, %f, %f, %f", idData, xFloat, yFloat, zFloat];
-                    NSLog(@"%@", dataStr);
+//                    NSLog(@"%@", dataStr);
                     
                     double now = CACurrentMediaTime();
                     cntFrames++;

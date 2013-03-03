@@ -11,10 +11,15 @@
 
 @interface xacImageRoll : UIView
 
+@property float widthScreen;
+@property float heightScreen;
+
 @property NSMutableArray* images;
+@property NSMutableArray* imageViews;
 
 -(id) init;
 -(void) showImages :(int)numPerRow :(UIView*) parent;
 -(void) toogleZoom :(UIImageView*) imgView :(BOOL) toZoomIn;
+- (void) doHitTest :(UITouch*) touch;
 
 @end

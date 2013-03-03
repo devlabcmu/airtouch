@@ -14,6 +14,7 @@
 #import "GLGestureRecognizer.h"
 #import "GLGestureRecognizer+JSONTemplates.h"
 #import "xacImageRoll.h"
+#import "xacMenu.h"
 
 @interface xacViewController : UIViewController
 
@@ -22,6 +23,9 @@
 @property (weak, nonatomic) IBOutlet UIView *imgRollView;
 @property (weak, nonatomic) IBOutlet UILabel *lbGesture;
 @property (weak, nonatomic) IBOutlet UIButton *btnConnect;
+
+@property int gesture;
+
 - (IBAction)connect:(id)sender;
 
 @property xacNetworkStreaming* stream;
@@ -33,6 +37,7 @@
 @property GLGestureRecognizer* recognizer;
 
 @property xacImageRoll* imageRoll;
+@property xacMenu* altMenu;
 
 
 @end

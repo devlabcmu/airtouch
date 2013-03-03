@@ -9,7 +9,7 @@
 #import "xacViewController.h"
 #define BASE_RADIUS 25
 #define PORT 10000
-#define IP_CMU "128.237.238.16"
+#define IP_CMU "128.237.125.31"
 #define IP_874 "192.168.8.112"
 #define REQUEST_FREQUENCY 0.01
 #define AIR_BUFFER_SIZE 128
@@ -22,7 +22,7 @@
 
 @implementation xacViewController
 
-
+// buffer for drawing traces
 float xBuf[NUM_POINTS];
 float yBuf[NUM_POINTS];
 int ptrBuf = 0;
@@ -37,7 +37,7 @@ int heightScreen = -1;
     /*
         air data
      */
-    _atp = [[xacAirTouchProfile alloc] init];
+//    _atp = [[xacAirTouchProfile alloc] init];
     _airData = [[xacData alloc] init:AIR_BUFFER_SIZE];
     
     /*	
