@@ -309,7 +309,7 @@ float offsetScroll = 0;
             stopHeight = stopHeight * rate + offsetScroll * (1 - rate);
             
             offsetScroll *= dirScroll;//thisY > HEIGHT_SCREEN * 0.75 ? -1 : 1;
-//            NSLog(@"%@", [NSString stringWithFormat:@"%f, %f, %f", stopHeight, offsetScroll, thisY]);
+            NSLog(@"%@", [NSString stringWithFormat:@"%f, %f, %f", stopHeight, offsetScroll, thisY]);
             scrollHeight += offsetScroll;
             CGPoint bottomOffset = CGPointMake(0, scrollHeight);
             dispatch_async(dispatch_get_main_queue(), ^{

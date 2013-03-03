@@ -8,7 +8,7 @@
 
 #import "xacViewController.h"
 #define PORT 10000
-#define IP_CMU "128.237.242.215"
+#define IP_CMU "128.237.113.190"
 #define IP_874 "192.168.8.112"
 #define REQUEST_FREQUENCY 0.02
 #define UI_UPDATE_RATE 0.01
@@ -71,9 +71,15 @@ int heightScreen = -1;
 //    [uiSwipe setDirection:(UISwipeGestureRecognizerDirectionDown)];
 //    [_scrollView addGestureRecognizer:uiSwipe];
 //    
-//    UITapGestureRecognizer *singleTap = [[UITapGestureRecognizer alloc] initWithTarget:_scrollView action:@selector(singleTapGestureCaptured:)];
-//    [_scrollView addGestureRecognizer:singleTap];
+//    UITapGestureRecognizer *singleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleSingleTap)];
+////    singleTap.numberOfTapsRequired = 1;
+//    [self.view addGestureRecognizer:singleTap];
+
     
+    UITapGestureRecognizer *singleTapGestureRecognizer = [[UITapGestureRecognizer alloc]
+                                                          initWithTarget:self
+                                                          action:@selector(handleSingleTap:)];
+    [self.view addGestureRecognizer:singleTapGestureRecognizer];
 
 }
 
@@ -101,8 +107,6 @@ float yStartScrolling = -1;
         [self sendSensorInfoToServer];
         [_uiScroll manuallyScroll];
     });
-
-    
     
 //    [self updateUI];
 }
@@ -113,6 +117,56 @@ float yStartScrolling = -1;
     dispatch_async(dispatch_get_main_queue(), ^{
         [self sendSensorInfoToServer];
     });
+}
+
+bool selectionStarted = false;
+UITextPosition* headSelection = nil;
+- (void)handleSingleTap:(UITapGestureRecognizer *)recognizer {
+    CGPoint location = [recognizer locationInView:_scrollView];
+    if(!selectionStarted)
+    {
+        headSelection = [_scrollView closestPositionToPoint:location];
+        selectionStarted = true;
+    }
+    else
+    {
+        UITextPosition* endSelection = [_scrollView closestPositionToPoint:location];
+        UITextRange* rangeSelection = [_scrollView textRangeFromPosition: headSelection toPosition:endSelection];
+        
+        int posStart = [_scrollView offsetFromPosition:_scrollView.beginningOfDocument
+                                            toPosition:rangeSelection.start];
+        int posEnd = [_scrollView offsetFromPosition:_scrollView.beginningOfDocument
+                                          toPosition:rangeSelection.end];
+        
+        NSLog(@"%d, %d", posStart, posEnd);
+
+        [_scrollView setSelectedTextRange:rangeSelection];
+//        [_scrollView select: _scrollView.selectedTextRange];
+
+        selectionStarted = false;
+    }
+//    NSLog(@"Tap Gesture Coordinates: %.2f %.2f", location.x, location.y);
+//    NSString *tappedSentence = [self lineAtPosition:CGPointMake(location.x, location.y)];
+//    NSLog(@"%@", tappedSentence);
+}
+
+//- (void)singleTapGestureCaptured:(UITapGestureRecognizer *)gesture
+//- (void)handleSingleTap:(UITapGestureRecognizer *)recognizer
+//{
+//    CGPoint location = [recognizer locationInView:_scrollView];
+//    NSLog(@"Tap Gesture Coordinates: %.2f %.2f", location.x, location.y);
+//    NSString *tappedSentence = [self lineAtPosition:CGPointMake(location.x, location.y)];
+//}
+
+- (NSString *)lineAtPosition:(CGPoint)position
+{
+    //eliminate scroll offset
+//    position.y += _scrollView.contentOffset.y;
+    //get location in text from textposition at point
+    UITextPosition *tapPosition = [_scrollView closestPositionToPoint:position];
+    //fetch the word at this position (or nil, if not available)
+    UITextRange *textRange = [_scrollView.tokenizer rangeEnclosingPosition:tapPosition withGranularity:UITextGranularitySentence inDirection:UITextLayoutDirectionRight];
+    return [_scrollView textInRange:textRange];
 }
 
 //- (void)singleTapGestureCaptured:(UITapGestureRecognizer *)gesture
@@ -182,22 +236,12 @@ float yStartScrolling = -1;
         
         [_uiFade update:xCenter :yCenter :height];
         
-        
-//        if(_scrollView.tracking && !_uiScroll.scrollEnabled)// && _uiScroll.scrollState == DEFAULT)
-//        {
-////            [_uiScroll printState];
-////            _uiScroll.scrollState = DRAGGING;
-////            [_scrollView resignFirstResponder];
-//            [_uiScroll startScrolling:100];
-//            NSLog(@"tracking");
-//            
-//
-//        }
-        [_uiScroll update:xCenter :yCenter :height];
+         [_uiScroll update:xCenter :yCenter :height];
         
         
     }
 }
+
 
 - (float) crop :(float) original :(float) lower :(float) higher
 {
@@ -223,6 +267,29 @@ float yStartScrolling = -1;
 //    scrollHeight += 30;
 //    CGPoint bottomOffset = CGPointMake(0, scrollHeight);
 //    [_scrollView setContentOffset:bottomOffset animated:YES];
+    
+    // Get current selected range , this example assumes is an insertion point or empty selection
+    UITextRange *selectedRange = [_scrollView selectedTextRange];
+    
+      
+    // Calculate the new position, - for left and + for right
+    UITextPosition *newPosition = [_scrollView positionFromPosition:selectedRange.start offset:150];
+    
+    // Construct a new range using the object that adopts the UITextInput, our textfield
+    UITextRange *newRange = [_scrollView textRangeFromPosition:selectedRange.start toPosition:newPosition];
+    
+    int posStart = [_scrollView offsetFromPosition:_scrollView.beginningOfDocument
+                            toPosition:newRange.start];
+    int posEnd = [_scrollView offsetFromPosition:_scrollView.beginningOfDocument
+                                        toPosition:newRange.end];
+    
+    NSLog(@"%d, %d", posStart, posEnd);
+    
+    // Set new range
+    [_scrollView setSelectedTextRange:newRange];
+    
+    [_scrollView selectAll:self];
+    [_scrollView select:_scrollView.selectedTextRange];
 }
 
 //-(void)handleSwipeFrom:(UISwipeGestureRecognizer *)recognizer {
