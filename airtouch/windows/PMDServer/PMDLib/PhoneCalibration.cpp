@@ -104,6 +104,7 @@ void PhoneCalibration::InitFromFile()
 	m_origin = Point3f( vals[0] , vals[1] , vals[2] );
 	m_upperRight = Point3f(vals[3] , vals[4] , vals[5] );
 	m_lowerLeft = Point3f(vals[6] , vals[7] , vals[8] );
+	UpdateBasis();
 }
 
 PhoneCalibration::~PhoneCalibration(void){}
@@ -121,6 +122,11 @@ void PhoneCalibration::UpdateBasis()
 	m_unitX = m_unitX / norm(m_unitX);
 	m_unitY = m_unitY / norm(m_unitY);
 	m_unitZ = m_unitZ / norm(m_unitZ);
+
+	//fprintf(stdout, "(%.6f,%.6f,%.6f) (%.6f,%.6f,%.6f) (%.6f,%.6f,%.6f) (%.6f,%.6f,%.6f) \n", 
+	//	m_unitX[0], m_unitX[1], m_unitX[2],
+	//	m_unitY[0], m_unitY[1], m_unitY[2],
+	//	m_unitZ[0], m_unitZ[1], m_unitZ[2]);
 }
 
 Point3f PhoneCalibration::ToPhoneSpaceAsPercentage(Point3f coord)
@@ -128,9 +134,18 @@ Point3f PhoneCalibration::ToPhoneSpaceAsPercentage(Point3f coord)
 	if(coord.x == PMD_INVALID_DISTANCE)
 		return Point3f(PMD_INVALID_DISTANCE, PMD_INVALID_DISTANCE, PMD_INVALID_DISTANCE);
 	Point3f tmp = coord - m_origin;
+	
 	double x = tmp.dot(m_unitX);
 	double y = tmp.dot(m_unitY);
 	double z = tmp.dot(m_unitZ);
+
+
+	//fprintf(stdout, "(%.6f,%.6f,%.6f) (%.2f,%.2f,%.2f) (%.2f,%.2f,%.2f) (%.2f,%.2f,%.2f) \n", 
+	//	m_unitX[0], m_unitX[1], m_unitX[2],
+	//	
+	//	coord.x, coord.y, coord.z, 
+	//	tmp.x, tmp.y, tmp.z, 
+	//	x,y,z);
 
 	return Point3f(x / m_xLength,y,z / m_zLength);
 }

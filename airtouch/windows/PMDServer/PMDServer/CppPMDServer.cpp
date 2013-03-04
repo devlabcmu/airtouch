@@ -307,6 +307,8 @@ int main(int argc, char* argv[])
 	cout << "Starting network thread..." << endl;
 	HANDLE networkThread = CreateThread(NULL, 0, doNetworkCommunication, NULL, 0, 0);
 
+	cvNamedWindow("Server", CV_WINDOW_NORMAL);
+	cvResizeWindow("Server", PMDNUMCOLS, PMDNUMROWS);
 	while(_stayAlive)
 	{
 		// update data
