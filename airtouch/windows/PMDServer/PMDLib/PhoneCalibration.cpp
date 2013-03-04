@@ -39,17 +39,18 @@ using namespace std;
 
 #ifdef PHONE_IPHONE
 // calibration for iphone
-#define ORIGINX 0.0137f
-#define ORIGINY -0.0098f
-#define ORIGINZ 0.0147
+#define ORIGINX 0.0588f
+#define ORIGINY -0.0521f
+#define ORIGINZ 0.0973f
 
-#define P1X -0.0174f
-#define P1Y -0.0221f
-#define P1Z  0.0401f
+#define UPPERRIGHTX 0.0281f
+#define UPPERRIGHTY -0.0532f
+#define UPPERRIGHTZ 0.1260f
 
-#define P2X  0.0352f
-#define P2Y -0.0067f
-#define P2Z  0.1238f
+#define LOWERLEFTX 0.0823f
+#define LOWERLEFTY -0.0432f
+#define LOWERLEFTZ 0.1884f
+
 #define CALIB_FILE "iphone_calibration.csv"
 #endif
 

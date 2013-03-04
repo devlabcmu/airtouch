@@ -294,7 +294,8 @@ void createImages()
 	{
 		IplImage* toAdd = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), 8,3); 
 		_images.push_back(toAdd);
-		cvNamedWindow(_frameTitles[i].c_str());
+		cvNamedWindow(_frameTitles[i].c_str(), CV_WINDOW_NORMAL);
+		cvResizeWindow(_frameTitles[i].c_str(), PMDNUMCOLS, PMDNUMROWS);
 		cvSetMouseCallback( _frameTitles[i].c_str(), mouse_callback, toAdd);
 	}
 }
