@@ -1,11 +1,11 @@
-package edu.cmu.hcii.airtouchview;
+package edu.cmu.hcii.airtouchlib;
 
 
 
 public class AirTouchPoint {
-	float x;
-	float y;
-	TouchType type;
+	public float x;
+	public float y;
+	public TouchType type;
 	
 	public enum TouchType
 	{

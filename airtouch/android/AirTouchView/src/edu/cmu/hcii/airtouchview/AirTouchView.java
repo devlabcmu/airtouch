@@ -1,8 +1,5 @@
 package edu.cmu.hcii.airtouchview;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -10,6 +7,7 @@ import java.util.Map.Entry;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -17,35 +15,25 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Paint.Cap;
-import android.graphics.Paint.Style;
 import android.graphics.RectF;
-import android.os.AsyncTask;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
-import edu.cmu.hcii.airtouchview.AirTouchPoint.TouchType;
+import edu.cmu.hcii.airtouchlib.AirTouchPoint;
+import edu.cmu.hcii.airtouchlib.AirTouchPoint.TouchType;
+import edu.cmu.hcii.airtouchlib.DisconnectTask;
+import edu.cmu.hcii.airtouchlib.PMDConstants;
+import edu.cmu.hcii.airtouchlib.PMDDataHandler;
+import edu.cmu.hcii.airtouchlib.PMDFinger;
+import edu.cmu.hcii.airtouchlib.PMDServerConnection;
+import edu.cmu.hcii.airtouchlib.SendReceiveTask;
+import edu.cmu.hcii.airtouchlib.SendReceiveTask.PMDSendData;
 
 
-public class AirTouchView extends View {
+public class AirTouchView extends View implements PMDDataHandler {
 
-	// Constants
-	static final int TOUCH_SCALE = 50;
-	static final int PMD_IMAGE_SIZE = 19800;
-	static final int PMD_NUM_COLS = 165;
-	static final int PMD_NUM_ROWS = 120;
-	static final int PMD_SEND_DATA_SIZE = 79212;
-	static final int PMD_FINGER_ONLY_DATA_SIZE = 32;
-	static final int PMD_INVALID_DISTANCE = -1000;
-	static final boolean OUTPUT_BITS_DEBUG = false;
-
-	static String TAG = "AirTouchViewView";
-	
-	
-
-	// convenience structs
 	public class Point3f
 	{
 		public float x;
@@ -54,19 +42,11 @@ public class AirTouchView extends View {
 		
 	}
 	
-	public class PMDFinger {
-		public int id;
-		public float x;
-		public float y;
-		public float z;
-		
-	}
+	// Constants
+	static final int TOUCH_SCALE = 50;
 	
-	// structs from PMD
-	public class PMDSendData {
-		public PMDFinger[] fingers = new PMDFinger[2]; 
-		public float[] buffer = new float[PMD_IMAGE_SIZE]; // 19800 * 4 bytes
-	}
+
+	static String TAG = "AirTouchViewView";
 
 	// static variables
 	private static Map<AirTouchPoint.TouchType, Paint> paintBrushes = new HashMap<AirTouchPoint.TouchType, Paint>();
@@ -74,8 +54,7 @@ public class AirTouchView extends View {
 	static Paint textPaintBrush;
 
 	// Networking
-	DataOutputStream _toServer;
-	InputStream _fromServer;
+	PMDServerConnection _connection;
 	PMDSendData _dataFromServer;
 	boolean _stopNetworkConnection = false;
 	boolean _getOnlyFingerData = false;
@@ -86,10 +65,11 @@ public class AirTouchView extends View {
 	Object _touchMapLock = new Object();
 	String _errorText;
 	RectF _touchDrawRect = new RectF();
-	Bitmap _pmdDepth = Bitmap.createBitmap(PMD_NUM_COLS, PMD_NUM_ROWS, Bitmap.Config.ARGB_8888);
+	Bitmap _pmdDepth = Bitmap.createBitmap(PMDConstants.PMD_NUM_COLS, PMDConstants.PMD_NUM_ROWS, Bitmap.Config.ARGB_8888);
 	Matrix _depthMatrix = new Matrix();
 
 	// bitmap to render the depth data
+	@SuppressLint("UseSparseArrays")
 	private Map<Integer, LinkedList<PMDFinger>> _recentPoints = new HashMap<Integer, LinkedList<PMDFinger>>();
 	private int _recentPointsCount = 30;
 	Object _recentPointsLock = new Object();
@@ -141,10 +121,9 @@ public class AirTouchView extends View {
 	{
 		_getOnlyFingerData = shouldIGetFingerData;
 	}
-	public void setupServerConnection(InputStream fromServer, DataOutputStream toServer)
+	public void setServerConnection(PMDServerConnection c)
 	{
-		_fromServer = fromServer;
-		_toServer = toServer;
+		_connection = c;
 	}
 
 	public Point3f PhoneToScreen(PMDFinger f)
@@ -191,7 +170,7 @@ public class AirTouchView extends View {
 		if(!_getOnlyFingerData) canvas.drawBitmap(_pmdDepth, _depthMatrix, null);
 		
 
-		if(_touchMap.values().size() == 0)
+		if(_touchMap.values().size() == 0 && _dataFromServer !=null)
 		{
 			for (int i = 0; i < _dataFromServer.fingers.length; i++) {
 				if(_dataFromServer.fingers[i] == null) continue;
@@ -315,13 +294,13 @@ public class AirTouchView extends View {
 
 		_depthMatrix.setScale(2.0f, -2.0f);
 		_depthMatrix.postTranslate(0, 240);
+		final PMDDataHandler me = this;
 		//_depthMatrix.setScale(2.0f, 2.0f);
-		_dataFromServer = new PMDSendData();
 		// handshake has already happened
 		// begin sending and receiving data
 		TimerTask task = new TimerTask() {
             public void run() {
-                new SendReceiveTask().execute();
+                new SendReceiveTask(_connection, me, _getOnlyFingerData).execute();
                 
             }
         };
@@ -333,7 +312,7 @@ public class AirTouchView extends View {
 	{
 		_stopNetworkConnection = true;
 		_timer.cancel();
-		new DisconnectTask().execute();
+		new DisconnectTask(_connection).execute();
 	}
 
 	@Override
@@ -375,165 +354,21 @@ public class AirTouchView extends View {
 
 
 	}
-	
-	//
-	// PMDData methods
-	//
 
-	/**
-	 * Constructs an object from an array of bytes that is 
-	 * assumed to have the struct as defined in pmddata.h 
-	 * (see https://github.com/devlabcmu/projects/wiki/PMD-Constants)
-	 * @param in
-	 * @return The resulting struct
-	 */
-	public void updatePMDData(byte[] in)
-	{
-		if(_dataFromServer == null) return;
-
-		for (int i = 0; i < _dataFromServer.fingers.length; i++) 
-		{
-			_dataFromServer.fingers[i] = new PMDFinger();
-			_dataFromServer.fingers[i].id = getIntInByteArray(in, i * 16);
-			_dataFromServer.fingers[i].x = getFloatInByteArray(in, i * 16 + 4);
-			_dataFromServer.fingers[i].y = getFloatInByteArray(in, i * 16 + 8);
-			_dataFromServer.fingers[i].z = getFloatInByteArray(in, i * 16 + 12);
-		}
+	@Override
+	public void NewPMDData(PMDSendData data) {
+		_dataFromServer = data;
+		updateRecentPoints();
+		postInvalidate();
 		
-		if(!_getOnlyFingerData)
-		{
-			for (int i = 0; i < PMD_IMAGE_SIZE; i++) {
-				_dataFromServer.buffer[i] = getFloatInByteArray(in, 24 + i * 4);
-			}	
-		}
+	}
+
+	@Override
+	public void OnSendReceiveTaskFailed(String message) {
+		// TODO Auto-generated method stub
 		
-
-		if(OUTPUT_BITS_DEBUG){
-			// if we want we can output the raw bits of the finger x, y, z positions.
-			for (int i = 0; i < 3; i++) {
-				StringBuilder sb = new StringBuilder();
-
-				for (int j = 0; j < 4; j++) {
-					byte b = in[i * 4 + j];
-					for (int k = 0; k < 8; k++) {
-						int n = (b & (1 << k)) >> k;
-						sb.append("" + n);
-					}
-					sb.append( " ");
-				}
-				Log.v(TAG, String.format("i: %d, bits: %s\n", i, sb.reverse().toString()));
-			}
-		}
-		//Log.v(TAG, String.format("%.2f, %.2f, %.2f", _dataFromServer.fingerX, _dataFromServer.fingerY, _dataFromServer.fingerZ));
 	}
 	
-	/**
-	 * Gets a float at a specified offset from a byte array.
-	 * This should be a general utility
-	 * @param bytes
-	 * @param startOffset The start of the array to look at, in bytes. Shoudl increment in steps of 4 for floats
-	 * @return
-	 */
-	public static float getFloatInByteArray(byte[] bytes, int startOffset)
-	{
-		// 0xF is 4 bits, 0xFF is 8 bits
-		int asInt = (bytes[startOffset + 0] & 0xFF) 
-				| ((bytes[startOffset + 1] & 0xFF) << 8) 
-				| ((bytes[startOffset + 2] & 0xFF) << 16) 
-				| ((bytes[startOffset + 3] & 0xFF) << 24);
-		return Float.intBitsToFloat(asInt);
-	}
-	
-	public static int getIntInByteArray(byte[] bytes, int startOffset)
-	{
-		return (bytes[startOffset + 0] & 0xFF) 
-				| ((bytes[startOffset + 1] & 0xFF) << 8) 
-				| ((bytes[startOffset + 2] & 0xFF) << 16) 
-				| ((bytes[startOffset + 3] & 0xFF) << 24);
-	}
 
-	class DisconnectTask extends AsyncTask<Void, Void, Void>
-	{
-		@Override
-		protected Void doInBackground(Void... params) {
-			_timer.cancel();
-			try {
-				_toServer.writeBytes("disconnect");
-			} catch (IOException e) {
-				Log.v(TAG, "Exception when disconnecting: " + e.getMessage());
-			}
-			return null;
-		}
-
-		@Override
-		protected void onPostExecute(Void result) {
-			super.onPostExecute(result);
-			_errorText  = "Error: disconnected from server due to an error";
-			postInvalidate();
-		}
-	}
-
-	class SendReceiveTask extends AsyncTask<Void, Void, Boolean>
-	{
-		@Override
-		protected void onPreExecute() {
-			super.onPreExecute();
-		}
-		@Override
-		protected Boolean doInBackground(Void... params) {
-		   // Log.v(TAG, "in SendReceiveData");
-			try {
-				// send 'gimme'
-				// receive data
-				// update PMDSendData
-				if(_getOnlyFingerData)
-				{
-					//Log.v(TAG, "wrote finger");
-					_toServer.writeBytes("finger");
-				} else 
-				{
-					_toServer.writeBytes("gimme");
-				}
-				byte[] lMsg = new byte[PMD_SEND_DATA_SIZE];
-				int nleft = PMD_SEND_DATA_SIZE;
-				if(_getOnlyFingerData) nleft = PMD_FINGER_ONLY_DATA_SIZE;
-				int totalReceived = 0;
-
-				do{
-					if (nleft == 0) break;
-					int nReceived = 0;
-
-					nReceived = _fromServer.read(lMsg, totalReceived, nleft);				
-					if(nReceived <= 0) break;
-					totalReceived += nReceived;
-					nleft -= nReceived;
-					///Log.v(TAG, String.format("recevied %d bytes, total received %d, %d left", nReceived, totalReceived, nleft));
-				} while (true);
-				//Log.v(TAG, "got data");
-				updatePMDData(lMsg);
-				updateRecentPoints();
-				//Log.v(TAG, "updated data");
-			} catch (IOException e) {
-				Log.v(TAG, e.getMessage());
-				return false;
-			}
-			return true;
-		}
-		@Override
-		protected void onPostExecute(Boolean succeeded) {
-			//Log.v(TAG, "in post execute");
-			// if we failed, then we should disconnect and go back to the home page
-			if(!succeeded) {
-				_errorText = "ERROR: couldn't communicate with server. Please go back and try again.";
-				postInvalidate();
-				new DisconnectTask().execute();
-				return;
-			}
-			
-			if(_stopNetworkConnection) return;
-
-			postInvalidate();
-		}
-	}
 
 }
