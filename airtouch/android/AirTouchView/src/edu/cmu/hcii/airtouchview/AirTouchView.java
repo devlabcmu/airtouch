@@ -78,7 +78,7 @@ public class AirTouchView extends View implements PMDDataHandler {
 	{
 		defaultPaintBrush = new Paint();
 		defaultPaintBrush.setColor(Color.BLACK);
-		defaultPaintBrush.setTextSize(20);
+		defaultPaintBrush.setTextSize(40);
 
 		textPaintBrush = new Paint();
 		textPaintBrush.setColor(Color.RED);
@@ -222,7 +222,7 @@ public class AirTouchView extends View implements PMDDataHandler {
 		{
 			canvas.drawText(_errorText, 20, 50, textPaintBrush);
 		}
-		canvas.drawText(String.format("pmd data fps: %.2f", _pmdFPS), 20, 70, defaultPaintBrush);
+		canvas.drawText(String.format("pmd data fps: %.2f", _pmdFPS), 20, 100, defaultPaintBrush);
 		
 	}
 
@@ -308,7 +308,7 @@ public class AirTouchView extends View implements PMDDataHandler {
             }
         };
         _timer = new Timer();
-        _timer.scheduleAtFixedRate(task, 1, 33);
+        _timer.scheduleAtFixedRate(task, 1, 20);
 	}
 
 	public void stop()

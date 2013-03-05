@@ -34,7 +34,7 @@ public class ConnectTask extends AsyncTask<String, Void, Boolean>
 	@Override
 	protected Boolean doInBackground(String... params) {
 		try {
-
+			
 			_connection._clientSocket.connect(new InetSocketAddress(_connection._serverAddr, _connection._serverPort), 2000);
 			// When just receiving small packets (ie. just finger lcation, no depth, you will want to setTcpNoDelay(true)
 			// thiw will allow for immediate receiving of packets even when data sent is small

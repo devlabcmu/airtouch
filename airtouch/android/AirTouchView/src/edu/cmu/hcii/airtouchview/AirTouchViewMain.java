@@ -8,7 +8,7 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.TextView;
-import edu.cmu.hcii.airtouchlib.ConnectTask;
+import edu.cmu.hcii.airtouchlib.BindTask;
 import edu.cmu.hcii.airtouchlib.ConnectTaskCompletedHandler;
 import edu.cmu.hcii.airtouchlib.ConnectTaskResult;
 import edu.cmu.hcii.airtouchlib.PMDServerConnection;
@@ -74,9 +74,9 @@ public class AirTouchViewMain extends Activity implements ConnectTaskCompletedHa
 	}
 	public void connectClicked(View v)
 	{
-		_statusTextView.setText("Connecting...");
+		_statusTextView.setText("Listening for connections on " + _ipEditText.getText().toString() + " port " + _portEditText.getText().toString() + "...");
 		_connection = new PMDServerConnection(_ipEditText.getText().toString(), _portEditText.getText().toString() );
-		new ConnectTask(this, _connection).execute();
+		new BindTask(this, _connection).execute();
 	}
 
 	public void viewFingerDataClicked(View v)
