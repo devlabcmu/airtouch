@@ -25,7 +25,7 @@ const float g_orientationLength = 40;
 PMDCamera::PMDCamera(void)
 {
 	FingerTrackingMode = FINGER_TRACKING_INTERPOLATE_CLOSEST;
-	
+
 	// create all opencv images
 
 	m_pmdDistancesProcessed = cvCreateImage(cvSize(PMDNUMCOLS, PMDNUMROWS), IPL_DEPTH_32F, 1);
@@ -40,7 +40,7 @@ PMDCamera::PMDCamera(void)
 	blobParams.minThreshold = 1;
 	blobParams.maxThreshold = 255;
 	blobParams.thresholdStep = 100;
-	
+
 	blobParams.minDistBetweenBlobs = 1.0f;
 
 	blobParams.filterByArea = true;
@@ -48,13 +48,13 @@ PMDCamera::PMDCamera(void)
 	blobParams.maxArea = 100000.0f;
 
 	blobParams.filterByCircularity = false;
-	
+
 	blobParams.filterByColor = true;
 	blobParams.blobColor = 255;
 
 	blobParams.filterByConvexity = false;
 	blobParams.filterByInertia = false;
-	
+
 
 	m_blobDetector = new SimpleBlobDetector(blobParams);
 	m_blobDetector->create("DistancesBlob");
@@ -62,7 +62,7 @@ PMDCamera::PMDCamera(void)
 	blobParams.minThreshold = 100;
 	blobParams.maxThreshold = 255;
 	blobParams.thresholdStep = 50;
-	
+
 	blobParams.minArea = 1.0f;
 	blobParams.maxArea = 1000000.0f;
 	m_intensitiesBlobDetector = new SimpleBlobDetector(blobParams);
@@ -87,14 +87,63 @@ HRESULT PMDCamera::InitializeCamera()
 	res = pmdOpen (&m_pmdHandle, SOURCE_PLUGIN, SOURCE_PARAM, PROC_PLUGIN, PROC_PARAM);
 	if (res != PMD_OK)
 	{
-		pmdGetLastError (0, m_pmdErrorBuffer, BUFSIZE);
+		pmdGetLastError (m_pmdHandle, m_pmdErrorBuffer, BUFSIZE);
 		cout << "PMDCamera Error: Could not connect to pmd: " << m_pmdErrorBuffer << endl;
 		return -1;
 	}
 
+	
 	cout << "opened sensor" << endl;  
 
+	// commented out this code because I get errors when reading parameters
+	// says "lens parameters not available"
+	// For now I can just read these from LightVis though as they are per-camera
+	//cout << "reading camera parameters" << endl;
+	// read the pmd camera parameters
+	//char lens[128];
+	//res = pmdProcessingCommand(m_pmdHandle, lens, 128, "GetLensParameters");
+	// fx fy cx cy k1 k2 p1 p2 k3
+	//float fx = ((float*)lens)[0];
+	//float fy = ((float*)lens)[1];
+	//float cx = ((float*)lens)[2];
+	//float cy = ((float*)lens)[3];
+	//float k1 = ((float*)lens)[4];
+	//float k2 = ((float*)lens)[5];
+	//float p1 = ((float*)lens)[6];
+	//float p2 = ((float*)lens)[7];
+	//float k3 = ((float*)lens)[8];
+	//if (res != PMD_OK)
+	//{
+	//	pmdGetLastError (m_pmdHandle, m_pmdErrorBuffer, BUFSIZE);
+	//	cout << "PMDCamera Error: Could not get lens parameters: " << m_pmdErrorBuffer << endl;
+	//	return -1;
+	//}
+
+	float fx = 104.119f;
+	float fy = 103.588f;
+	float cx = 81.9494f;
+	float cy = 59.4392f;
+	float k1 = -0.222609f;
+	float k2 = 0.063022f;
+	float p1 = 0.002865;
+	float p2 = -0.001446;
+	float k3 = 0;
+
+	m_cameraMatrix = (Mat_<float>(3,3) << fx, 0, cx, 0, fy, cy, 0, 0, 1);
+	m_distCoeffs = (Mat_<float>(5,1) << k1,k2,p1,p2,k3);
+	
 	return 0;
+}
+
+Point2f PMDCamera::WorldToScreenSpace(Point3f world)
+{
+	Mat rtvec = (Mat_<float>(3,1)<<0,0,0);
+	Mat w2 = (Mat_<float>(3,1)<<world.x, world.y, world.z);
+	vector<Point2f> imgPts;
+	vector<Point3f> wPts;
+	wPts.push_back(world);
+	projectPoints(wPts, rtvec, rtvec, m_cameraMatrix, m_distCoeffs, imgPts);
+	return imgPts[0];
 }
 
 HRESULT PMDCamera::InitializeCameraFromFile(const char* filename)
@@ -137,7 +186,7 @@ HRESULT PMDCamera::InitializeBackgroundSubtraction()
 			fprintf(stderr, "Error: Failed to update camera data in initializeBackgroundSubtraction\n");
 			return -1;
 		}
-		
+
 		memcpy_s(frame, PMDIMAGESIZE * sizeof(float), m_pmdDistanceBuffer, PMDIMAGESIZE * sizeof(float));
 	}
 
@@ -159,7 +208,7 @@ HRESULT PMDCamera::InitializeBackgroundSubtraction()
 		{
 			curBgRow = &m_backgroundSubtractionData.means[y* PMDNUMCOLS];
 			curDataRow = &curFrame[y * PMDNUMCOLS];
-			
+
 			for(int x = 0; x < PMDNUMCOLS; x++)
 			{
 				if(curDataRow[x] == PMD_INVALID_DISTANCE) continue;
@@ -171,12 +220,12 @@ HRESULT PMDCamera::InitializeBackgroundSubtraction()
 			}
 		}
 	}
-	
+
 	// compute standard deviation for each frame
 	for (int i = 0; i < g_numFramesForBackgroundSubtraction; i++)
 	{
 		float* frame = frames[i];
-		
+
 		// fill the frame with data
 		float* curMeanRow = 0;
 		float* curStdevRow = 0;
@@ -304,9 +353,9 @@ void PMDCamera::Threshold(float maxDistance)
 {
 	float* pDepthData = (float*)m_pmdDistancesProcessed->imageData;
 	for (int y = 0; y < PMDNUMROWS; ++y)
-    {
+	{
 		for (int x = 0; x < PMDNUMCOLS; ++x, ++pDepthData)
-        {
+		{
 			if(*pDepthData > maxDistance) *pDepthData = PMD_INVALID_DISTANCE;
 		}
 	}
@@ -375,10 +424,10 @@ Point2f PMDCamera::FindFingerPosInterpolateBrightest(vector<Finger>::iterator f,
 {
 	f->lastTrackingMode = FINGER_TRACKING_INTERPOLATE_BRIGHTEST;
 	Point2f result(0,0);
-	
+
 	// make a copy of the intensities
 	float amplitudesCopy [PMDIMAGESIZE];
-		
+
 	memcpy(amplitudesCopy, m_pmdIntensitiesBuffer, PMDIMAGESIZE * sizeof(float));
 	// zero out everything that's not in the finger
 	// multiply amplitudes by distance to finger center
@@ -438,7 +487,7 @@ Point2f PMDCamera::FindFingerPosContours(vector<Finger>::iterator f, bool newFin
 	vector<Vec4i> hierarchy;
 	/// Detect edges using canny
 	Canny( fingerMask, canny_output, 0, 1, 3 );
-	
+
 	/// Find contour and hull (should only be 1)
 	findContours( canny_output, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
 
@@ -459,12 +508,15 @@ Point2f PMDCamera::FindFingerPosContours(vector<Finger>::iterator f, bool newFin
 	convexHull(Mat(contours[maxContourIndex]), hull, false);
 
 	Scalar color = Scalar( 0, 0, 255 );
-	
+
 	vector<vector<Point>> hullWrapper;
 	hullWrapper.push_back(hull);
 
 	Vec2f orientation = Vec2f(f->screenCoords - f->blobCenter);
-
+	Point2f center = Point2f(PMDNUMCOLS / 2, PMDNUMROWS / 2	);
+	Point2f topLeft = Point2f(PMDNUMCOLS, PMDNUMROWS);
+	Point2f topRight = Point2f(0, PMDNUMROWS);
+	
 	// if the hull is too round, then just use brightest point interpolation
 	float meanDst = 0;
 	for (int i = 0; i < hull.size(); i++)
@@ -479,21 +531,51 @@ Point2f PMDCamera::FindFingerPosContours(vector<Finger>::iterator f, bool newFin
 	}
 	stDevDst /= hull.size();
 	stDevDst = sqrt(stDevDst);
-	
 
 	vector<HullInfo> hullInfo;
+	vector<HullInfo> hullInfoInOppositeDirection;
 	for (int i = 0; i < hull.size(); i++)
 	{
 		HullInfo hi;
 		Vec2f v1 = Vec2f(Point2f(hull[i]) - f->blobCenter);
-		if(v1.dot(orientation) < 0) continue;
+
 		hi.pt = hull[i];
 		hi.dstBlobCenter = norm(Point2f(hull[i]) - f->blobCenter);
 		hi.dstFingerCenter = norm(Point2f(hull[i]) - f->screenCoords);
-		hullInfo.push_back(hi);
+		if(v1.dot(orientation) < 0){
+			hullInfoInOppositeDirection.push_back(hi);
+		} else
+		{
+			hullInfo.push_back(hi);
+		}
 	}
-	sort(hullInfo.begin(), hullInfo.end(), HullInfoCompareBlobDst);
 	int topN = 3;
+	//Mat debugImage = Mat(PMDNUMROWS, PMDNUMCOLS, CV_8UC3);
+	//debugImage.setTo(0);
+	//debugImage.setTo(Scalar(255,255,255), fingerMask);
+	//for (int i = 0; i < topN; i++)
+	//{
+	//	circle(debugImage, hullInfo[i].pt, 10, Scalar(0,255,0));
+	//}
+	//for (int i = 0; i < topN; i++)
+	//{
+	//	circle(debugImage, hullInfoInOppositeDirection[i].pt, 10, Scalar(0,0,255));
+	//}
+	//line(debugImage,center, f->blobCenter, Scalar(255, 255, 0));
+	//line(debugImage,topLeft, f->blobCenter, Scalar(0, 255, 0));
+	//line(debugImage,topRight, f->blobCenter, Scalar(255, 255, 255));
+	//flip(debugImage, debugImage, -1);
+	//if(f->id % 2 == 0)
+	//	imshow("debugeven", debugImage);
+	//else
+	//	imshow("debugodd", debugImage);
+
+	// if the orientation and the side the finger is on are in opposite directions, look at the points
+	// on finger orientation 
+	Point2f corner = f->blobCenter.x > PMDNUMCOLS / 2 ? topLeft : topRight;
+	hullInfo = orientation.dot(center - f->blobCenter) >= 0 || orientation.dot(corner - f->blobCenter) >= 0 ? hullInfo : hullInfoInOppositeDirection;
+	sort(hullInfo.begin(), hullInfo.end(), HullInfoCompareBlobDst);
+
 	if(hullInfo.size() > topN)
 		hullInfo.erase(hullInfo.begin() + topN, hullInfo.end());
 	sort(hullInfo.begin(), hullInfo.end(), HullInfoCompareFingerDst);
@@ -515,10 +597,10 @@ Point2f PMDCamera::FindFingerPosBrightest(vector<Finger>::iterator f, bool newFi
 {
 	f->lastTrackingMode = FINGER_TRACKING_BRIGHTEST;
 	Point2f result(0,0);
-	
+
 	// make a copy of the intensities
 	float amplitudesCopy [PMDIMAGESIZE];
-		
+
 	memcpy(amplitudesCopy, m_pmdIntensitiesBuffer, PMDIMAGESIZE * sizeof(float));
 	uchar* pFingerIdMask = m_fingerIdMask.ptr();
 	// zero out everything that's not in the finger
@@ -552,14 +634,14 @@ Point2f PMDCamera::GetFingerPositionScreenSpace(vector<Finger>::iterator f, bool
 {
 	switch(FingerTrackingMode)
 	{
-		case FINGER_TRACKING_BRIGHTEST:
-			return FindFingerPosBrightest(f, newFinger);
-		case FINGER_TRACKING_INTERPOLATE_BRIGHTEST:
-			return FindFingerPosInterpolateBrightest(f, newFinger);
-		case FINGER_TRACKING_INTERPOLATE_CLOSEST:
-			return FindFingerPosInterpolateClosest(f, newFinger);
-		case FINGER_TRACKING_CONTOURS:
-			return FindFingerPosContours(f, newFinger);
+	case FINGER_TRACKING_BRIGHTEST:
+		return FindFingerPosBrightest(f, newFinger);
+	case FINGER_TRACKING_INTERPOLATE_BRIGHTEST:
+		return FindFingerPosInterpolateBrightest(f, newFinger);
+	case FINGER_TRACKING_INTERPOLATE_CLOSEST:
+		return FindFingerPosInterpolateClosest(f, newFinger);
+	case FINGER_TRACKING_CONTOURS:
+		return FindFingerPosContours(f, newFinger);
 	}
 }
 
@@ -595,8 +677,9 @@ void PMDCamera::FindConnectedComponentsInDistanceImage()
 {
 	// threshold the current processed image
 	Mat thresholded;
-	threshold(Mat(m_pmdDistancesProcessed), thresholded, 0.0, 1.0, 0);
-	
+	//threshold(Mat(m_pmdDistancesProcessed), thresholded, 0.0, 1.0, THRESH_TOZERO);
+	threshold(Mat(m_pmdDistancesProcessed), thresholded, 0.0, 1.0, THRESH_BINARY);
+
 	// find the connected components, output to the matrix
 	m_nLabels = connectedComponents(m_connectedComponents, thresholded);
 }
@@ -641,7 +724,7 @@ void PMDCamera::FindBlobsInDistanceImage()
 			uchar* p = m_connectedComponents.ptr(row);
 			for(int col = 0; col < m_connectedComponents.cols; ++col, p++, pDistances++) {
 				if(*p-1 == i)
-				blobPoints[i].stDevDistances += pow(*pDistances - blobPoints[i].meanDistance,2) ;
+					blobPoints[i].stDevDistances += pow(*pDistances - blobPoints[i].meanDistance,2) ;
 			}
 		}
 		blobPoints[i].stDevDistances /= blobPoints[i].size;
@@ -740,13 +823,13 @@ void PMDCamera::UpdateFingerPositions()
 	{
 		// if the screen coordinates are invalid then the finger has just appeared
 		bool newFinger = j->screenCoords.x < 0;
-		
+
 		// find the finger position in screen space using info about the blog
 		Point2f fingerPos(0,0);
 
 		// First get the finger posisiton in screen space, then we will smooth the world coordinates
 		fingerPos = GetFingerPositionScreenSpace(j, newFinger);
-	
+
 		// smooth finger position screen space
 		if(newFinger)
 		{
@@ -791,7 +874,7 @@ void PMDCamera::UpdateFingerPositions()
 				}
 
 				numItems++;
-				
+
 			}
 		}
 		// if the world coordinates are invalid (numItems == 0), don't update the finger
@@ -802,7 +885,7 @@ void PMDCamera::UpdateFingerPositions()
 		world.y=  world.y * (1 / (float) numItems);
 		world.z = world.z * (1 / (float) numItems);
 
-		
+
 		// smooth world coords
 		if(newFinger)
 		{
@@ -833,11 +916,12 @@ void PMDCamera::UpdateFingers()
 	UpdateBackgroundSubtraction();
 	MedianFilter();
 	RemoveReflection();
+	//RemoveOutsidePhone();
 	PMDUtils::DistancesToImage((float*)m_pmdDistancesProcessed->imageData, m_pmdDistancesProcessedRGB);
 
 	FindConnectedComponentsInDistanceImage();
 	FindBlobsInDistanceImage();
-	
+
 	// copy all new fingers to old fingers
 	m_oldFingers.clear();
 	for(vector<Finger>::iterator i = m_newFingers.begin(); i !=m_newFingers.end(); i++)
@@ -846,7 +930,7 @@ void PMDCamera::UpdateFingers()
 	}
 
 	m_newFingers.clear();
-	
+
 	// associate fingers to blobs. new_fingers will be populated, blob point will be associated blob point, 
 	// screen coords are still the old screen coords
 	BlobsToFingers();
@@ -920,7 +1004,7 @@ void PMDCamera::FindBlobsInIntensityImage()
 	vector<KeyPoint> tmp;
 	PMDUtils::AmplitudesToImage(m_pmdIntensitiesBuffer, m_pmdIntensitiesRGB);
 	m_intensitiesBlobDetector->detect(m_pmdIntensitiesRGB, tmp);
-	
+
 	m_blobPointsIntensity.clear();
 	for(vector<KeyPoint>::iterator i = tmp.begin(); i < tmp.end(); i++)
 	{

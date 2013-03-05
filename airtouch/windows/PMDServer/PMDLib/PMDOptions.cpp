@@ -20,6 +20,7 @@ void PMDOptions::PrintHelp()
 PMDOptions PMDOptions::ParseArgs(int argc, char** argv)
 {
 	PMDOptions result;
+	result.backgroundSubtract = true;
 	int argi = 1;
 	bool fromCamera = true;
 	while(argc > argi)
@@ -36,6 +37,10 @@ PMDOptions PMDOptions::ParseArgs(int argc, char** argv)
 		} else if(strcmp(argv[argi], "--contours") == 0)
 		{
 			result.TrackingMode = FINGER_TRACKING_CONTOURS;
+		}
+		else if(strcmp(argv[argi], "--no-background-subtraction") == 0)
+		{
+			result.backgroundSubtract = false;
 		}
 		else  if(argi == argc - 1)
 		{

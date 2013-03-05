@@ -7,7 +7,7 @@
 //
 
 #import "xacCurve.h"
-#define LENGTH_CURVE 25
+#define LENGTH_CURVE 32
 
 @implementation xacCurve
 

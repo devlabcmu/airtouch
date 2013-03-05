@@ -20,7 +20,7 @@
 
 @property xacNetworkStreaming* stream;
 
-@property xacAirTouchProfile* atp;
+//@property xacAirTouchProfile* atp;
 @property xacData* airData;
 
 @property (strong, nonatomic) IBOutlet UIView *mainView;
