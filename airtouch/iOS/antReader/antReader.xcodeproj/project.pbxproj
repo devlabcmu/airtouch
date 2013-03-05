@@ -27,6 +27,7 @@
 		154BFE6916CAE11A00B4EFCF /* xacUIBehavior.m in Sources */ = {isa = PBXBuildFile; fileRef = 154BFE6816CAE11A00B4EFCF /* xacUIBehavior.m */; };
 		154BFE6C16CAE15C00B4EFCF /* xacUIFade.m in Sources */ = {isa = PBXBuildFile; fileRef = 154BFE6B16CAE15C00B4EFCF /* xacUIFade.m */; };
 		154BFE7016CB152900B4EFCF /* xacUIScroll.m in Sources */ = {isa = PBXBuildFile; fileRef = 154BFE6F16CB152900B4EFCF /* xacUIScroll.m */; };
+		15E43E5916E52DEB00228CBC /* xacTextSelection.m in Sources */ = {isa = PBXBuildFile; fileRef = 15E43E5816E52DEB00228CBC /* xacTextSelection.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -62,6 +63,8 @@
 		154BFE6D16CB0BF700B4EFCF /* xacConstants.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = xacConstants.h; sourceTree = "<group>"; };
 		154BFE6E16CB152900B4EFCF /* xacUIScroll.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xacUIScroll.h; sourceTree = "<group>"; };
 		154BFE6F16CB152900B4EFCF /* xacUIScroll.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = xacUIScroll.m; sourceTree = "<group>"; };
+		15E43E5716E52DEB00228CBC /* xacTextSelection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xacTextSelection.h; sourceTree = "<group>"; };
+		15E43E5816E52DEB00228CBC /* xacTextSelection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = xacTextSelection.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -170,6 +173,8 @@
 				154BFE6B16CAE15C00B4EFCF /* xacUIFade.m */,
 				154BFE6E16CB152900B4EFCF /* xacUIScroll.h */,
 				154BFE6F16CB152900B4EFCF /* xacUIScroll.m */,
+				15E43E5716E52DEB00228CBC /* xacTextSelection.h */,
+				15E43E5816E52DEB00228CBC /* xacTextSelection.m */,
 			);
 			name = UI;
 			sourceTree = "<group>";
@@ -252,6 +257,7 @@
 				154BFE6916CAE11A00B4EFCF /* xacUIBehavior.m in Sources */,
 				154BFE6C16CAE15C00B4EFCF /* xacUIFade.m in Sources */,
 				154BFE7016CB152900B4EFCF /* xacUIScroll.m in Sources */,
+				15E43E5916E52DEB00228CBC /* xacTextSelection.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
