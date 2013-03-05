@@ -3,7 +3,8 @@
 #include <iostream>
 #include <fstream>
 using namespace std;
-#define PHONE_ANDROID
+//#define PHONE_ANDROID
+#define PHONE_IPHONE
 
 #ifdef PHONE_ANDROID
 
