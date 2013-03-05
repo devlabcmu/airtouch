@@ -21,6 +21,7 @@ PMDOptions PMDOptions::ParseArgs(int argc, char** argv)
 {
 	PMDOptions result;
 	result.backgroundSubtract = true;
+	result.usbCommunicationForAndroid = false;
 	int argi = 1;
 	bool fromCamera = true;
 	while(argc > argi)
@@ -41,6 +42,10 @@ PMDOptions PMDOptions::ParseArgs(int argc, char** argv)
 		else if(strcmp(argv[argi], "--no-background-subtraction") == 0)
 		{
 			result.backgroundSubtract = false;
+		}
+		else if(strcmp(argv[argi], "--adb") == 0)
+		{
+			result.usbCommunicationForAndroid = true;
 		}
 		else  if(argi == argc - 1)
 		{

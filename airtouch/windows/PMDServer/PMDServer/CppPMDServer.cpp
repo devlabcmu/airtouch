@@ -208,6 +208,54 @@ bool communicateWithClient(SOCKET* hClient)
 	return result;
 }
 
+DWORD WINAPI doNetworkCommunicationForADB(LPVOID lpParam)
+{
+	WSADATA wsaData = {0};
+	WORD wVer = MAKEWORD(2,2);
+
+	// Step 1: initialize the socket
+	HRESULT hr = initWinsock(&wsaData, &wVer);
+	if(!SUCCEEDED(hr)) return -1;
+
+	
+
+	// JULIA Reversing the order...
+	sockaddr_in saServer = {0};
+	saServer.sin_family      = PF_INET;    
+	saServer.sin_port        = htons( 10000 );     
+	saServer.sin_addr.s_addr = inet_addr( "127.0.0.1" );
+
+
+	// listen for incoming connections until force kill
+	while( _stayAlive )
+	{
+		cout << "Connecting to Android on socket 10000..." << endl;
+
+		SOCKET hServer  = {0};
+		hServer = socket( AF_INET, SOCK_STREAM, IPPROTO_IP );
+		if( hServer == INVALID_SOCKET ) { 
+			cout << "Invalid socket, failed to create socket" << endl;
+			return -1;
+		} 
+		hr = connectSocket( &hServer, &saServer );  
+
+		int flag = 1;
+		hr = setsockopt(hServer, IPPROTO_TCP, TCP_NODELAY, (char*)&flag, sizeof(int));
+		if(!SUCCEEDED(hr)) return -1;
+
+		if(!SUCCEEDED(hr)) error("Error: Failed to get client connection");
+
+		_stayAlive = communicateWithClient(&hServer);
+		closesocket( hServer );
+		hServer = 0;
+	}
+	cout << "Shutting down the server" << endl;
+
+	// Release WinSock DLL 
+	hr = WSACleanup();
+	if( hr == SOCKET_ERROR ) cout << "Error: cleaning up Winsock Library" << endl;
+}
+
 DWORD WINAPI doNetworkCommunication(LPVOID lpParam)
 {
 	WSADATA wsaData = {0};
@@ -230,7 +278,6 @@ DWORD WINAPI doNetworkCommunication(LPVOID lpParam)
 	saListen.sin_family      = PF_INET;    
 	saListen.sin_port        = htons( 10000 );     
 	saListen.sin_addr.s_addr = htonl( INADDR_ANY );  
-	// bind socket's name 
 
 	int flag = 1;
 	hr = setsockopt(hSock, IPPROTO_TCP, TCP_NODELAY, (char*)&flag, sizeof(int));
@@ -247,6 +294,7 @@ DWORD WINAPI doNetworkCommunication(LPVOID lpParam)
 		// step 4: listen for a client 
 		SOCKET hClient;
 		hr = getClientConnection(&hSock, &hClient);
+		
 		if(!SUCCEEDED(hr)) error("Error: Failed to get client connection");
 
 		_stayAlive = communicateWithClient(&hClient);
@@ -292,7 +340,6 @@ int main(int argc, char* argv[])
 		hr = _pmdCamera.InitializeCameraFromFile(opts.FileName.c_str());
 		if(!SUCCEEDED(hr)) error("Error: failed to initialize PMD from file");
 	}
-
 	_phoneCalibration = _pmdCamera.GetPhoneCalibration();
 	_phoneCalibration->InitFromFile();
 
@@ -305,10 +352,15 @@ int main(int argc, char* argv[])
 
 	// start the network thread
 	cout << "Starting network thread..." << endl;
-	HANDLE networkThread = CreateThread(NULL, 0, doNetworkCommunication, NULL, 0, 0);
+	HANDLE networkThread;
+	if(opts.usbCommunicationForAndroid)
+	{
+		networkThread = CreateThread(NULL, 0, doNetworkCommunicationForADB, NULL, 0, 0);
+	} else
+	{
+		networkThread = CreateThread(NULL, 0, doNetworkCommunication, NULL, 0, 0);
+	}
 
-	cvNamedWindow("Server", CV_WINDOW_NORMAL);
-	cvResizeWindow("Server", PMDNUMCOLS, PMDNUMROWS);
 	while(_stayAlive)
 	{
 		// update data

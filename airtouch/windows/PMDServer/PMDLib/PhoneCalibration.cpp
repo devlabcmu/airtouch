@@ -40,6 +40,7 @@ using namespace std;
 
 #ifdef PHONE_IPHONE
 // calibration for iphone
+
 #define ORIGINX 0.0588f
 #define ORIGINY -0.0521f
 #define ORIGINZ 0.0973f
