@@ -1,5 +1,6 @@
 package edu.cmu.hcii.airtouchview;
 
+import java.sql.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -221,6 +222,8 @@ public class AirTouchView extends View implements PMDDataHandler {
 		{
 			canvas.drawText(_errorText, 20, 50, textPaintBrush);
 		}
+		canvas.drawText(String.format("pmd data fps: %.2f", _pmdFPS), 20, 70, defaultPaintBrush);
+		
 	}
 
 	@Override
@@ -354,13 +357,36 @@ public class AirTouchView extends View implements PMDDataHandler {
 
 
 	}
+	
+	long _lastPmdDataTime = 0;
+	float _pmdFPS = 0;
+	int _fpsCounter = 0;
+	long _pmdInterval = 0;
 
+	public void updateFPS()
+	{
+		long now = System.currentTimeMillis();
+		if(_lastPmdDataTime != 0){
+			_pmdInterval = (now - _lastPmdDataTime);
+			if(_pmdInterval > 1000)
+			{
+				_pmdFPS = _fpsCounter;
+				_fpsCounter = 0;
+				_lastPmdDataTime = now;
+			}
+		} else
+		{
+			_lastPmdDataTime = now;	
+		}
+		_fpsCounter++;
+	}
+	
 	@Override
 	public void NewPMDData(PMDSendData data) {
 		_dataFromServer = data;
 		updateRecentPoints();
+		updateFPS();
 		postInvalidate();
-		
 	}
 
 	@Override
