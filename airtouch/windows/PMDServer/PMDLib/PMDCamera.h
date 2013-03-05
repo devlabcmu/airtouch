@@ -86,6 +86,7 @@ public:
 	HRESULT InitializeCameraFromFile(const char* filename);
 	HRESULT UpdateCameraData();
 	HRESULT InitializeBackgroundSubtraction();
+	void InitializeLensParameters();
 
 
 	// OpenCV UI

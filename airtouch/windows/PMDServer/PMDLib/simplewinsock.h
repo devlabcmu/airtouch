@@ -44,8 +44,9 @@ HRESULT bindSocket(SOCKET* hSocket, sockaddr_in* socketInfo)
 HRESULT connectSocket(SOCKET* hSocket, sockaddr_in* socketInfo)
 {
 	HRESULT hr = connect( *hSocket, (sockaddr*)socketInfo, sizeof( sockaddr ) );  
-	if( hr == SOCKET_ERROR ) { 
-		cout << "Connection to server failed" << endl;
+	if( hr == SOCKET_ERROR ) {
+		
+		cout << "Connection to server failed err no:" << GetLastError()  << endl;
 		closesocket( *hSocket );
 		return -1;
 	} 

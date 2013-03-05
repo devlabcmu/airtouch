@@ -119,6 +119,11 @@ HRESULT PMDCamera::InitializeCamera()
 	//	return -1;
 	//}
 
+	InitializeLensParameters();
+}
+
+void PMDCamera::InitializeLensParameters()
+{
 	float fx = 104.119f;
 	float fy = 103.588f;
 	float cx = 81.9494f;
@@ -131,8 +136,6 @@ HRESULT PMDCamera::InitializeCamera()
 
 	m_cameraMatrix = (Mat_<float>(3,3) << fx, 0, cx, 0, fy, cy, 0, 0, 1);
 	m_distCoeffs = (Mat_<float>(5,1) << k1,k2,p1,p2,k3);
-	
-	return 0;
 }
 
 Point2f PMDCamera::WorldToScreenSpace(Point3f world)
@@ -159,7 +162,7 @@ HRESULT PMDCamera::InitializeCameraFromFile(const char* filename)
 	}
 
 	cout << "PMDCamera: opened sensor from file " << filename << endl;  
-
+	InitializeLensParameters();
 	return 0;
 }
 

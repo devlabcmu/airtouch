@@ -12,6 +12,7 @@ class PMDOptions
 public:
 	PMDFingerTrackingMode TrackingMode;
 	string FileName;
+	bool usbCommunicationForAndroid;
 	bool backgroundSubtract;
 	static PMDOptions ParseArgs(int argc, char** argv);
 	static void PrintHelp();
