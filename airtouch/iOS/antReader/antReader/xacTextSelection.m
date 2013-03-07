@@ -7,7 +7,7 @@
 //
 
 #import "xacTextSelection.h"
-#define TEXT_SEL_TIME_OUT 200
+#define TEXT_SEL_TIME_OUT 1000
 
 
 @implementation xacTextSelection
@@ -60,18 +60,29 @@ int counterTextSel = TEXT_SEL_TIME_OUT;
             {   NSLog(@"HIGH_UP"); _selectionEnabled = true;    }
             break;
         case TS_HIGH_UP:
-            
-            if(height < THRES_LOW) tmpState = TS_LOW_AGAIN;
+            [self dynmSelect];
+            if(height < MIN_HEIGHT * 1.5) tmpState = TS_LOW_AGAIN;
+            // maybe add a time out
             if(_textSelState != tmpState) NSLog(@"LOW_AGAIN");
             break;
         case TS_LOW_AGAIN:
 //            _selectionEnabled = true;
+            break;
         default:
             break;
     }
     
     _textSelState = tmpState;
     
+}
+
+- (void) dynmSelect
+{
+    float xEnd = _pntTouchSelStart.x + (xAir - _pntAirSelStart.x);
+    float yEnd = _pntTouchSelStart.y + (yAir - _pntAirSelStart.y) * 0.75;
+    xEnd = MIN(xEnd, WIDTH_SCREEN);
+//    NSLog(@"%f, %f", xEnd, yEnd);
+    [self selectText:CGPointMake(xEnd, yEnd)];
 }
 
 - (void) initSelection :(UITextView*) textView
@@ -87,8 +98,10 @@ int counterTextSel = TEXT_SEL_TIME_OUT;
     _selectionEnabled = false;
     [_textView selectAll:_textView];
     [_textView setSelectedTextRange:nil];
-    _headSelection = [_textView closestPositionToPoint:pntTouch];
+    _pntTouchSelStart = pntTouch;
+    _headSelection = [_textView closestPositionToPoint:_pntTouchSelStart];
             _textSelState = TS_DEFAULT;
+    _pntAirSelStart = CGPointMake(xAir, yAir);
     counterTextSel = 0;
 }
 
@@ -96,18 +109,8 @@ int counterTextSel = TEXT_SEL_TIME_OUT;
 {
     if(_selectionEnabled)
     {
-        UITextPosition* endSelection = [_textView closestPositionToPoint:pntTouch];
-        UITextRange* rangeSelection = [_textView textRangeFromPosition: _headSelection toPosition:endSelection];
-        
-        int posStart = [_textView offsetFromPosition:_textView.beginningOfDocument
-                                            toPosition:rangeSelection.start];
-        int posEnd = [_textView offsetFromPosition:_textView.beginningOfDocument
-                                          toPosition:rangeSelection.end];
-        
-    //    NSLog(@"%d, %d", posStart, posEnd);
-        [_textView setSelectedTextRange:rangeSelection];
-//        NSLog(@"%@", [_textView textInRange:rangeSelection]);
-        
+        [self selectText:pntTouch];
+        NSLog(@"selection confirmed");
 
     }
     else
@@ -117,6 +120,22 @@ int counterTextSel = TEXT_SEL_TIME_OUT;
     
     _textSelState = TS_DEFAULT;
     counterTextSel = 0;
+}
+
+- (void) selectText: (CGPoint) pntTouch
+{
+    UITextPosition* endSelection = [_textView closestPositionToPoint:pntTouch];
+    UITextRange* rangeSelection = [_textView textRangeFromPosition: _headSelection toPosition:endSelection];
+    
+//    int posStart = [_textView offsetFromPosition:_textView.beginningOfDocument
+//                                      toPosition:rangeSelection.start];
+//    int posEnd = [_textView offsetFromPosition:_textView.beginningOfDocument
+//                                    toPosition:rangeSelection.end];
+    
+    //    NSLog(@"%d, %d", posStart, posEnd);
+    [_textView setSelectedTextRange:rangeSelection];
+    //        NSLog(@"%@", [_textView textInRange:rangeSelection]);
+
 }
 
 - (BOOL) isTimeOut

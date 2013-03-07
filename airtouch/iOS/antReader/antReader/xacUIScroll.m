@@ -141,7 +141,7 @@ int dirScroll = 0;
 
 
 float rateBase = 0;
-float stopHeight = 0;
+float minScrollOffset = 0;
 float offsetScroll = 0;
 
 - (void) manuallyScroll
@@ -156,7 +156,7 @@ float offsetScroll = 0;
     {
         _scrollEnabled = NO;
         counter = 0;
-        stopHeight = 0;
+        minScrollOffset = 0;
     }
     
     float bottomEdge = _scrollView.contentOffset.y + _scrollView.frame.size.height;
@@ -164,21 +164,21 @@ float offsetScroll = 0;
 //        NSLog(@"reach end!");
         _scrollEnabled = NO;
         counter = 0;
-        stopHeight = 0;
+        minScrollOffset = 0;
     }
     
    if(counter >= TIME_OUT)
     {
         _scrollEnabled = NO;
         counter = 0;
-        stopHeight = 0;
+        minScrollOffset = 0;
     }
     
     if(height > MAX_HEIGHT * 2)
     {
         _scrollEnabled = NO;
         counter = 0;
-        stopHeight = 0;
+        minScrollOffset = 0;
         return;
     }
     
@@ -188,7 +188,7 @@ float offsetScroll = 0;
         {
             _scrollEnabled = NO;
             counter = 0;
-            stopHeight = 0;
+            minScrollOffset = 0;
         }
     }
     
@@ -198,25 +198,27 @@ float offsetScroll = 0;
         scrollHeight = pntOffset.y;
 //        float tmpScroll = rateBase * height / MAX_HEIGHT;
 //        offsetScroll = offsetScroll * 0.9 + tmpScroll * 0.1;
-        offsetScroll = rateBase * height / MAX_HEIGHT;
+        offsetScroll = rateBase * (height - MIN_HEIGHT) / (MAX_HEIGHT - MIN_HEIGHT);
+        offsetScroll = MAX(0, offsetScroll);
+        offsetScroll = MIN(offsetScroll, rateBase);
         
-        if(offsetScroll <= stopHeight)
+        if(offsetScroll <= minScrollOffset)
         {
             offsetScroll = 0;
             counter++;
-            stopHeight *= 0.9;
+            minScrollOffset *= 0.9;
         }
         else
         {
-//            stopHeight *= 1.1;
-//            stopHeight = stopHeight > rateBase / 2 ? stopHeight : stopHeight * 1.01;
+//            minScrollOffset *= 1.1;
+//            minScrollOffset = minScrollOffset > rateBase / 2 ? minScrollOffset : minScrollOffset * 1.01;
             
             
             float rate = 0.9;
-            stopHeight = stopHeight * rate + offsetScroll * (1 - rate);
+            minScrollOffset = minScrollOffset * rate + offsetScroll * (1 - rate);
             
             offsetScroll *= dirScroll;//thisY > HEIGHT_SCREEN * 0.75 ? -1 : 1;
-            NSLog(@"%@", [NSString stringWithFormat:@"%f, %f, %f", stopHeight, offsetScroll, thisY]);
+//            NSLog(@"%@", [NSString stringWithFormat:@"%f, %f, %f", minScrollOffset, offsetScroll, thisY]);
             scrollHeight += offsetScroll;
             CGPoint bottomOffset = CGPointMake(0, scrollHeight);
             dispatch_async(dispatch_get_main_queue(), ^{

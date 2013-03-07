@@ -74,6 +74,9 @@ void mouse_callback(int event, int x, int y, int flags, void* param)
 	{
 		IplImage* image = (IplImage*) param;
 		Point3f p = _pmdCamera.GetCoord(image->height -y, image->width - x);
+		cout << "image :" << image->height << " " << image->width << endl;
+		Point2f pscreen = _pmdCamera.WorldToScreenSpace(p);
+		fprintf(stdout, "mouse: (%d, %d), screen: (%.2f, %.2f), world:(%.4f,%.4f,%.4f)\n",  x, y, pscreen.x, pscreen.y, p.x, p.y, p.z);
 		string definestr;
 		PhoneCalibrationCoordToDefineString(_phoneCalibrationStage, definestr);
 		fprintf(stdout, "#define %sX %.4ff\n#define %sY %.4ff\n#define %sZ %.4ff\n\n",definestr.c_str(), p.x, definestr.c_str(),  p.y,definestr.c_str(),  p.z);

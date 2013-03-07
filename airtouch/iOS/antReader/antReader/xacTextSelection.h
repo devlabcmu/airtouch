@@ -8,6 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import "xacUIBehavior.h"
+#import "xacConstants.h"
 
 #define THRES_HIGH_UP   0.040
 #define THRES_LOW       0.030
