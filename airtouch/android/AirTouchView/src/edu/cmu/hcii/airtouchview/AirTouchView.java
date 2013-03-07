@@ -195,24 +195,19 @@ public class AirTouchView extends View implements PMDDataHandler {
 		} else
 		{
 			
-//			for (Entry<Integer, LinkedList<PMDFinger>> paths : gestureBuffers.entrySet()) {
-			for (Entry<Integer, Vector<Point>> paths : _airTouchRecognizer.getDollarPoints().entrySet()) {
+			for (Entry<Integer, LinkedList<PMDFinger>> paths : gestureBuffers.entrySet()) {
 				gesturePath.reset();
 				TouchType type = paths.getKey() % 2 == 0 ? TouchType.AIR_MOVE1 : TouchType.AIR_MOVE2;
 				
 				boolean first = true;
-				for (Point p : paths.getValue()) {
-//					PMDFinger screenSpace = phoneToScreen(p);
+				for (PMDFinger p : paths.getValue()) {
+					PMDFinger screenSpace = phoneToScreen(p);
 					if(first){
 						first = false;
-//						Log.v(TAG, "moveTo " + screenSpace.x + ", " + screenSpace.y);
-//						gesturePath.moveTo(screenSpace.x, screenSpace.y);
-						gesturePath.moveTo((float)p.X, (float)p.Y);
+						gesturePath.moveTo(screenSpace.x, screenSpace.y);
 					} else
 					{
-//						Log.v(TAG, "lineTo " + screenSpace.x + ", " + screenSpace.y);
-//						gesturePath.lineTo(screenSpace.x, screenSpace.y);
-						gesturePath.lineTo((float)p.X,(float) p.Y);
+						gesturePath.lineTo(screenSpace.x, screenSpace.y);
 					}
 				}
 				paintBrushes.get(type).setAlpha(255);
@@ -281,6 +276,7 @@ public class AirTouchView extends View implements PMDDataHandler {
 			performClick();
 			type = AirTouchPoint.TouchType.TOUCH_UP;
 			_airTouchRecognizer.onTouchUp(event);
+			postInvalidateDelayed(AirTouchRecognizer.AFTER_TOUCH_TIMEOUT_MS * 2);
 			break;
 		case MotionEvent.ACTION_MOVE:
 			type = AirTouchPoint.TouchType.TOUCH_MOVE;
@@ -312,7 +308,7 @@ public class AirTouchView extends View implements PMDDataHandler {
 			}
 
 		}
-		invalidate();
+		postInvalidate();
 		return true;
 
 	}

@@ -79,12 +79,17 @@ public class AirTouchRecognizer implements PMDDataHandler {
 				lst.add(new PMDFinger(data.fingers[i]));
 			}			
 		}
+		if(m_airTouchType == AirTouchType.AFTER_TOUCH && System.currentTimeMillis() - m_lastTouchUpMs > AFTER_TOUCH_TIMEOUT_MS && m_gestureBuffer.isEmpty())
+		{
+			copyRollingToGestureBuffer();
+		}
 	}
 	
 	public void clear()
 	{
 		Log.v(LOG_TAG, "clearing rolling buffer");
 		m_rollingBuffer.clear();
+		clearGestures();
 		
 	}
 	
@@ -103,12 +108,13 @@ public class AirTouchRecognizer implements PMDDataHandler {
 		long now = System.currentTimeMillis();
 		switch(m_airTouchType){
 		case AFTER_TOUCH:
-			// do nothing
+			clearGestures();
 			break;
 		case BEFORE_TOUCH:
 			copyRollingToGestureBuffer();
 			break;
 		case BETWEEN_TOUCHES:
+			clearGestures();
 			long dt =now - m_lastTouchUpMs; 
 			if(dt < BETWEEN_TOUCH_TIMEOUT_MS){
 				copyRollingToGestureBuffer();
@@ -122,21 +128,19 @@ public class AirTouchRecognizer implements PMDDataHandler {
 	
 	public void onTouchUp(MotionEvent e)
 	{
-		m_lastTouchUpMs = System.currentTimeMillis();
 		clear();
-		if(m_airTouchType == AirTouchType.AFTER_TOUCH)
+		m_lastTouchUpMs = System.currentTimeMillis();
+		
+		
+	}
+	
+	private void clearGestures()
+	{
+		synchronized(m_bufferLock)
 		{
-			TimerTask tt = new TimerTask(){
-
-				@Override
-				public void run() {
-					// TODO Auto-generated method stub
-					copyRollingToGestureBuffer();
-				}
-				
-			};
-			Timer t = new Timer();
-			t.schedule(tt, AFTER_TOUCH_TIMEOUT_MS);
+			m_gestureBuffer.clear();
+			m_gestureResults.clear();
+			m_dollarPoints.clear();
 		}
 	}
 	
