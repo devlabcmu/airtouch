@@ -90,14 +90,17 @@ int heightScreen = -1;
 }
 
 float yStartScrolling = -1;
+float tScroll = 0;
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
 {
+    
+    CGPoint pntOffset = [_textView.layer.presentationLayer bounds].origin;
+    yStartScrolling = pntOffset.y;
+    tScroll = 0;
+    
     dispatch_async(dispatch_get_main_queue(), ^{
         [self sendSensorInfoToServer];
     });
-    CGPoint pntOffset = [_textView.layer.presentationLayer bounds].origin;
-    yStartScrolling = pntOffset.y;
-    
 
 }
 //
@@ -108,7 +111,11 @@ float yStartScrolling = -1;
 //    NSLog(@"drag");
     CGPoint pntOffset = [_textView.layer.presentationLayer bounds].origin;
     float dirScroll = pntOffset.y - yStartScrolling;
-    [_uiScroll startScrolling :dirScroll];
+//    NSLog(@"%f", dirScroll / (tScroll + 1));
+//    NSLog(@"%f", tScroll);
+    float thresScrollTime = 10;
+    if(tScroll < thresScrollTime) [_uiScroll startScrolling :dirScroll];
+    else NSLog(@"%f", tScroll);
     dispatch_async(dispatch_get_main_queue(), ^{
         [self sendSensorInfoToServer];
         [_uiScroll manuallyScroll];
@@ -120,9 +127,12 @@ float yStartScrolling = -1;
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
 //    if(!_uiScroll.scrollEnabled) [_uiScroll startScrolling:<#(float)#>]
+
+    tScroll++;
     dispatch_async(dispatch_get_main_queue(), ^{
         [self sendSensorInfoToServer];
     });
+    
 }
 
 bool selectionStarted = false;
@@ -299,27 +309,27 @@ UITextPosition* headSelection = nil;
 //    [_textView setContentOffset:bottomOffset animated:YES];
     
     // Get current selected range , this example assumes is an insertion point or empty selection
-    UITextRange *selectedRange = [_textView selectedTextRange];
-    
-      
-    // Calculate the new position, - for left and + for right
-    UITextPosition *newPosition = [_textView positionFromPosition:selectedRange.start offset:150];
-    
-    // Construct a new range using the object that adopts the UITextInput, our textfield
-    UITextRange *newRange = [_textView textRangeFromPosition:selectedRange.start toPosition:newPosition];
-    
-    int posStart = [_textView offsetFromPosition:_textView.beginningOfDocument
-                            toPosition:newRange.start];
-    int posEnd = [_textView offsetFromPosition:_textView.beginningOfDocument
-                                        toPosition:newRange.end];
-    
-    NSLog(@"%d, %d", posStart, posEnd);
-    
-    // Set new range
-    [_textView setSelectedTextRange:newRange];
-    
-    [_textView selectAll:self];
-    [_textView select:_textView.selectedTextRange];
+//    UITextRange *selectedRange = [_textView selectedTextRange];
+//    
+//      
+//    // Calculate the new position, - for left and + for right
+//    UITextPosition *newPosition = [_textView positionFromPosition:selectedRange.start offset:150];
+//    
+//    // Construct a new range using the object that adopts the UITextInput, our textfield
+//    UITextRange *newRange = [_textView textRangeFromPosition:selectedRange.start toPosition:newPosition];
+//    
+//    int posStart = [_textView offsetFromPosition:_textView.beginningOfDocument
+//                            toPosition:newRange.start];
+//    int posEnd = [_textView offsetFromPosition:_textView.beginningOfDocument
+//                                        toPosition:newRange.end];
+//    
+//    NSLog(@"%d, %d", posStart, posEnd);
+//    
+//    // Set new range
+//    [_textView setSelectedTextRange:newRange];
+//    
+//    [_textView selectAll:self];
+//    [_textView select:_textView.selectedTextRange];
 }
 
 //-(void)handleSwipeFrom:(UISwipeGestureRecognizer *)recognizer {

@@ -72,18 +72,8 @@ bool doGestureRecognition = true;
     [_curveView setBackgroundColor: [UIColor colorWithRed:255 green:255 blue:255 alpha:0]];
     
     
-    _recognizer = [[GLGestureRecognizer alloc] init];
-	NSData *jsonData = [NSData dataWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"Gestures" ofType:@"json"]];
     
-    BOOL ok;
-	NSError *error;
-	ok = [_recognizer loadTemplatesFromJsonData:jsonData error:&error];
-	if (!ok)
-	{
-		NSLog(@"Error loading gestures: %@", error);
-//		self.caption = @"Error loading gestures.";
-		return;
-	}
+    
     
     _imageRoll = [[xacImageRoll alloc] init];
     _imageRoll.images = [@[@"calgary00.jpg",

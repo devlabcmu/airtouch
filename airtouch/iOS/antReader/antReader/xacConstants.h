@@ -11,8 +11,8 @@
 
 #define WIDTH_SCREEN    320
 #define HEIGHT_SCREEN   568
-#define MAX_HEIGHT 0.08
-
+#define MAX_HEIGHT 0.080
+#define MIN_HEIGHT 0.005
 
 
 #endif
