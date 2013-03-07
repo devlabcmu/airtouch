@@ -21,6 +21,8 @@
 #import <sys/sysctl.h>
 #include <time.h>
 
+#define DO_DEBUG        FALSE
+
 @interface xacNetworkStreaming : NSObject
 
 @property bool isConnected;

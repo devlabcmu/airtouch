@@ -192,7 +192,7 @@ long cntFrames;
 //                    NSString *dataStr = [NSString stringWithFormat:@"%f, %f, %f", _atp.caliX, _atp.caliY, _atp.caliZ];
 //                    NSString *dataStr = [NSString stringWithFormat:@"%f, %f, %f, %f", _atp.rawXMin, xFloat, _atp.rawXMax, _atp.caliX];
                     NSString *dataStr = [NSString stringWithFormat:@"%d, %f, %f, %f", idData, xFloat, yFloat, zFloat];
-//                    NSLog(@"%@", dataStr);
+                    if(DO_DEBUG) NSLog(@"%@", dataStr);
                     
                     double now = CACurrentMediaTime();
                     cntFrames++;
