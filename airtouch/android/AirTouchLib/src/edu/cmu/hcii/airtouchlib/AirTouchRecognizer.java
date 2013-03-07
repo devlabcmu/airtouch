@@ -18,7 +18,7 @@ import android.view.MotionEvent;
 import edu.cmu.hcii.airtouchlib.SendReceiveTask.PMDSendData;
 
 @SuppressLint("UseSparseArrays")
-public class AirTouchRecognizer implements PMDDataHandler {
+public abstract class AirTouchRecognizer implements PMDDataHandler {
 
 	// Constants
 	public static final long BETWEEN_TOUCH_TIMEOUT_MS = 1000;
@@ -34,20 +34,15 @@ public class AirTouchRecognizer implements PMDDataHandler {
 	// Properties
 	private AirTouchType m_airTouchType;
 	private long m_bufferDurationMs;
-	private double m_screenWidth;
-	private double m_screenHeight;
+	protected double m_screenWidth;
+	protected double m_screenHeight;
 	
 	// Points
 	private Map<Integer, LinkedList<PMDFinger>> m_rollingBuffer = new HashMap<Integer, LinkedList<PMDFinger>>();
-	private Map<Integer, LinkedList<PMDFinger>> m_gestureBuffer = new HashMap<Integer, LinkedList<PMDFinger>>();
+	protected Map<Integer, LinkedList<PMDFinger>> m_gestureBuffer = new HashMap<Integer, LinkedList<PMDFinger>>();
 	Object m_bufferLock = new Object();
 
 	private long m_lastTouchUpMs;
-	
-	// Gestures
-	DollarRecognizer m_dollarRecognizer = new DollarRecognizer(DollarRecognizer.GESTURES_SIMPLE);
-	Map<Integer, Vector<Point>> m_dollarPoints = new HashMap<Integer, Vector<Point>>();
-	Map<Integer, Result> m_gestureResults = new HashMap<Integer, Result>();
 	
 	public AirTouchRecognizer(long bufferDuration, AirTouchType type) {
 		m_bufferDurationMs = bufferDuration;
@@ -89,7 +84,7 @@ public class AirTouchRecognizer implements PMDDataHandler {
 	{
 		Log.v(LOG_TAG, "clearing rolling buffer");
 		m_rollingBuffer.clear();
-		clearGestures();
+		clearGestureBuffer();
 		
 	}
 	
@@ -108,13 +103,13 @@ public class AirTouchRecognizer implements PMDDataHandler {
 		long now = System.currentTimeMillis();
 		switch(m_airTouchType){
 		case AFTER_TOUCH:
-			clearGestures();
+			clearGestureBuffer();
 			break;
 		case BEFORE_TOUCH:
 			copyRollingToGestureBuffer();
 			break;
 		case BETWEEN_TOUCHES:
-			clearGestures();
+			clearGestureBuffer();
 			long dt =now - m_lastTouchUpMs; 
 			if(dt < BETWEEN_TOUCH_TIMEOUT_MS){
 				copyRollingToGestureBuffer();
@@ -134,52 +129,42 @@ public class AirTouchRecognizer implements PMDDataHandler {
 		
 	}
 	
-	private void clearGestures()
+	private void clearGestureBuffer()
 	{
 		synchronized(m_bufferLock)
 		{
 			m_gestureBuffer.clear();
-			m_gestureResults.clear();
-			m_dollarPoints.clear();
+			
 		}
+		
 	}
+	protected abstract void clearGestureData();
+		
 	
 	private void copyRollingToGestureBuffer()
 	{
+		clearGestureBuffer();
 		synchronized(m_bufferLock)
 		{
 			Log.v(LOG_TAG, "copying rolling points to gesture buffer, rolling size is " + m_rollingBuffer.entrySet().size());
 			m_gestureBuffer.clear();
-			m_dollarPoints.clear();
-			m_gestureResults.clear();
 			for (Entry<Integer, LinkedList<PMDFinger>> path : m_rollingBuffer.entrySet()) 
 			{
 				
 				m_gestureBuffer.put(path.getKey(), new LinkedList<PMDFinger>(path.getValue()));
-				
-				// to do: perform the recognition in screen space???
-				Vector<Point> newpts = new Vector<Point>();
-				
-				for (PMDFinger f : path.getValue()) {
-//					Log.v(LOG_TAG, "width is " + m_screenWidth + " height " + m_screenHeight + " adding for dollar: " + f.x  + ", " + f.z );
-					newpts.add(new Point(f.x * m_screenWidth, f.z * m_screenHeight));
-				}
-				m_gestureResults.put(path.getKey(), m_dollarRecognizer.Recognize(newpts));
-				m_dollarPoints.put(path.getKey(), newpts);
 			}
 		}
+		recognize();
 	}
 	
-	public Map<Integer, Result> getGestureResults()
-	{
-		return m_gestureResults;
-	}
 	
-	public Map<Integer, Vector<Point>> getDollarPoints()
-	{
-		return m_dollarPoints;
-	}
+	/** 
+	 * override for custome gestures
+	 */
+	protected abstract void recognize();
 	
+	
+
 	public long getBufferDurationMs() {
 		return m_bufferDurationMs;
 	}
