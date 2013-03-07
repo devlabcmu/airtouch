@@ -81,7 +81,7 @@ public class SendReceiveTask extends AsyncTask<Void, Void, Boolean>
 		if(!succeeded) {
 			// todo: update UI somehow with an error
 			for (PMDDataHandler handler : _handlers) 
-				handler.OnSendReceiveTaskFailed("ERROR: couldn't communicate with server. Please go back and try again.");	
+				handler.onSendReceiveTaskFailed("ERROR: couldn't communicate with server. Please go back and try again.");	
 			
 			// this.airTouchView._errorText = "ERROR: couldn't communicate with server. Please go back and try again.";
 			// this.airTouchView.postInvalidate();
@@ -89,7 +89,7 @@ public class SendReceiveTask extends AsyncTask<Void, Void, Boolean>
 			return;
 		}
 		for (PMDDataHandler handler : _handlers) 
-			handler.NewPMDData(_dataFromServer);
+			handler.newPMDData(_dataFromServer);
 	}
 	
 	//
@@ -106,7 +106,7 @@ public class SendReceiveTask extends AsyncTask<Void, Void, Boolean>
 	public void updatePMDData(byte[] in)
 	{
 		
-
+		long now = System.currentTimeMillis();
 		for (int i = 0; i < _dataFromServer.fingers.length; i++) 
 		{
 			_dataFromServer.fingers[i] = new PMDFinger();
@@ -114,6 +114,7 @@ public class SendReceiveTask extends AsyncTask<Void, Void, Boolean>
 			_dataFromServer.fingers[i].x = getFloatInByteArray(in, i * 16 + 4);
 			_dataFromServer.fingers[i].y = getFloatInByteArray(in, i * 16 + 8);
 			_dataFromServer.fingers[i].z = getFloatInByteArray(in, i * 16 + 12);
+			_dataFromServer.fingers[i].timestamp = now;
 		}
 		
 		if(!_getOnlyFingerData)
@@ -123,8 +124,8 @@ public class SendReceiveTask extends AsyncTask<Void, Void, Boolean>
 			}	
 		}
 		
-		_dataFromServer.timestamp = System.currentTimeMillis();
-
+		_dataFromServer.timestamp = now;
+		
 		if(OUTPUT_BITS_DEBUG){
 			// if we want we can output the raw bits of the finger x, y, z positions.
 			for (int i = 0; i < 3; i++) {
