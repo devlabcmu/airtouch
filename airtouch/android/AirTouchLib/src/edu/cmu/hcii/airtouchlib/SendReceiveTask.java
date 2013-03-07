@@ -1,8 +1,10 @@
 package edu.cmu.hcii.airtouchlib;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
-import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -15,20 +17,27 @@ public class SendReceiveTask extends AsyncTask<Void, Void, Boolean>
 	public class PMDSendData {
 		public PMDFinger[] fingers = new PMDFinger[2]; 
 		public float[] buffer = new float[PMDConstants.PMD_IMAGE_SIZE]; // 19800 * 4 bytes
+		public long timestamp;
 	}
 	
 
 	private final PMDServerConnection _server;
-	private final PMDDataHandler _handler;
+	private final List<PMDDataHandler> _handlers = new ArrayList<PMDDataHandler>();
 	private boolean _getOnlyFingerData;
 	static final boolean OUTPUT_BITS_DEBUG = false;
 	private PMDSendData _dataFromServer = new PMDSendData();
 	
-	public SendReceiveTask(PMDServerConnection server, PMDDataHandler handler, boolean fingersOnly) {
+	public SendReceiveTask(PMDServerConnection server, boolean fingersOnly, PMDDataHandler ... handlers) {
 		this._server = server;
-		_handler = handler;
+		for(int i = 0; i < handlers.length; i++)
+			addHandler(handlers[i]);
 		_getOnlyFingerData = fingersOnly;
 		_dataFromServer = new PMDSendData();
+	}
+	
+	public void addHandler(PMDDataHandler handler)
+	{
+		_handlers.add(handler);
 	}
 	@Override
 	protected void onPreExecute() {
@@ -71,13 +80,16 @@ public class SendReceiveTask extends AsyncTask<Void, Void, Boolean>
 		// if we failed, then we should disconnect and go back to the home page
 		if(!succeeded) {
 			// todo: update UI somehow with an error
-			_handler.OnSendReceiveTaskFailed("ERROR: couldn't communicate with server. Please go back and try again.");
+			for (PMDDataHandler handler : _handlers) 
+				handler.OnSendReceiveTaskFailed("ERROR: couldn't communicate with server. Please go back and try again.");	
+			
 			// this.airTouchView._errorText = "ERROR: couldn't communicate with server. Please go back and try again.";
 			// this.airTouchView.postInvalidate();
 			new DisconnectTask(_server).execute();
 			return;
 		}
-		_handler.NewPMDData(_dataFromServer);
+		for (PMDDataHandler handler : _handlers) 
+			handler.NewPMDData(_dataFromServer);
 	}
 	
 	//
@@ -111,6 +123,7 @@ public class SendReceiveTask extends AsyncTask<Void, Void, Boolean>
 			}	
 		}
 		
+		_dataFromServer.timestamp = System.currentTimeMillis();
 
 		if(OUTPUT_BITS_DEBUG){
 			// if we want we can output the raw bits of the finger x, y, z positions.

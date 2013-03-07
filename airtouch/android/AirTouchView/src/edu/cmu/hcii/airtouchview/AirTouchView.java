@@ -303,7 +303,7 @@ public class AirTouchView extends View implements PMDDataHandler {
 		// begin sending and receiving data
 		TimerTask task = new TimerTask() {
             public void run() {
-                new SendReceiveTask(_connection, me, _getOnlyFingerData).execute();
+                new SendReceiveTask(_connection, _getOnlyFingerData, me).execute();
                 
             }
         };
