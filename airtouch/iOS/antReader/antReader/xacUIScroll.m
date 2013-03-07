@@ -47,115 +47,6 @@ float height = -1;
     lastY2 = thisY;
     rate *= 0.99;
     height = z;
-//    float xEngagement = fabs(x - WIDTH_SCREEN / 2) / (WIDTH_SCREEN / 2 * THRS_WIDTH_RATIO);
-//    float yEngagement = fabs(y - HEIGHT_SCREEN / 2) / (HEIGHT_SCREEN / 2 * THRS_HEIGHT_RATIO);
-//    
-//    if( z > MAX_HEIGHT || z <= 0)
-//    {
-//        lastY = thisY;
-////        NSLog(@"reset");
-//        return;
-//    }
-//    
-//// = [NSString stringWithFormat:@"unknown, %f", z];
-//
-//    
-//    
-//    if(counter > 0)
-//    {
-//        counter--;
-//        return;
-//    }
-//    
-//    switch (_scrollState) {
-//        case DEFAULT:
-//            strState = [NSString stringWithFormat:@"default, %f", z];
-//            counter = 0;
-//            rate = 0;
-//            if(0 < z && z <= thrsLow)
-//            {
-//                tmpScrollState = LOW;
-//
-//                strState = [NSString stringWithFormat:@"low, %f", z];
-//                
-//            }
-//            break;
-//        case LOW:
-//                            rate += 1;
-////            [self manuallyScroll:30];
-//            if(thrsLow < z && z <= thrsHight)
-//            {
-//                tmpScrollState = MIDDLE;
-//                rate = 0;
-//                strState = [NSString stringWithFormat:@"middle, %f", z];
-//
-//            }
-//            break;
-//        case MIDDLE:
-//            if(0 < z && z <= thrsLow)
-//            {
-//                tmpScrollState = LOW;
-//
-//                strState = [NSString stringWithFormat:@"low, %f", z];
-//                
-//            }
-//            if(thrsHight < z)
-//            {
-//                tmpScrollState = HIGH;
-////                rate = 50;
-//                strState = [NSString stringWithFormat:@"high, %f", z];
-//            }
-//            break;
-//        case HIGH:
-//            if(rate < 50)
-//            {
-//                rate += 2;
-//            }
-////            [self manuallyScroll:90];
-//            if(0 < z && z <= (thrsLow + thrsHight) / 2)
-//            {
-//                tmpScrollState = LOW_AGAIN;
-//                rate = 0;
-//                strState = [NSString stringWithFormat:@"low again, %f", z];
-//            }
-//            break;
-//        case LOW_AGAIN:
-//            counter = TIME_OUT;
-//            tmpScrollState = DEFAULT;
-//            strState = [NSString stringWithFormat:@"default, %f", z];
-//            break;
-//        default:
-//            strState = [NSString stringWithFormat:@"default, %f", z];
-////            tmpScrollState = DEFAULT;
-//            break;
-//    }
-//    
-//    if(tmpScrollState != _scrollState)
-//    {
-//        _scrollState = tmpScrollState;
-////        counter = 0;
-//        NSLog(@"%@", [NSString stringWithFormat:@"%ld, %@", counter, strState]);
-//    }
-////    else if(_scrollState != DEFAULT)
-////    {
-////        NSLog(@"%@", strState);
-////    }
-//    
-//    tmpScrollState = _scrollState;
-//    
-////    if(_scrollState != DEFAULT && counter < TIME_OUT)
-////    {
-////        counter++;
-////        if(counter >= TIME_OUT)
-////        {
-////            _scrollState = DEFAULT;
-////            NSLog(@"time out!");
-////            NSLog(@"");
-////            NSLog(@"");
-////            NSLog(@"");
-////                  
-////        }
-////    }
 }
 
 -(void) printState
@@ -255,10 +146,26 @@ float offsetScroll = 0;
 
 - (void) manuallyScroll
 {
-//    if(height < MAX_HEIGHT / 10)
-//    {
-//        return;
-//    }
+    [self doManuallyScroll1];
+}
+
+- (void) doManuallyScroll1
+{
+    float topEdge = _scrollView.contentOffset.y;
+    if(topEdge <= 0)
+    {
+        _scrollEnabled = NO;
+        counter = 0;
+        stopHeight = 0;
+    }
+    
+    float bottomEdge = _scrollView.contentOffset.y + _scrollView.frame.size.height;
+    if (bottomEdge >= _scrollView.contentSize.height) {
+//        NSLog(@"reach end!");
+        _scrollEnabled = NO;
+        counter = 0;
+        stopHeight = 0;
+    }
     
    if(counter >= TIME_OUT)
     {
@@ -320,3 +227,118 @@ float offsetScroll = 0;
 }
 
 @end
+
+
+//
+//  AWARD_WINNING_CODE
+//
+
+//    float xEngagement = fabs(x - WIDTH_SCREEN / 2) / (WIDTH_SCREEN / 2 * THRS_WIDTH_RATIO);
+//    float yEngagement = fabs(y - HEIGHT_SCREEN / 2) / (HEIGHT_SCREEN / 2 * THRS_HEIGHT_RATIO);
+//
+//    if( z > MAX_HEIGHT || z <= 0)
+//    {
+//        lastY = thisY;
+////        NSLog(@"reset");
+//        return;
+//    }
+//
+//// = [NSString stringWithFormat:@"unknown, %f", z];
+//
+//
+//
+//    if(counter > 0)
+//    {
+//        counter--;
+//        return;
+//    }
+//
+//    switch (_scrollState) {
+//        case DEFAULT:
+//            strState = [NSString stringWithFormat:@"default, %f", z];
+//            counter = 0;
+//            rate = 0;
+//            if(0 < z && z <= thrsLow)
+//            {
+//                tmpScrollState = LOW;
+//
+//                strState = [NSString stringWithFormat:@"low, %f", z];
+//
+//            }
+//            break;
+//        case LOW:
+//                            rate += 1;
+////            [self manuallyScroll:30];
+//            if(thrsLow < z && z <= thrsHight)
+//            {
+//                tmpScrollState = MIDDLE;
+//                rate = 0;
+//                strState = [NSString stringWithFormat:@"middle, %f", z];
+//
+//            }
+//            break;
+//        case MIDDLE:
+//            if(0 < z && z <= thrsLow)
+//            {
+//                tmpScrollState = LOW;
+//
+//                strState = [NSString stringWithFormat:@"low, %f", z];
+//
+//            }
+//            if(thrsHight < z)
+//            {
+//                tmpScrollState = HIGH;
+////                rate = 50;
+//                strState = [NSString stringWithFormat:@"high, %f", z];
+//            }
+//            break;
+//        case HIGH:
+//            if(rate < 50)
+//            {
+//                rate += 2;
+//            }
+////            [self manuallyScroll:90];
+//            if(0 < z && z <= (thrsLow + thrsHight) / 2)
+//            {
+//                tmpScrollState = LOW_AGAIN;
+//                rate = 0;
+//                strState = [NSString stringWithFormat:@"low again, %f", z];
+//            }
+//            break;
+//        case LOW_AGAIN:
+//            counter = TIME_OUT;
+//            tmpScrollState = DEFAULT;
+//            strState = [NSString stringWithFormat:@"default, %f", z];
+//            break;
+//        default:
+//            strState = [NSString stringWithFormat:@"default, %f", z];
+////            tmpScrollState = DEFAULT;
+//            break;
+//    }
+//
+//    if(tmpScrollState != _scrollState)
+//    {
+//        _scrollState = tmpScrollState;
+////        counter = 0;
+//        NSLog(@"%@", [NSString stringWithFormat:@"%ld, %@", counter, strState]);
+//    }
+////    else if(_scrollState != DEFAULT)
+////    {
+////        NSLog(@"%@", strState);
+////    }
+//
+//    tmpScrollState = _scrollState;
+//
+////    if(_scrollState != DEFAULT && counter < TIME_OUT)
+////    {
+////        counter++;
+////        if(counter >= TIME_OUT)
+////        {
+////            _scrollState = DEFAULT;
+////            NSLog(@"time out!");
+////            NSLog(@"");
+////            NSLog(@"");
+////            NSLog(@"");
+////
+////        }
+////    }

@@ -3,7 +3,8 @@
 #include <iostream>
 #include <fstream>
 using namespace std;
-#define PHONE_ANDROID
+//#define PHONE_ANDROID
+#define PHONE_IPHONE
 
 #ifdef PHONE_ANDROID
 
@@ -39,6 +40,7 @@ using namespace std;
 
 #ifdef PHONE_IPHONE
 // calibration for iphone
+
 #define ORIGINX 0.0588f
 #define ORIGINY -0.0521f
 #define ORIGINZ 0.0973f
