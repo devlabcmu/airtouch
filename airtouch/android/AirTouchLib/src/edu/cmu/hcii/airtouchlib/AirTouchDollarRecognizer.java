@@ -1,7 +1,9 @@
 package edu.cmu.hcii.airtouchlib;
 
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Vector;
@@ -15,15 +17,23 @@ import lx.interaction.dollar.Utils;
 public class AirTouchDollarRecognizer extends AirTouchRecognizer {
 	static double MIN_GESTURE_AREA = 5000;
 	// Gestures
-	DollarRecognizer m_dollarRecognizer = new DollarRecognizer(DollarRecognizer.GESTURES_SIMPLE);
+	DollarRecognizer m_dollarRecognizer;
 	Map<Integer, Vector<Point>> m_dollarPoints = new HashMap<Integer, Vector<Point>>();
 	Map<Integer, Result> m_gestureResults = new HashMap<Integer, Result>();
 	
 	
 	public AirTouchDollarRecognizer(long bufferDuration, AirTouchType type) {
 		super(bufferDuration, type);
-		// TODO Auto-generated constructor stub
+		
+		 m_dollarRecognizer= new DollarRecognizer(DollarRecognizer.GESTURES_SIMPLE);
 	}
+
+	public AirTouchDollarRecognizer(long bufferDuration, AirTouchType type, List<InputStream> templates) {
+		super(bufferDuration, type);
+		
+		 m_dollarRecognizer= new DollarRecognizer(templates);
+	}
+
 	
 	@Override
 	protected void recognize() {
@@ -43,9 +53,13 @@ public class AirTouchDollarRecognizer extends AirTouchRecognizer {
 				m_dollarPoints.put(path.getKey(), newpts);
 			}
 		}
-		
 	}
 
+	public Map<Integer, Vector<Point>> getDollarRecognizerInputs()
+	{
+		return m_dollarPoints;
+	}
+	
 	@Override
 	protected void clearGestureData() {
 		m_gestureResults.clear();

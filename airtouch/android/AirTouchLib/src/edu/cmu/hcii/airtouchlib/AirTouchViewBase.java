@@ -1,31 +1,33 @@
 package edu.cmu.hcii.airtouchlib;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.Map.Entry;
 
 import lx.interaction.dollar.Result;
-import edu.cmu.hcii.airtouchlib.AirTouchPoint.TouchType;
-import edu.cmu.hcii.airtouchlib.AirTouchRecognizer.AirTouchType;
-import edu.cmu.hcii.airtouchlib.SendReceiveTask.PMDSendData;
 import android.content.Context;
-import android.graphics.Bitmap;
+import android.content.res.AssetManager;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.graphics.Path;
-import android.graphics.RectF;
 import android.graphics.Paint.Cap;
 import android.graphics.Paint.Style;
+import android.graphics.RectF;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import edu.cmu.hcii.airtouchlib.AirTouchPoint.TouchType;
+import edu.cmu.hcii.airtouchlib.AirTouchRecognizer.AirTouchType;
+import edu.cmu.hcii.airtouchlib.SendReceiveTask.PMDSendData;
 
 public class AirTouchViewBase extends View implements PMDDataHandler {
 
@@ -62,7 +64,7 @@ public class AirTouchViewBase extends View implements PMDDataHandler {
 	
 
 	// Gestures
-	protected  AirTouchDollarRecognizer _airTouchRecognizer = new AirTouchDollarRecognizer(1000, AirTouchType.BEFORE_TOUCH);
+	protected  AirTouchDollarRecognizer _airTouchRecognizer;
 
 	static
 	{
@@ -285,9 +287,30 @@ public class AirTouchViewBase extends View implements PMDDataHandler {
 	protected void onAttachedToWindow() {
 		super.onAttachedToWindow();
 		_errorText = null;
+		 
+//		AssetManager am = getContext().getAssets();
+//		
+//		List<InputStream> inputs = new ArrayList<InputStream>();
+//		
+//		try {
+//			String[] files = am.list("");
+//			for (int i = 0; i < files.length; i++) {
+//				inputs.add(am.open(files[i]));
+//			}
+//		} catch (IOException e) {
+//			Log.e("AirTouchViewBase", "Unable to list base directory " + e.getMessage());
+//		}
+//		_airTouchRecognizer = new AirTouchDollarRecognizer(1000, inputs);
+		_airTouchRecognizer = new AirTouchDollarRecognizer(1000, AirTouchType.BEFORE_TOUCH);
+		 
+//		am.close();
+		beginReceivingData();
+	}
 
+	
+	protected void beginReceivingData()
+	{
 		final PMDDataHandler me = this;
-
 		// handshake has already happened
 		// begin sending and receiving data
 		TimerTask task = new TimerTask() {
@@ -297,9 +320,8 @@ public class AirTouchViewBase extends View implements PMDDataHandler {
 			}
 		};
 		_timer = new Timer();
-		_timer.scheduleAtFixedRate(task, 1, 20);
+		_timer.scheduleAtFixedRate(task, 1, 20);	
 	}
-
 
 
 	public void stop()

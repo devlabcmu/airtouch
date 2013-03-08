@@ -36,7 +36,6 @@ public class AirTouchPaintView extends AirTouchViewBase {
 	{
 		Paint paint;
 
-
 		paint = new Paint();
 		paint.setColor(Color.LTGRAY);
 		shadowPaint = paint;
@@ -98,9 +97,7 @@ public class AirTouchPaintView extends AirTouchViewBase {
 	protected  AirTouchDollarRecognizer _betweenTouchRecognizer = new AirTouchDollarRecognizer(500, AirTouchType.BETWEEN_TOUCHES);
 	
 	@Override
-	protected void onAttachedToWindow() {
-		_errorText = null;
-
+	protected void beginReceivingData() {
 		final PMDDataHandler me = this;
 
 		// handshake has already happened

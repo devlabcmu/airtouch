@@ -1,6 +1,9 @@
 package lx.interaction.dollar;
 
-import java.util.*;
+import java.io.File;
+import java.io.InputStream;
+import java.util.List;
+import java.util.Vector;
 
 public class DollarRecognizer
 {
@@ -42,6 +45,22 @@ public class DollarRecognizer
 
 			case GESTURES_CIRCLES:
 				loadTemplatesCircles();	break;
+		}
+	}
+	
+	public DollarRecognizer(List<InputStream> files)
+	{
+		loadTemplates(files);
+		// just for debugging.
+		for (Template t : Templates) {
+			System.out.println("DollarRecognizer template: " + t.Name + " length: " + t.Points.size());
+		}
+	}
+	
+	void loadTemplates(List<InputStream> inputs)
+	{
+		for (InputStream input : inputs) {
+			Templates.addElement(Utils.loadTemplateFromXml(input));
 		}
 	}
 	

@@ -43,22 +43,12 @@ public class AirTouchView extends AirTouchViewBase{
 
 	@Override
 	protected void onAttachedToWindow() {
+		super.onAttachedToWindow();
+		
 		_errorText = null;
 
 		_depthMatrix.setScale(2.0f, -2.0f);
 		_depthMatrix.postTranslate(0, 240);
-		final PMDDataHandler me = this;
-		//_depthMatrix.setScale(2.0f, 2.0f);
-		// handshake has already happened
-		// begin sending and receiving data
-		TimerTask task = new TimerTask() {
-			public void run() {
-				new SendReceiveTask(_connection, true, me, _airTouchRecognizer).execute();
-
-			}
-		};
-		_timer = new Timer();
-		_timer.scheduleAtFixedRate(task, 1, 20);
 	}
 	
 	public void volumeUpPressed()
