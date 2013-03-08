@@ -6,9 +6,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.Vector;
 
-import lx.interaction.dollar.Point;
 import lx.interaction.dollar.Result;
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -26,6 +24,7 @@ import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import edu.cmu.hcii.airtouchlib.AirTouchDollarRecognizer;
 import edu.cmu.hcii.airtouchlib.AirTouchPoint;
 import edu.cmu.hcii.airtouchlib.AirTouchPoint.TouchType;
 import edu.cmu.hcii.airtouchlib.AirTouchRecognizer;
@@ -70,7 +69,7 @@ public class AirTouchView extends View implements PMDDataHandler {
 	Path gesturePath = new Path();
 	
 	// Gestures
-	AirTouchRecognizer _airTouchRecognizer = new AirTouchRecognizer(1000, AirTouchType.BEFORE_TOUCH);
+	AirTouchDollarRecognizer _airTouchRecognizer = new AirTouchDollarRecognizer(1000, AirTouchType.BEFORE_TOUCH);
 	
 	static
 	{
