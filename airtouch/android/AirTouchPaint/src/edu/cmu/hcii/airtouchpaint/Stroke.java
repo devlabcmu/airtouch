@@ -9,11 +9,6 @@ import android.view.View;
 
 public class Stroke extends GraphicalObject {
 
-
-	public Stroke(AirTouchPaintView parent) {
-		super(parent);
-	}
-
 	private Path m_path = new Path();
 
 	@Override
@@ -24,12 +19,6 @@ public class Stroke extends GraphicalObject {
 	@Override
 	public void onTouchMove(MotionEvent e) {
 		m_path.lineTo(e.getX(), e.getY());
-		m_path.computeBounds(m_boundingBox, true);
-		m_boundingBox.left -= m_paint.getStrokeWidth();
-		m_boundingBox.top -= m_paint.getStrokeWidth();
-		m_boundingBox.right += m_paint.getStrokeWidth();
-		m_boundingBox.bottom += m_paint.getStrokeWidth();
-		m_parent.damage(m_boundingBox);
 	}
 
 	@Override

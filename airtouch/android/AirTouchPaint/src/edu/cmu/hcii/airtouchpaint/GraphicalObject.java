@@ -19,20 +19,10 @@ public abstract class GraphicalObject {
 		g_defaultPaint.setStrokeWidth(10.0f);
 	}
 	protected Paint m_paint = g_defaultPaint;
-	protected RectF m_boundingBox = new RectF();
+
 	public abstract void draw(Canvas c);
 	protected AirTouchPaintView m_parent;
 	public abstract void onTouchDown(MotionEvent e);
 	public abstract void onTouchMove(MotionEvent e);
-	
-	public GraphicalObject(AirTouchPaintView parent)
-	{
-		m_parent = parent;
-	}
-	
-	public RectF getBoundingBox()
-	{
-		return m_boundingBox;
-	}
 
 }

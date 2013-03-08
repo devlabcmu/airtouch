@@ -1,35 +1,20 @@
 package edu.cmu.hcii.airtouchpaint;
 
-import java.security.acl.LastOwnerException;
+import java.util.LinkedList;
 import java.util.Stack;
 
 import lx.interaction.dollar.Point;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Paint.Style;
-import android.graphics.Path;
-import android.graphics.Path.Direction;
-import android.graphics.RectF;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import edu.cmu.hcii.airtouchlib.AirTouchRecognizer;
 
 public class AirTouchPaintView extends View {
-	static Paint g_whitePaint;
-	static{
-		g_whitePaint = new Paint();
-		g_whitePaint.setColor(Color.WHITE);
-		g_whitePaint.setStyle(Style.FILL);
-	}
-	
-	Path m_damagePath = new Path();
-	RectF m_damageBounds = new RectF();
-	
+	static final int UNDO_HISTORY_SIZE = 5;
+	LinkedList<Bitmap> m_bitmapHistory = new LinkedList<Bitmap>();
 	Bitmap m_bitmap;
 	Canvas m_canvas;
 	
@@ -66,10 +51,10 @@ public class AirTouchPaintView extends View {
 			if(now - m_lastTouchDownMs < AirTouchRecognizer.BETWEEN_TOUCH_TIMEOUT_MS)
 			{
 				undo();
-				m_currentObject = new Rectangle(this, (float)m_lastTouchPoint.X, (float)m_lastTouchPoint.Y, event.getX(), event.getY());
+				m_currentObject = new Rectangle((float)m_lastTouchPoint.X, (float)m_lastTouchPoint.Y, event.getX(), event.getY());
 			} else
 			{
-				m_currentObject = new Stroke(this);	
+				m_currentObject = new Stroke();	
 				// check if we are supposed to be making a rectangle
 				m_currentObject.onTouchDown(event);
 			}
@@ -85,16 +70,30 @@ public class AirTouchPaintView extends View {
 			updateLastPoint(event);
 			break;
 		case MotionEvent.ACTION_UP:
-			
-			
 			if(m_currentObject != null)
-				m_children.add(m_currentObject);
+			{
+				addBitmapToHistory();
+				// rasterize the current object
+				m_currentObject.draw(m_canvas);
+			}
+
 			m_currentObject = null;
 			handled = true;
 			break;
 		}
 		postInvalidate();
 		return handled || super.onTouchEvent(event);
+	}
+	
+	private void addBitmapToHistory()
+	{
+		// save the bitmap
+		while(m_bitmapHistory.size() > UNDO_HISTORY_SIZE)
+		{
+			m_bitmapHistory.removeFirst();
+		}
+		m_bitmapHistory.add(Bitmap.createBitmap(m_bitmap));
+
 	}
 	
 	private void updateLastPoint(MotionEvent e)
@@ -111,55 +110,18 @@ public class AirTouchPaintView extends View {
 			m_canvas = new Canvas(m_bitmap);
 			m_canvas.drawRGB(255, 255, 255);
 		}
-		canvas.drawRGB(255,  255, 255);		
 		canvas.drawBitmap(m_bitmap, 0, 0, null);
-		draw();
-		
-	}
-	
-	private void draw()
-	{
-		// very basic for now: just redraw all children
-		m_damagePath.computeBounds(m_damageBounds, true);
-		
-		m_canvas.drawRect(m_damageBounds, g_whitePaint);
-		
-		// more advanced would be to looka at damaged aread
-		// or just draw over if needed (i.e. dont' redraw
-		for (GraphicalObject obj : m_children) {
-			if(obj != null && RectF.intersects(obj.getBoundingBox(), m_damageBounds)){
-				obj.draw(m_canvas);	
-			}
-		}
 		if(m_currentObject != null)
-			m_currentObject.draw(m_canvas);
-		
-		m_damagePath.reset();
-	}
-	
-	public void damage(RectF r)
-	{
-		m_damagePath.addRect(r, Direction.CCW);
+			m_currentObject.draw(canvas);
 	}
 	
 	private void undo()
 	{
-		if(m_children.size() > 0){
-			GraphicalObject removed = m_children.pop();
-			if(removed == null)
-			{
-				Log.v("AirTouchPaint", "removed is null! children size is " + m_children.size());
-			} else
-			{
-				damage(new RectF(0,0, m_canvas.getWidth(), m_canvas.getHeight()));
-				postInvalidate();
-			}
-			
-			
+		if(m_bitmapHistory.size() > 0)
+		{
+			m_bitmap = m_bitmapHistory.removeLast();
+			m_canvas = new Canvas(m_bitmap);
+			postInvalidate();
 		}
 	}
-	
-	
-	
-
 }
