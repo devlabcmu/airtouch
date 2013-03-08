@@ -3,26 +3,26 @@ package edu.cmu.hcii.airtouchlib;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.Vector;
 import java.util.Map.Entry;
-import java.util.Timer;
-import java.util.TimerTask;
-
-import lx.interaction.dollar.DollarRecognizer;
-import lx.interaction.dollar.Point;
-import lx.interaction.dollar.Result;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.Path;
 import android.util.Log;
+import android.view.Display;
 import android.view.MotionEvent;
+import android.view.WindowManager;
+import edu.cmu.hcii.airtouchlib.AirTouchPoint.TouchType;
 import edu.cmu.hcii.airtouchlib.SendReceiveTask.PMDSendData;
 
 @SuppressLint("UseSparseArrays")
 public abstract class AirTouchRecognizer implements PMDDataHandler {
 
 	// Constants
-	public static final long BETWEEN_TOUCH_TIMEOUT_MS = 1000;
-	public static final long AFTER_TOUCH_TIMEOUT_MS = 1000;
+	public static final long BETWEEN_TOUCH_TIMEOUT_MS = 700;
+	public static final long AFTER_TOUCH_TIMEOUT_MS = 700;
 	public static final String LOG_TAG = "AirTouch.AirTouchRecognizer";
 	
 	public enum AirTouchType
@@ -42,6 +42,9 @@ public abstract class AirTouchRecognizer implements PMDDataHandler {
 	protected Map<Integer, LinkedList<PMDFinger>> m_gestureBuffer = new HashMap<Integer, LinkedList<PMDFinger>>();
 	Object m_bufferLock = new Object();
 
+	// Drawing
+	Path gesturePath = new Path();
+	
 	private long m_lastTouchUpMs;
 	
 	public AirTouchRecognizer(long bufferDuration, AirTouchType type) {
@@ -136,6 +139,7 @@ public abstract class AirTouchRecognizer implements PMDDataHandler {
 			m_gestureBuffer.clear();
 			
 		}
+		clearGestureData();
 		
 	}
 	protected abstract void clearGestureData();
@@ -150,7 +154,7 @@ public abstract class AirTouchRecognizer implements PMDDataHandler {
 			m_gestureBuffer.clear();
 			for (Entry<Integer, LinkedList<PMDFinger>> path : m_rollingBuffer.entrySet()) 
 			{
-				
+				Log.v(LOG_TAG, "number point in buffer is  " + path.getValue().size());
 				m_gestureBuffer.put(path.getKey(), new LinkedList<PMDFinger>(path.getValue()));
 			}
 		}
@@ -163,7 +167,40 @@ public abstract class AirTouchRecognizer implements PMDDataHandler {
 	 */
 	protected abstract void recognize();
 	
+	public PMDFinger phoneToScreen(PMDFinger f)
+	{
+		PMDFinger result = new PMDFinger(f);
+		float realDepth = 0.1f;
+		result.x = f.x  * (float)m_screenWidth;
+		result.y = f.z  * (float)m_screenHeight;
+		result.z = f.y / realDepth;
+		return result;
+	}
 	
+	/**
+	 * Draw debug info for the gesture
+	 */
+	public void drawGesture(Canvas canvas, Map<AirTouchPoint.TouchType, Paint> paintBrushes)
+	{
+		for (Entry<Integer, LinkedList<PMDFinger>> paths : m_gestureBuffer.entrySet()) {
+			gesturePath.reset();
+			TouchType type = paths.getKey() % 2 == 0 ? TouchType.AIR_MOVE1 : TouchType.AIR_MOVE2;
+
+			boolean first = true;
+			for (PMDFinger p : paths.getValue()) {
+				PMDFinger screenSpace = phoneToScreen(p);
+				if(first){
+					first = false;
+					gesturePath.moveTo(screenSpace.x, screenSpace.y);
+				} else
+				{
+					gesturePath.lineTo(screenSpace.x, screenSpace.y);
+				}
+			}
+			paintBrushes.get(type).setAlpha(255);
+			canvas.drawPath(gesturePath, paintBrushes.get(type));
+		}	
+	}
 
 	public long getBufferDurationMs() {
 		return m_bufferDurationMs;

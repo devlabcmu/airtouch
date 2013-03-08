@@ -66,9 +66,6 @@ public class ConnectTask extends AsyncTask<String, Void, Boolean>
 		catch (IOException e) {
 			Log.v(LOG_TAG, e.getMessage());
 			return false;
-		} catch (Exception e) {
-			Log.v(LOG_TAG, e.toString());
-			return false;
 		}
 
 		return true;
