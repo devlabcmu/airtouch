@@ -19,20 +19,28 @@ import android.graphics.Paint.Cap;
 import android.graphics.Paint.Style;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
+import edu.cmu.hcii.airtouchlib.AirTouchPoint.TouchType;
 import edu.cmu.hcii.airtouchlib.AirTouchRecognizer.AirTouchType;
 import edu.cmu.hcii.airtouchlib.AirTouchDollarRecognizer;
 import edu.cmu.hcii.airtouchlib.AirTouchPoint;
 import edu.cmu.hcii.airtouchlib.AirTouchViewBase;
 import edu.cmu.hcii.airtouchlib.PMDDataHandler;
+import edu.cmu.hcii.airtouchlib.PMDFinger;
 import edu.cmu.hcii.airtouchlib.SendReceiveTask;
 
 public class AirTouchPaintView extends AirTouchViewBase {
 	static String LOG_TAG = "AirTouchPaintView";
 	protected static Map<AirTouchPoint.TouchType, Paint> gestureBrushes = new HashMap<AirTouchPoint.TouchType, Paint>();
+	static Paint shadowPaint;
 	static
 	{
 		Paint paint;
 
+
+		paint = new Paint();
+		paint.setColor(Color.LTGRAY);
+		shadowPaint = paint;
+		
 		paint = new Paint();
 		paint.setColor(Color.MAGENTA);
 		paint.setStyle(Style.STROKE);
@@ -184,6 +192,25 @@ public class AirTouchPaintView extends AirTouchViewBase {
 	{
 		m_lastTouchPoint.X = e.getX();
 		m_lastTouchPoint.Y = e.getY();
+	}
+	
+	protected void drawFingersInAir(Canvas canvas)
+	{
+		for (int i = 0; i < _dataFromServer.fingers.length; i++) {
+			if(_dataFromServer.fingers[i] == null) continue;
+
+			if(_dataFromServer.fingers[i].id >= 0)
+			{
+
+				PMDFinger p = phoneToScreen(_dataFromServer.fingers[i]);
+
+				TouchType type = _dataFromServer.fingers[i].id % 2 == 0 ? TouchType.AIR_MOVE1 : TouchType.AIR_MOVE2;
+				shadowPaint.setAlpha((int)(1 - 255 * Math.max(0, Math.min(1, p.z) ) ));
+
+				canvas.drawCircle(p.x, p.y, p.z * 500,shadowPaint);	
+				shadowPaint.setAlpha(1);
+			}
+		} 
 	}
 	
 	@Override

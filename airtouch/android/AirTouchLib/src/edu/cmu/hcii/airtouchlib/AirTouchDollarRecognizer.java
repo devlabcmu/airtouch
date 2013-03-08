@@ -8,10 +8,12 @@ import java.util.Vector;
 
 import lx.interaction.dollar.DollarRecognizer;
 import lx.interaction.dollar.Point;
+import lx.interaction.dollar.Rectangle;
 import lx.interaction.dollar.Result;
+import lx.interaction.dollar.Utils;
 
 public class AirTouchDollarRecognizer extends AirTouchRecognizer {
-
+	static double MIN_GESTURE_AREA = 5000;
 	// Gestures
 	DollarRecognizer m_dollarRecognizer = new DollarRecognizer(DollarRecognizer.GESTURES_SIMPLE);
 	Map<Integer, Vector<Point>> m_dollarPoints = new HashMap<Integer, Vector<Point>>();
@@ -35,8 +37,11 @@ public class AirTouchDollarRecognizer extends AirTouchRecognizer {
 				//					Log.v(LOG_TAG, "width is " + m_screenWidth + " height " + m_screenHeight + " adding for dollar: " + f.x  + ", " + f.z );
 				newpts.add(new Point(f.x * m_screenWidth, f.z * m_screenHeight));
 			}
-			m_gestureResults.put(path.getKey(), m_dollarRecognizer.Recognize(newpts));
-			m_dollarPoints.put(path.getKey(), newpts);
+			Rectangle r = Utils.BoundingBox(newpts);
+			if(r.Width * r.Height > MIN_GESTURE_AREA){
+				m_gestureResults.put(path.getKey(), m_dollarRecognizer.Recognize(newpts));
+				m_dollarPoints.put(path.getKey(), newpts);
+			}
 		}
 		
 	}
