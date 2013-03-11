@@ -18,7 +18,11 @@ public class DisconnectTask extends AsyncTask<Void, Void, Void>
 	protected Void doInBackground(Void... params) {
 		try {
 			if(_server != null && _server._outToServer != null)
+			{
 				this._server._outToServer.writeBytes("disconnect");
+				if(_server._serverSocket != null)
+					this._server._serverSocket.close();
+			}
 		} catch (IOException e) {
 			Log.i(TAG, "Exception when disconnecting: " + e.getMessage());
 		}

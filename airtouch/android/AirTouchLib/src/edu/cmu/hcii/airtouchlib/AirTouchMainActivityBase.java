@@ -61,13 +61,14 @@ public class AirTouchMainActivityBase extends Activity  implements ConnectTaskCo
 		@Override
 		protected void onDestroy() {
 			_airTouchView.stop();
+			new DisconnectTask(_connection).execute();
 			super.onDestroy();
 		}
 
 		@Override
 		public void onBackPressed() 
 		{
-			super.onBackPressed();
+			finish();
 		}
 		public void connectClicked(View v)
 		{
