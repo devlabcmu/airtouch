@@ -16,7 +16,6 @@ public class SendReceiveTask extends AsyncTask<Void, Void, Boolean>
 	static final String TAG ="SendReceiveTask";
 	public class PMDSendData {
 		public PMDFinger[] fingers = new PMDFinger[2]; 
-		public float[] buffer = new float[PMDConstants.PMD_IMAGE_SIZE]; // 19800 * 4 bytes
 		public long timestamp;
 	}
 	
@@ -119,13 +118,6 @@ public class SendReceiveTask extends AsyncTask<Void, Void, Boolean>
 			_dataFromServer.fingers[i].y = getFloatInByteArray(in, i * 16 + 8);
 			_dataFromServer.fingers[i].z = getFloatInByteArray(in, i * 16 + 12);
 			_dataFromServer.fingers[i].timestamp = now;
-		}
-		
-		if(!_getOnlyFingerData)
-		{
-			for (int i = 0; i < PMDConstants.PMD_IMAGE_SIZE; i++) {
-				_dataFromServer.buffer[i] = getFloatInByteArray(in, 24 + i * 4);
-			}	
 		}
 		
 		_dataFromServer.timestamp = now;
