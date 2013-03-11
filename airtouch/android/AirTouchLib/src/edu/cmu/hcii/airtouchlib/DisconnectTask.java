@@ -17,7 +17,8 @@ public class DisconnectTask extends AsyncTask<Void, Void, Void>
 	@Override
 	protected Void doInBackground(Void... params) {
 		try {
-			this._server._outToServer.writeBytes("disconnect");
+			if(_server != null && _server._outToServer != null)
+				this._server._outToServer.writeBytes("disconnect");
 		} catch (IOException e) {
 			Log.i(TAG, "Exception when disconnecting: " + e.getMessage());
 		}
