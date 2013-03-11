@@ -1,4 +1,4 @@
-package edu.cmu.hcii.airtouchpaint;
+package edu.cmu.hcii.airtouchlib;
 
 import android.app.Activity;
 import android.content.Context;
@@ -8,35 +8,32 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.TextView;
-import edu.cmu.hcii.airtouchlib.BindTask;
-import edu.cmu.hcii.airtouchlib.ConnectTaskCompletedHandler;
-import edu.cmu.hcii.airtouchlib.ConnectTaskResult;
-import edu.cmu.hcii.airtouchlib.PMDServerConnection;
 
-public class MainActivity extends Activity implements ConnectTaskCompletedHandler  {
+public class AirTouchMainActivityBase extends Activity  implements ConnectTaskCompletedHandler{
 	// Constants
-		static final String TAG = "AirTouchView"; 
+		static final String TAG = "AirTouchViewMainActivityBase"; 
 		// Instance variables
 
 		// Network
-		PMDServerConnection _connection;
+		protected PMDServerConnection _connection;
 
 		// UI
 		EditText _ipEditText;
 		EditText _portEditText;
-		TextView _statusTextView;
-
+		protected TextView _statusTextView;
 
 		InputMethodManager _inputManager;
 
-		AirTouchPaintView _view;
-		boolean _canStart = false;
+		protected AirTouchViewBase _airTouchView;
+		protected boolean _canStart = false;
 
 		@Override
 		public void onCreate(Bundle savedInstanceState) {
 			super.onCreate(savedInstanceState);
-			setContentView(R.layout.activity_main);
+			setContentView(R.layout.airtouch_main_activity);
+
 
 			_ipEditText = (EditText)findViewById(R.id.editTextIP);
 			_portEditText = (EditText)findViewById(R.id.editTextPort);
@@ -46,7 +43,7 @@ public class MainActivity extends Activity implements ConnectTaskCompletedHandle
 
 			_inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 
-			_view = new AirTouchPaintView(this);
+			_airTouchView = new AirTouchViewBase(this);
 		}
 
 		public void rootClicked(View v)
@@ -63,7 +60,7 @@ public class MainActivity extends Activity implements ConnectTaskCompletedHandle
 
 		@Override
 		protected void onDestroy() {
-			_view.stop();
+			_airTouchView.stop();
 			super.onDestroy();
 		}
 
@@ -86,23 +83,14 @@ public class MainActivity extends Activity implements ConnectTaskCompletedHandle
 				_statusTextView.setText("you must first connect!");
 				return;
 			}
-			setContentView(_view);
+			
+			setContentView(_airTouchView);
 		}
-
-		public void viewRawClicked(View v)
-		{
-			if(!_canStart){
-
-				_statusTextView.setText("you must first connect!");
-				return;
-			}
-			setContentView(_view);
-		}
-
-		@Override
+		
+				@Override
 		public void onConnectionCompleted(ConnectTaskResult result) {
 			_canStart = result.success;
-			_view.setServerConnection(_connection);
+			_airTouchView.setServerConnection(_connection);
 			if(result.success)
 			{
 				_statusTextView.setText("Connection successful!");
@@ -114,24 +102,4 @@ public class MainActivity extends Activity implements ConnectTaskCompletedHandle
 			}
 			
 		}
-		
-		@Override
-		public boolean dispatchKeyEvent(KeyEvent event) {
-			int action = event.getAction();
-			int keyCode = event.getKeyCode();
-			switch (keyCode) {
-			case KeyEvent.KEYCODE_VOLUME_UP:
-				if (action == KeyEvent.ACTION_DOWN) {
-					_view.volumePressed();
-				}
-				return true;
-			case KeyEvent.KEYCODE_VOLUME_DOWN:
-				if (action == KeyEvent.ACTION_DOWN) {
-					_view.volumePressed();
-				}
-				return true;
-			}
-			return super.dispatchKeyEvent(event);
-		}
-
 }

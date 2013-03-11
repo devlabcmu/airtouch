@@ -1,27 +1,23 @@
 package edu.cmu.hcii.airtouchview;
 
-import java.util.Timer;
-import java.util.TimerTask;
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Vector;
 
+import lx.interaction.dollar.Point;
+import lx.interaction.dollar.Utils;
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.Matrix;
 import android.util.AttributeSet;
+import edu.cmu.hcii.airtouchlib.AirTouchDollarRecognizer;
 import edu.cmu.hcii.airtouchlib.AirTouchRecognizer.AirTouchType;
 import edu.cmu.hcii.airtouchlib.AirTouchViewBase;
-import edu.cmu.hcii.airtouchlib.PMDConstants;
-import edu.cmu.hcii.airtouchlib.PMDDataHandler;
-import edu.cmu.hcii.airtouchlib.SendReceiveTask;
 
 
 @SuppressLint("UseSparseArrays")
 public class AirTouchView extends AirTouchViewBase{
 	static String TAG = "AirTouch.AirTouchView";
-	Bitmap _pmdDepth = Bitmap.createBitmap(PMDConstants.PMD_NUM_COLS, PMDConstants.PMD_NUM_ROWS, Bitmap.Config.ARGB_8888);
-	
-	Matrix _depthMatrix = new Matrix();
-	boolean _getOnlyFingerData = false;
 	
 	public AirTouchView(Context context) {
 		super(context);
@@ -36,19 +32,11 @@ public class AirTouchView extends AirTouchViewBase{
 	}
 
 	
-	public void setGetOnlyFingerData(boolean shouldIGetFingerData)
-	{
-		_getOnlyFingerData = shouldIGetFingerData;
-	}
-
 	@Override
 	protected void onAttachedToWindow() {
 		super.onAttachedToWindow();
 		
 		_errorText = null;
-
-		_depthMatrix.setScale(2.0f, -2.0f);
-		_depthMatrix.postTranslate(0, 240);
 	}
 	
 	public void volumeUpPressed()

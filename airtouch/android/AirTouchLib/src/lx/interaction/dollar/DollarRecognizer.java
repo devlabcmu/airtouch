@@ -1,12 +1,13 @@
 package lx.interaction.dollar;
 
 import java.io.File;
-import java.io.InputStream;
-import java.util.List;
 import java.util.Vector;
+
+import android.util.Log;
 
 public class DollarRecognizer
 {
+	static final String LOG_TAG = "DollarRecognizer";
 	//
 	// Recognizer class constants
 	//
@@ -30,10 +31,14 @@ public class DollarRecognizer
 	
 	public DollarRecognizer()
 	{
-		this(GESTURES_SIMPLE);
 	}
 
 	public DollarRecognizer(int gestureSet)
+	{
+		loadTemplates(gestureSet);
+	}
+	
+	public void loadTemplates(int gestureSet)
 	{
 		switch(gestureSet)
 		{
@@ -48,20 +53,14 @@ public class DollarRecognizer
 		}
 	}
 	
-	public DollarRecognizer(List<InputStream> files)
+	public void loadTemplates(File[] inputs)
 	{
-		loadTemplates(files);
-		// just for debugging.
-		for (Template t : Templates) {
-			System.out.println("DollarRecognizer template: " + t.Name + " length: " + t.Points.size());
+		for (File input : inputs) {
+			Template loaded = Utils.loadTemplateFromXml(input);
+			if(loaded != null)
+				Templates.addElement(loaded);
 		}
-	}
-	
-	void loadTemplates(List<InputStream> inputs)
-	{
-		for (InputStream input : inputs) {
-			Templates.addElement(Utils.loadTemplateFromXml(input));
-		}
+		Log.i(LOG_TAG, "Templates size is " + Templates.size());
 	}
 	
 	void loadTemplatesDefault()

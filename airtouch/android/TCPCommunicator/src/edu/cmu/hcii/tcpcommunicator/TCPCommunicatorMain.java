@@ -96,7 +96,7 @@ public class TCPCommunicatorMain extends Activity {
 		try {
 			_clientSocket.close();
 		} catch (IOException e) {
-			Log.v(TAG, e.getMessage());
+			Log.i(TAG, e.getMessage());
 		}
 		_receiveTextView.setText("Received data goes here");
 		_statusTextView.setText("Disconnected");
@@ -122,23 +122,23 @@ public class TCPCommunicatorMain extends Activity {
 				_clientSocket.connect(new InetSocketAddress(_serverAddr, _serverPort), 2000);
 				
 				
-				Log.v(TAG, "getting input stream...");
+				Log.i(TAG, "getting input stream...");
 				_inFromServer = new BufferedReader(new InputStreamReader(
 						_clientSocket.getInputStream()));
-				Log.v(TAG, "getting output stream...");
+				Log.i(TAG, "getting output stream...");
 				_outToServer = new DataOutputStream(_clientSocket.getOutputStream());
 				
 			}
 			catch (UnknownHostException e) {
-				Log.v(TAG, e.getMessage());
+				Log.i(TAG, e.getMessage());
 				return false;
 				
 			} 
 			catch (IOException e) {
-				Log.v(TAG, e.getMessage());
+				Log.i(TAG, e.getMessage());
 				return false;
 			} catch (Exception e) {
-				Log.v(TAG, e.toString());
+				Log.i(TAG, e.toString());
 				return false;
 			}
 
@@ -162,12 +162,12 @@ public class TCPCommunicatorMain extends Activity {
 		@Override
 		protected String doInBackground(String... params) {
 			if (_clientSocket == null) {
-				Log.v(TAG, "Error: Tried to send string but socket was null");
+				Log.i(TAG, "Error: Tried to send string but socket was null");
 				return null;
 
 			}
 			if (_clientSocket.isClosed()) {
-				Log.v(TAG, "Error: Tried to send string but socket was closed");
+				Log.i(TAG, "Error: Tried to send string but socket was closed");
 				return null;
 			}
 			StringBuilder sb = new StringBuilder();
@@ -181,7 +181,7 @@ public class TCPCommunicatorMain extends Activity {
 					int nReceived = _inFromServer.read(lMsg);
 					sb.append(new String(lMsg, 0, nReceived));
 				} catch (IOException e) {
-					Log.v(TAG, "error sending string: " + e.getMessage());
+					Log.i(TAG, "error sending string: " + e.getMessage());
 					return null;
 				}
 			}

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/viewFingersRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+    
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:id="@+id/airTouchViewFrame"
+        android:layout_height="match_parent" >
+    </FrameLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="#555555" >
+
+        <EditText
+            android:id="@+id/gestureNameText1"
+            android:layout_width="143dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.12"
+            android:ems="10"
+            android:text="circle" />
+
+        <Button
+            android:id="@+id/saveButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.08"
+            android:onClick="saveClicked"
+            android:text="save" />
+
+    </LinearLayout>
+
+
+
+
+</FrameLayout>

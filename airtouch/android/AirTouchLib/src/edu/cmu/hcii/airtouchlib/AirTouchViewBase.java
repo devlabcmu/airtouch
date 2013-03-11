@@ -10,6 +10,7 @@ import java.util.Map.Entry;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import lx.interaction.dollar.DollarRecognizer;
 import lx.interaction.dollar.Result;
 import android.content.Context;
 import android.content.res.AssetManager;
@@ -288,21 +289,11 @@ public class AirTouchViewBase extends View implements PMDDataHandler {
 		super.onAttachedToWindow();
 		_errorText = null;
 		 
-//		AssetManager am = getContext().getAssets();
-//		
-//		List<InputStream> inputs = new ArrayList<InputStream>();
-//		
-//		try {
-//			String[] files = am.list("");
-//			for (int i = 0; i < files.length; i++) {
-//				inputs.add(am.open(files[i]));
-//			}
-//		} catch (IOException e) {
-//			Log.e("AirTouchViewBase", "Unable to list base directory " + e.getMessage());
-//		}
-//		_airTouchRecognizer = new AirTouchDollarRecognizer(1000, inputs);
-		_airTouchRecognizer = new AirTouchDollarRecognizer(1000, AirTouchType.BEFORE_TOUCH);
-		 
+		// TODO: load a gesture set from file
+		_airTouchRecognizer = new AirTouchDollarRecognizer(1000, AirTouchType.BEFORE_TOUCH, DollarRecognizer.GESTURES_SIMPLE);
+		// try loading default gesture set
+		_airTouchRecognizer.loadGestureSet("default");
+		
 //		am.close();
 		beginReceivingData();
 	}
@@ -327,8 +318,10 @@ public class AirTouchViewBase extends View implements PMDDataHandler {
 	public void stop()
 	{
 		_stopNetworkConnection = true;
-		_timer.cancel();
-		new DisconnectTask(_connection).execute();
+		if(_timer != null)
+			_timer.cancel();
+		if(_connection != null)
+			new DisconnectTask(_connection).execute();
 	}
 
 	@Override
@@ -380,6 +373,11 @@ public class AirTouchViewBase extends View implements PMDDataHandler {
 
 	}
 
+	
+	public AirTouchDollarRecognizer getAirTouchRecognizer()
+	{
+		return _airTouchRecognizer;
+	}
 
 
 }

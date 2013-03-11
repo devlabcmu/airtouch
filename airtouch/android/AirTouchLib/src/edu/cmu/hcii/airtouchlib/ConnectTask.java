@@ -40,9 +40,9 @@ public class ConnectTask extends AsyncTask<String, Void, Boolean>
 			// thiw will allow for immediate receiving of packets even when data sent is small
 			_connection._clientSocket.setTcpNoDelay(true);
 
-			Log.v(LOG_TAG, "getting input stream...");
+			Log.i(LOG_TAG, "getting input stream...");
 			_connection._inFromServer = _connection._clientSocket.getInputStream();
-			Log.v(LOG_TAG, "getting output stream...");
+			Log.i(LOG_TAG, "getting output stream...");
 			_connection._outToServer = new DataOutputStream(_connection._clientSocket.getOutputStream());
 
 			// do a handshake
@@ -51,7 +51,7 @@ public class ConnectTask extends AsyncTask<String, Void, Boolean>
 			_connection._outToServer.writeBytes("device model: " + android.os.Build.MODEL + "\n");
 
 			int nReceived = _connection._inFromServer.read(lMsg);
-			Log.v(LOG_TAG, "from server: " + new String(lMsg, 0, nReceived));
+			Log.i(LOG_TAG, "from server: " + new String(lMsg, 0, nReceived));
 
 			// TODO Fix this
 //			this.airTouchViewMain._airTouchView.setupServerConnection(this.airTouchViewMain._inFromServer, this.airTouchViewMain._outToServer);
@@ -59,12 +59,12 @@ public class ConnectTask extends AsyncTask<String, Void, Boolean>
 
 		}
 		catch (UnknownHostException e) {
-			Log.v(LOG_TAG, e.getMessage());
+			Log.i(LOG_TAG, e.getMessage());
 			return false;
 
 		} 
 		catch (IOException e) {
-			Log.v(LOG_TAG, e.getMessage());
+			Log.i(LOG_TAG, e.getMessage());
 			return false;
 		}
 
@@ -76,7 +76,7 @@ public class ConnectTask extends AsyncTask<String, Void, Boolean>
 	protected void onPostExecute(Boolean success) {
 		ConnectTaskResult r = new ConnectTaskResult();
 		r.success = success;
-		Log.v("ConnectTask", "Connection completed");
+		Log.i("ConnectTask", "Connection completed");
 		_completedHandler.onConnectionCompleted(r);
 	}
 

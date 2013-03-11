@@ -26,6 +26,7 @@ public class SendReceiveTask extends AsyncTask<Void, Void, Boolean>
 	private boolean _getOnlyFingerData;
 	static final boolean OUTPUT_BITS_DEBUG = false;
 	private PMDSendData _dataFromServer = new PMDSendData();
+	byte[] _lMsg = new byte[PMDConstants.PMD_SEND_DATA_SIZE];
 	
 	public SendReceiveTask(PMDServerConnection server, boolean fingersOnly, PMDDataHandler ... handlers) {
 		this._server = server;
@@ -53,7 +54,7 @@ public class SendReceiveTask extends AsyncTask<Void, Void, Boolean>
 			{
 				_server._outToServer.writeBytes("gimme");
 			}
-			byte[] lMsg = new byte[PMDConstants.PMD_SEND_DATA_SIZE];
+			
 			int nleft = PMDConstants.PMD_SEND_DATA_SIZE;
 			if(_getOnlyFingerData) nleft = PMDConstants.PMD_FINGER_ONLY_DATA_SIZE;
 			int totalReceived = 0;
@@ -62,21 +63,21 @@ public class SendReceiveTask extends AsyncTask<Void, Void, Boolean>
 				if (nleft == 0) break;
 				int nReceived = 0;
 
-				nReceived = _server._inFromServer.read(lMsg, totalReceived, nleft);				
+				nReceived = _server._inFromServer.read(_lMsg, totalReceived, nleft);				
 				if(nReceived <= 0) break;
 				totalReceived += nReceived;
 				nleft -= nReceived;
 			} while (true);
-			updatePMDData(lMsg);
+			updatePMDData(_lMsg);
 		} catch (IOException e) {
-			Log.v(TAG, e.getMessage());
+			Log.i(TAG, e.getMessage());
 			return false;
 		}
 		return true;
 	}
 	@Override
 	protected void onPostExecute(Boolean succeeded) {
-		//Log.v(TAG, "in post execute");
+		//Log.i(TAG, "in post execute");
 		// if we failed, then we should disconnect and go back to the home page
 		if(!succeeded) {
 			// todo: update UI somehow with an error
@@ -90,6 +91,9 @@ public class SendReceiveTask extends AsyncTask<Void, Void, Boolean>
 		}
 		for (PMDDataHandler handler : _handlers) 
 			handler.newPMDData(_dataFromServer);
+		
+		_dataFromServer = null;
+		_lMsg = null;
 	}
 	
 	//
@@ -139,10 +143,10 @@ public class SendReceiveTask extends AsyncTask<Void, Void, Boolean>
 					}
 					sb.append( " ");
 				}
-				Log.v(TAG, String.format("i: %d, bits: %s\n", i, sb.reverse().toString()));
+				Log.i(TAG, String.format("i: %d, bits: %s\n", i, sb.reverse().toString()));
 			}
 		}
-//		Log.v(TAG, String.format("%.2f, %.2f, %.2f", _dataFromServer.fingers[0].x, _dataFromServer.fingers[0].y, _dataFromServer.fingers[0].z));
+//		Log.i(TAG, String.format("%.2f, %.2f, %.2f", _dataFromServer.fingers[0].x, _dataFromServer.fingers[0].y, _dataFromServer.fingers[0].z));
 	}
 	
 	/**

@@ -1,12 +1,7 @@
 package lx.interaction.dollar;
 
-//TODO: Most of the code here could be significantly optimized. This was a quick port from the C# version of the library
-
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
 import java.util.Enumeration;
 import java.util.Vector;
 
@@ -24,8 +19,14 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import android.util.Log;
+
+//TODO: Most of the code here could be significantly optimized. This was a quick port from the C# version of the library
+
+
 public class Utils
 {	 
+	static final String LOG_TAG="Utils";
 	public static Vector<Point>Resample(Vector<Point> points, int n)
 	{		
 		double I = PathLength(points) / (n - 1); // interval length
@@ -315,6 +316,7 @@ public class Utils
 		Element root = doc.createElement("Gesture");
 		root.setAttribute("Name", name);
 		root.setAttribute("NumPts", "" + points.size());
+		doc.appendChild(root);
 		for (Point point : points) {
 			Element pt = doc.createElement("Point");
 			pt.setAttribute("X", "" + point.X);
@@ -329,26 +331,29 @@ public class Utils
 		try {
 			TransformerFactory.newInstance().newTransformer().transform(gestureToDOMSource(points, name), s);
 		} catch (TransformerConfigurationException e) {
-			e.printStackTrace();
+			Log.e(LOG_TAG, e.getMessage());
 		} catch (TransformerException e) {
-			e.printStackTrace();
+			Log.e(LOG_TAG, e.getMessage());
 		} catch (TransformerFactoryConfigurationError e) {
-			e.printStackTrace();
+			Log.e(LOG_TAG, e.getMessage());
 		}
-	}
-	
-	public static void writeGestureToSysout(Vector<Point> points, String name, StreamResult s)
-	{
-		writeGestureToStream(points, name, new StreamResult(System.out));
 	}
 	
 	public static void writeGestureToFile(Vector<Point> points, String name, File f)
 	{
+		Log.i(LOG_TAG, "Writing gesture " + name + " with " + points.size() + " points to file " + f.getAbsolutePath());
+		if(!f.exists())
+			try {
+				f.createNewFile();
+			} catch (IOException e) {
+				Log.e(LOG_TAG, e.getMessage());
+			}
 		writeGestureToStream(points, name, new StreamResult(f));
 	}
 
-	public static Template loadTemplateFromXml(InputStream f)
+	public static Template loadTemplateFromXml(File f)
 	{
+		Log.i(LOG_TAG, "Loading template " + f.getAbsolutePath());
 		Document doc;
 		try {
 			doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(f);
@@ -357,20 +362,17 @@ public class Utils
 			NodeList points = doc.getElementsByTagName("Point");
 			for (int i = 0; i < points.getLength(); i++) {
 				Element e = (Element) points.item(i);
-				resultPoints.add(new Point(Integer.parseInt(e.getAttribute("X")), Integer.parseInt(e.getAttribute("Y")) ));
+				resultPoints.add(new Point(Float.parseFloat(e.getAttribute("X")), Float.parseFloat(e.getAttribute("Y")) ));
 			}
 			
-			return new Template(doc.getDocumentElement().getAttribute("Name"), new Vector<Point>());
+			return new Template(doc.getDocumentElement().getAttribute("Name"), resultPoints);
 			
 		} catch (SAXException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Log.e(LOG_TAG, e.getMessage());
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Log.e(LOG_TAG, e.getMessage());
 		} catch (ParserConfigurationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Log.e(LOG_TAG, e.getMessage());
 		}
 		
 		return null;

@@ -61,7 +61,7 @@ public abstract class AirTouchRecognizer implements PMDDataHandler {
 				if(data.fingers[i].id < 0) continue;
 				if(!m_rollingBuffer.containsKey(data.fingers[i].id))
 				{
-					Log.v(LOG_TAG, "key " + data.fingers[i].id + " not found, adding new linked list");
+//					Log.i(LOG_TAG, "key " + data.fingers[i].id + " not found, adding new linked list");
 					m_rollingBuffer.put(data.fingers[i].id, new LinkedList<PMDFinger>());
 				}
 				LinkedList<PMDFinger> lst = m_rollingBuffer.get(data.fingers[i].id);
@@ -70,7 +70,7 @@ public abstract class AirTouchRecognizer implements PMDDataHandler {
 					PMDFinger top = lst.peek();
 					while(currentTime - top.timestamp > m_bufferDurationMs && lst.size() > 0)
 					{
-						// Log.v(LOG_TAG, "updateRecentPoints: popping, dt is " + (currentTime - top.timestamp) + " top timestamp is " + top.timestamp);
+						// Log.i(LOG_TAG, "updateRecentPoints: popping, dt is " + (currentTime - top.timestamp) + " top timestamp is " + top.timestamp);
 						top = lst.pop();
 					}	
 				}
@@ -85,7 +85,7 @@ public abstract class AirTouchRecognizer implements PMDDataHandler {
 	
 	public void clear()
 	{
-		Log.v(LOG_TAG, "clearing rolling buffer");
+//		Log.i(LOG_TAG, "clearing rolling buffer");
 		m_rollingBuffer.clear();
 		clearGestureBuffer();
 		
@@ -106,19 +106,17 @@ public abstract class AirTouchRecognizer implements PMDDataHandler {
 		long now = System.currentTimeMillis();
 		switch(m_airTouchType){
 		case AFTER_TOUCH:
-			clearGestureBuffer();
 			break;
 		case BEFORE_TOUCH:
 			copyRollingToGestureBuffer();
 			break;
 		case BETWEEN_TOUCHES:
-			clearGestureBuffer();
 			long dt =now - m_lastTouchUpMs; 
 			if(dt < BETWEEN_TOUCH_TIMEOUT_MS){
 				copyRollingToGestureBuffer();
 			} else
 			{
-				Log.v(LOG_TAG, "between touch rejected, duration is " + dt);
+				Log.i(LOG_TAG, "between touch rejected, duration is " + dt);
 			}
 			break;
 		}
@@ -126,10 +124,7 @@ public abstract class AirTouchRecognizer implements PMDDataHandler {
 	
 	public void onTouchUp(MotionEvent e)
 	{
-		clear();
 		m_lastTouchUpMs = System.currentTimeMillis();
-		
-		
 	}
 	
 	private void clearGestureBuffer()
@@ -147,14 +142,13 @@ public abstract class AirTouchRecognizer implements PMDDataHandler {
 	
 	private void copyRollingToGestureBuffer()
 	{
-		clearGestureBuffer();
 		synchronized(m_bufferLock)
 		{
-			Log.v(LOG_TAG, "copying rolling points to gesture buffer, rolling size is " + m_rollingBuffer.entrySet().size());
+//			Log.i(LOG_TAG, "copying rolling points to gesture buffer, rolling size is " + m_rollingBuffer.entrySet().size());
 			m_gestureBuffer.clear();
 			for (Entry<Integer, LinkedList<PMDFinger>> path : m_rollingBuffer.entrySet()) 
 			{
-				Log.v(LOG_TAG, "number point in buffer is  " + path.getValue().size());
+//				Log.i(LOG_TAG, "number point in buffer is  " + path.getValue().size());
 				m_gestureBuffer.put(path.getKey(), new LinkedList<PMDFinger>(path.getValue()));
 			}
 		}
