@@ -39,6 +39,8 @@ public class Utils
 		Vector<Point> dstPts = new Vector<Point>(n);
 		dstPts.addElement(srcPts.elementAt(0));	//assumes that srcPts.size() > 0
 		
+		
+		
 		for (int i = 1; i < srcPts.size(); i++)
 		{
 			Point pt1 = (Point) srcPts.elementAt(i - 1);

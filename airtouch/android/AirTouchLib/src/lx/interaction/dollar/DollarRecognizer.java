@@ -12,7 +12,7 @@ public class DollarRecognizer
 	// Recognizer class constants
 	//
 	int NumTemplates = 16;
-	public static int NumPoints = 64;
+	public static int NumPoints = 40;
 	public static double SquareSize = 250.0;
 	double HalfDiagonal = 0.5 * Math.sqrt(250.0 * 250.0 + 250.0 * 250.0);
 	double AngleRange = 45.0;

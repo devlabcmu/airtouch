@@ -283,7 +283,6 @@ public class AirTouchPaintView extends AirTouchViewBase {
 
 	private void toggleDebug()
 	{
-		_showFingersInAir = !_showFingersInAir;
 		_showAirGestures = !_showAirGestures;
 		_showDebugText = !_showDebugText;
 	}

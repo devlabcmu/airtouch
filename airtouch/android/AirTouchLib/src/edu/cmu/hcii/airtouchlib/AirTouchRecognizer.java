@@ -21,8 +21,8 @@ import edu.cmu.hcii.airtouchlib.SendReceiveTask.PMDSendData;
 public abstract class AirTouchRecognizer implements PMDDataHandler {
 
 	// Constants
-	public static final long BETWEEN_TOUCH_TIMEOUT_MS = 700;
-	public static final long AFTER_TOUCH_TIMEOUT_MS = 700;
+	public static final long BETWEEN_TOUCH_TIMEOUT_MS = 1000;
+	public static final long AFTER_TOUCH_TIMEOUT_MS = 1000;
 	public static final String LOG_TAG = "AirTouch.AirTouchRecognizer";
 	
 	public enum AirTouchType
