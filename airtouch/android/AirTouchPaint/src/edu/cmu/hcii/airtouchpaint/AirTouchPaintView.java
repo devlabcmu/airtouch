@@ -100,7 +100,7 @@ public class AirTouchPaintView extends AirTouchViewBase {
 	}
 	
 	protected  AirTouchDollarRecognizer _beforeTouchRecognizer = new AirTouchDollarRecognizer(700, AirTouchType.BEFORE_TOUCH);
-	protected  AirTouchDollarRecognizer _betweenTouchRecognizer = new AirTouchDollarRecognizer(1000, AirTouchType.BETWEEN_TOUCHES);
+	protected  AirTouchDollarRecognizer _betweenTouchRecognizer = new AirTouchDollarRecognizer(700, AirTouchType.BETWEEN_TOUCHES);
 	
 	@Override
 	protected void onAttachedToWindow() {
