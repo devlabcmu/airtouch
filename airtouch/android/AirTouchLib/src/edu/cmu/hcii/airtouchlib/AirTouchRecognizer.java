@@ -120,6 +120,7 @@ public abstract class AirTouchRecognizer implements PMDDataHandler {
 				copyRollingToGestureBuffer();
 			} else
 			{
+				clearGestureBuffer();
 				Log.i(LOG_TAG, "between touch rejected, duration is " + dt);
 			}
 			break;

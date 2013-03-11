@@ -1,28 +1,32 @@
 package edu.cmu.hcii.airtouchpaint;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.Map.Entry;
-import java.util.Stack;
 
 import lx.interaction.dollar.Point;
 import lx.interaction.dollar.Result;
 import android.content.Context;
+import android.content.res.AssetManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Paint.Cap;
 import android.graphics.Paint.Style;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
-import edu.cmu.hcii.airtouchlib.AirTouchPoint.TouchType;
-import edu.cmu.hcii.airtouchlib.AirTouchRecognizer.AirTouchType;
 import edu.cmu.hcii.airtouchlib.AirTouchDollarRecognizer;
 import edu.cmu.hcii.airtouchlib.AirTouchPoint;
+import edu.cmu.hcii.airtouchlib.AirTouchPoint.TouchType;
+import edu.cmu.hcii.airtouchlib.AirTouchRecognizer.AirTouchType;
 import edu.cmu.hcii.airtouchlib.AirTouchViewBase;
 import edu.cmu.hcii.airtouchlib.PMDDataHandler;
 import edu.cmu.hcii.airtouchlib.PMDFinger;
@@ -76,6 +80,8 @@ public class AirTouchPaintView extends AirTouchViewBase {
 	long m_lastTouchDownMs;
 	Point m_lastTouchPoint = new Point(0,0);
 	
+	Bitmap m_background;
+	
 	// very simple one-level view
 	
 	GraphicalObject m_currentObject;
@@ -93,8 +99,16 @@ public class AirTouchPaintView extends AirTouchViewBase {
 		super(context, attrs, defStyle);
 	}
 	
-	protected  AirTouchDollarRecognizer _beforeTouchRecognizer = new AirTouchDollarRecognizer(1000, AirTouchType.BEFORE_TOUCH);
-	protected  AirTouchDollarRecognizer _betweenTouchRecognizer = new AirTouchDollarRecognizer(500, AirTouchType.BETWEEN_TOUCHES);
+	protected  AirTouchDollarRecognizer _beforeTouchRecognizer = new AirTouchDollarRecognizer(700, AirTouchType.BEFORE_TOUCH);
+	protected  AirTouchDollarRecognizer _betweenTouchRecognizer = new AirTouchDollarRecognizer(1000, AirTouchType.BETWEEN_TOUCHES);
+	
+	@Override
+	protected void onAttachedToWindow() {
+		// TODO Auto-generated method stub
+		super.onAttachedToWindow();
+		_beforeTouchRecognizer.loadGestureSet("default");
+		_betweenTouchRecognizer.loadGestureSet("default");
+	}
 	
 	@Override
 	protected void beginReceivingData() {
@@ -147,7 +161,8 @@ public class AirTouchPaintView extends AirTouchViewBase {
 		} else if(command == Command.CLEAR)
 		{
 			addBitmapToHistory();
-			m_canvas.drawRGB(255, 255, 255);
+			if(m_background != null)
+				m_canvas.drawBitmap(m_background, 0,0, new Paint());
 			m_currentObject = null;
 		}
 		updateLastPoint(event);
@@ -210,14 +225,38 @@ public class AirTouchPaintView extends AirTouchViewBase {
 		} 
 	}
 	
+	public static Bitmap getBitmapFromAsset(Context context, String strName) {
+	    AssetManager assetManager = context.getAssets();
+
+	    InputStream istr;
+	    Bitmap bitmap = null;
+	    try {
+	        istr = assetManager.open(strName);
+	        bitmap = BitmapFactory.decodeStream(istr);
+	    } catch (IOException e) {
+	    	Log.e(LOG_TAG, e.getMessage());
+	        return null;
+	    }
+
+	    return bitmap;
+	}
+	
+	private void initBitmap(int width, int height)
+	{
+		Log.i(LOG_TAG, "initializing bitmap...");
+		m_bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+		m_canvas = new Canvas(m_bitmap);
+		m_background = getBitmapFromAsset(getContext(), "jumping.jpg");
+		if(m_background != null)
+			m_canvas.drawBitmap(m_background, 0,0, new Paint());
+	}
+	
 	@Override
 	protected void onDraw(Canvas canvas) {
 		
 		if(m_canvas == null)
 		{
-			m_bitmap = Bitmap.createBitmap(canvas.getWidth(), canvas.getHeight(), Bitmap.Config.ARGB_8888);
-			m_canvas = new Canvas(m_bitmap);
-			m_canvas.drawRGB(255, 255, 255);
+			initBitmap(canvas.getWidth(), canvas.getHeight());
 		}
 		canvas.drawBitmap(m_bitmap, 0, 0, null);
 		if(m_currentObject != null)

@@ -292,7 +292,7 @@ public class AirTouchViewBase extends View implements PMDDataHandler {
 		_errorText = null;
 		 
 		// TODO: load a gesture set from file
-		_airTouchRecognizer = new AirTouchDollarRecognizer(1000, AirTouchType.BEFORE_TOUCH);
+		_airTouchRecognizer = new AirTouchDollarRecognizer(700, AirTouchType.BEFORE_TOUCH);
 		// try loading default gesture set
 		_airTouchRecognizer.loadGestureSet("default");
 		
