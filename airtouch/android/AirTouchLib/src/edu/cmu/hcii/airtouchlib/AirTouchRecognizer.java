@@ -133,7 +133,7 @@ public abstract class AirTouchRecognizer implements PMDDataHandler {
 		
 	}
 	
-	private void clearGestureBuffer()
+	protected void clearGestureBuffer()
 	{
 		synchronized(m_bufferLock)
 		{
@@ -151,7 +151,7 @@ public abstract class AirTouchRecognizer implements PMDDataHandler {
 		synchronized(m_bufferLock)
 		{
 //			Log.i(LOG_TAG, "copying rolling points to gesture buffer, rolling size is " + m_rollingBuffer.entrySet().size());
-			m_gestureBuffer.clear();
+			clearGestureBuffer();
 			for (Entry<Integer, LinkedList<PMDFinger>> path : m_rollingBuffer.entrySet()) 
 			{
 //				Log.i(LOG_TAG, "number point in buffer is  " + path.getValue().size());

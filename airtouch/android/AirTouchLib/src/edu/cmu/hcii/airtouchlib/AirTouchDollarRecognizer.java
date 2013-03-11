@@ -103,15 +103,15 @@ public class AirTouchDollarRecognizer extends AirTouchRecognizer {
 	
 	@Override
 	protected void recognize() {
-		clearGestureData();
 		for (Entry<Integer, LinkedList<PMDFinger>> path : m_gestureBuffer.entrySet()) 
 		{
 			// to do: perform the recognition in screen space???
 			Vector<Point> newpts = new Vector<Point>();
 
 			for (PMDFinger f : path.getValue()) {
+				if(f.id >= 0)
 				//					Log.i(LOG_TAG, "width is " + m_screenWidth + " height " + m_screenHeight + " adding for dollar: " + f.x  + ", " + f.z );
-				newpts.add(new Point(f.x * m_screenWidth, f.z * m_screenHeight));
+					newpts.add(new Point(f.x * m_screenWidth, f.z * m_screenHeight));
 			}
 			Rectangle r = Utils.BoundingBox(newpts);
 			if(r.Width * r.Height > MIN_GESTURE_AREA){
