@@ -77,8 +77,9 @@ public abstract class AirTouchRecognizer implements PMDDataHandler {
 				lst.add(new PMDFinger(data.fingers[i]));
 			}			
 		}
-		if(m_airTouchType == AirTouchType.AFTER_TOUCH && System.currentTimeMillis() - m_lastTouchUpMs > AFTER_TOUCH_TIMEOUT_MS && m_gestureBuffer.isEmpty())
+		if(m_airTouchType == AirTouchType.AFTER_TOUCH && System.currentTimeMillis() - m_lastTouchUpMs > AFTER_TOUCH_TIMEOUT_MS && m_gestureBuffer.isEmpty() && !m_fingerDown)
 		{
+			Log.i(LOG_TAG, "after touch recognizing gesture" );
 			copyRollingToGestureBuffer();
 		}
 	}
@@ -101,11 +102,14 @@ public abstract class AirTouchRecognizer implements PMDDataHandler {
 
 	}
 
+	private boolean m_fingerDown = false;
 	public void onTouchDown(MotionEvent e)
 	{
+		m_fingerDown = true;
 		long now = System.currentTimeMillis();
 		switch(m_airTouchType){
 		case AFTER_TOUCH:
+			clearGestureBuffer();
 			break;
 		case BEFORE_TOUCH:
 			copyRollingToGestureBuffer();
@@ -124,7 +128,9 @@ public abstract class AirTouchRecognizer implements PMDDataHandler {
 	
 	public void onTouchUp(MotionEvent e)
 	{
+		m_fingerDown = false;
 		m_lastTouchUpMs = System.currentTimeMillis();
+		
 	}
 	
 	private void clearGestureBuffer()

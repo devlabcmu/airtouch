@@ -246,8 +246,6 @@ public class AirTouchViewBase extends View implements PMDDataHandler {
 			type = AirTouchPoint.TouchType.TOUCH_UP;
 			_airTouchRecognizer.onTouchUp(event);
 			onTouchUp(event);
-			postInvalidateDelayed(AirTouchRecognizer.AFTER_TOUCH_TIMEOUT_MS * 2);
-			
 			break;
 		case MotionEvent.ACTION_MOVE:
 			type = AirTouchPoint.TouchType.TOUCH_MOVE;
@@ -277,7 +275,11 @@ public class AirTouchViewBase extends View implements PMDDataHandler {
 				}				
 			}
 		}
-		postInvalidate();
+		if(action == MotionEvent.ACTION_UP && _airTouchRecognizer.getAirTouchType() == AirTouchType.AFTER_TOUCH)
+			invalidate();
+		else
+			postInvalidateDelayed(AirTouchRecognizer.AFTER_TOUCH_TIMEOUT_MS * 2);
+		
 		return true;
 
 	}
