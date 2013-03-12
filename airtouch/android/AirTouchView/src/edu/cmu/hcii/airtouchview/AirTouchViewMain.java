@@ -23,12 +23,12 @@ public class AirTouchViewMain extends AirTouchMainActivityBase {
 		switch (keyCode) {
 		case KeyEvent.KEYCODE_VOLUME_UP:
 			if (action == KeyEvent.ACTION_DOWN) {
-				((AirTouchView)_airTouchView).volumeUpPressed();
+				_airTouchView.getAirTouchRecognizer().changeAirTouchType(false);
 			}
 			return true;
 		case KeyEvent.KEYCODE_VOLUME_DOWN:
 			if (action == KeyEvent.ACTION_DOWN) {
-				((AirTouchView)_airTouchView).volumeDownPressed();
+				_airTouchView.getAirTouchRecognizer().changeAirTouchType(true);
 			}
 			return true;
 		}

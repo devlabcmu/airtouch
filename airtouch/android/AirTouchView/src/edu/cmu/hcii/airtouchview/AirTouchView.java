@@ -38,22 +38,4 @@ public class AirTouchView extends AirTouchViewBase{
 		
 		_errorText = null;
 	}
-	
-	public void volumeUpPressed()
-	{
-		int ti = _airTouchRecognizer.getAirTouchType().ordinal();
-		int ni;
-		ni = ti + 1;
-		if(ni >= AirTouchType.values().length) ni = 0;
-		_airTouchRecognizer.setAirTouchType(AirTouchType.values()[ni]);
-	}
-
-	public void volumeDownPressed()
-	{
-		int ti = _airTouchRecognizer.getAirTouchType().ordinal();
-		int ni;
-		ni = ti - 1;
-		if(ni < 0 ) ni = AirTouchType.values().length - 1;
-		_airTouchRecognizer.setAirTouchType(AirTouchType.values()[ni]);
-	}
 }

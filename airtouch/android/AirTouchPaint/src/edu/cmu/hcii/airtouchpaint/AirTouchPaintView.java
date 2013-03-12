@@ -20,6 +20,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Paint.Cap;
 import android.graphics.Paint.Style;
+import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -106,8 +107,11 @@ public class AirTouchPaintView extends AirTouchViewBase {
 	protected void onAttachedToWindow() {
 		// TODO Auto-generated method stub
 		super.onAttachedToWindow();
-		_beforeTouchRecognizer.loadGestureSet("default");
-		_betweenTouchRecognizer.loadGestureSet("default");
+		_beforeTouchRecognizer.loadGestureSet("circle");
+		_betweenTouchRecognizer.loadGestureSet("caret");
+		
+		defaultPaintBrush.setColor(Color.WHITE);
+		_airTouchRecognizer.setAirTouchType(AirTouchType.BETWEEN_TOUCHES);
 	}
 	
 	@Override

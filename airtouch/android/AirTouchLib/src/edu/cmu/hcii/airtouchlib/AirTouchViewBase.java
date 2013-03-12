@@ -40,8 +40,8 @@ public class AirTouchViewBase extends View implements PMDDataHandler {
 
 	// static variables
 	private static Map<AirTouchPoint.TouchType, Paint> paintBrushes = new HashMap<AirTouchPoint.TouchType, Paint>();
-	static Paint defaultPaintBrush;
-	static Paint textPaintBrush;
+	protected static Paint defaultPaintBrush;
+	protected static Paint textPaintBrush;
 
 	// Networking
 	protected PMDServerConnection _connection;
@@ -368,13 +368,14 @@ public class AirTouchViewBase extends View implements PMDDataHandler {
 		updateFPS();
 		postInvalidate();
 	}
-
+	
 	@Override
 	public void onSendReceiveTaskFailed(String message) {
 		// TODO Auto-generated method stub
 
 	}
 
+	
 	
 	public AirTouchDollarRecognizer getAirTouchRecognizer()
 	{

@@ -52,6 +52,21 @@ public abstract class AirTouchRecognizer implements PMDDataHandler {
 		m_airTouchType = type;
 	}
 		
+	public void changeAirTouchType(boolean goToPrevious)
+	{
+		int ti = m_airTouchType.ordinal();
+		int ni;
+		if(goToPrevious){
+			ni = ti - 1;
+		}else{
+			ni = ti + 1;	
+		}
+		
+		if(ni >= AirTouchType.values().length) ni = 0;
+		if(ni < 0) ni = AirTouchType.values().length - 1;
+		m_airTouchType = AirTouchType.values()[ni];
+	}
+	
 	public void updateRecentPoints(PMDSendData data)
 	{
 		long currentTime = System.currentTimeMillis();
@@ -83,14 +98,7 @@ public abstract class AirTouchRecognizer implements PMDDataHandler {
 			copyRollingToGestureBuffer();
 		}
 	}
-	
-	public void clear()
-	{
-//		Log.i(LOG_TAG, "clearing rolling buffer");
-		m_rollingBuffer.clear();
-		clearGestureBuffer();
-		
-	}
+
 	
 	@Override
 	public void newPMDData(PMDSendData data) {
@@ -158,6 +166,7 @@ public abstract class AirTouchRecognizer implements PMDDataHandler {
 //				Log.i(LOG_TAG, "number point in buffer is  " + path.getValue().size());
 				m_gestureBuffer.put(path.getKey(), new LinkedList<PMDFinger>(path.getValue()));
 			}
+			m_rollingBuffer.clear();
 		}
 		recognize();
 	}
