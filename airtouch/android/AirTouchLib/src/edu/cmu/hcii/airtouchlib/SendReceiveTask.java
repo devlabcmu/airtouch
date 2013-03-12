@@ -22,17 +22,17 @@ public class SendReceiveTask extends AsyncTask<Void, Void, Boolean>
 
 	private final PMDServerConnection _server;
 	private final List<PMDDataHandler> _handlers = new ArrayList<PMDDataHandler>();
-	private boolean _getOnlyFingerData;
 	static final boolean OUTPUT_BITS_DEBUG = false;
 	private PMDSendData _dataFromServer = new PMDSendData();
-	byte[] _lMsg = new byte[PMDConstants.PMD_SEND_DATA_SIZE];
+	byte[] _lMsg = new byte[PMDConstants.PMD_FINGER_ONLY_DATA_SIZE];
+	String _outMessage = "gimme";
 	
-	public SendReceiveTask(PMDServerConnection server, boolean fingersOnly, PMDDataHandler ... handlers) {
+	public SendReceiveTask(PMDServerConnection server, String message, PMDDataHandler ... handlers) {
 		this._server = server;
 		for(int i = 0; i < handlers.length; i++)
 			addHandler(handlers[i]);
-		_getOnlyFingerData = fingersOnly;
 		_dataFromServer = new PMDSendData();
+		_outMessage = message;
 	}
 	
 	public void addHandler(PMDDataHandler handler)
@@ -46,16 +46,9 @@ public class SendReceiveTask extends AsyncTask<Void, Void, Boolean>
 	@Override
 	protected Boolean doInBackground(Void... params) {
 		try {
-			if(_getOnlyFingerData)
-			{
-				_server._outToServer.writeBytes("finger");
-			} else 
-			{
-				_server._outToServer.writeBytes("gimme");
-			}
-			
-			int nleft = PMDConstants.PMD_SEND_DATA_SIZE;
-			if(_getOnlyFingerData) nleft = PMDConstants.PMD_FINGER_ONLY_DATA_SIZE;
+			_server._outToServer.writeBytes(_outMessage);
+
+			int nleft = PMDConstants.PMD_FINGER_ONLY_DATA_SIZE;
 			int totalReceived = 0;
 
 			do{

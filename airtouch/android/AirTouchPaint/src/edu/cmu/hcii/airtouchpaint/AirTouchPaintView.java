@@ -119,24 +119,13 @@ public class AirTouchPaintView extends AirTouchViewBase {
 		
 		defaultPaintBrush.setColor(Color.WHITE);
 		_airTouchRecognizer.setAirTouchType(AirTouchType.BETWEEN_TOUCHES);
+		
+		_airTouchRecognizers.add(m_beforeTouchRecognizer);
+		_airTouchRecognizers.add(m_betweenTouchRecognizer);
+		_airTouchRecognizers.add(m_afterTouchRecognizer);
 	}
 	
-	@Override
-	protected void beginReceivingData() {
-		final PMDDataHandler me = this;
 
-		// handshake has already happened
-		// begin sending and receiving data
-		TimerTask task = new TimerTask() {
-			public void run() {
-				new SendReceiveTask(_connection, true, me, _airTouchRecognizer, m_beforeTouchRecognizer,m_betweenTouchRecognizer, m_afterTouchRecognizer).execute();
-
-			}
-		};
-		_timer = new Timer();
-		_timer.scheduleAtFixedRate(task, 1, 20);
-	}
-	
 	private Command getCommand()
 	{
 		Map<Integer, Result> gestureResults = m_betweenTouchRecognizer.getGestureResults();
@@ -157,9 +146,6 @@ public class AirTouchPaintView extends AirTouchViewBase {
 	@Override
 	protected void onTouchDown(MotionEvent event)
 	{
-		m_beforeTouchRecognizer.onTouchDown(event);
-		m_betweenTouchRecognizer.onTouchDown(event);
-		m_afterTouchRecognizer.onTouchDown(event);
 		Command command = getCommand();
 		if(command == Command.RECT)
 		{
@@ -190,9 +176,6 @@ public class AirTouchPaintView extends AirTouchViewBase {
 	
 	protected void onTouchUp(MotionEvent event)
 	{
-		m_beforeTouchRecognizer.onTouchUp(event);
-		m_betweenTouchRecognizer.onTouchUp(event);
-		m_afterTouchRecognizer.onTouchUp(event);
 		if(m_currentObject != null)
 		{
 			addBitmapToHistory();
@@ -333,16 +316,4 @@ public class AirTouchPaintView extends AirTouchViewBase {
 	{
 		toggleDebug();
 	}
-	
-	@Override
-	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-		super.onSizeChanged(w, h, oldw, oldh);
-		m_beforeTouchRecognizer.setScreenHeight(h);
-		m_beforeTouchRecognizer.setScreenWidth(w);
-		
-		m_betweenTouchRecognizer.setScreenHeight(h);
-		m_betweenTouchRecognizer.setScreenWidth(w);
-	}
-	
-
 }
