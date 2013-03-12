@@ -905,11 +905,19 @@ void PMDCamera::UpdateFingerPositions()
 	}
 }
 
-void PMDCamera::SetGroundTruth(int fingerId, Point3f groundTruth)
+void PMDCamera::SetGroundTruthFromPhone(Point2f groundTruth)
 {
+	cout << "SetGroundTruthFromPhone: (" << groundTruth.x << "," << groundTruth.y <<")"<< endl;
+	SetGroundTruth(m_phoneCalibration.PhonePercentageToWorldSpace(groundTruth) );
+}
+
+void PMDCamera::SetGroundTruth(Point3f groundTruth)
+{
+	cout << "SetGroundTruth: (" << groundTruth.x << "," << groundTruth.y << "," << groundTruth.z << ")"<< endl;
 	for (int i = 0; i < m_newFingers.size(); i++)
 	{
 		m_newFingers[i].worldCoords = groundTruth;
+		m_newFingers[i].screenCoords = WorldToScreenSpace(groundTruth);
 	}
 }
 

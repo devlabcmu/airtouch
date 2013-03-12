@@ -49,6 +49,7 @@ public:
 	Point3f ToPhoneSpace(Point3f coord);
 	void ToPhoneSpace(float* src, float* dst);
 	Point3f ToPhoneSpaceAsPercentage(Point3f coord);
+	Point3f PhonePercentageToWorldSpace(Point2f percentage);
 private:
 	Point3f m_origin;
 	Vec3f m_unitX;

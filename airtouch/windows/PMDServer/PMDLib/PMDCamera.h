@@ -132,7 +132,8 @@ public:
 	vector<Finger> GetFingers() {return m_newFingers;}
 	BackgroundSubtractionData const* const GetBackgroundSubtractionData() {return &m_backgroundSubtractionData;}
 
-	void SetGroundTruth(int fingerId, Point3f groundTruth);
+	void SetGroundTruth(Point3f groundTruth);
+	void SetGroundTruthFromPhone(Point2f groundTruthPhonePercentage);
 
 	Point3f GetCoord(int row, int col)
 	{ 

@@ -3,8 +3,8 @@
 #include <iostream>
 #include <fstream>
 using namespace std;
-//#define PHONE_ANDROID
-#define PHONE_IPHONE
+#define PHONE_ANDROID
+// #define PHONE_IPHONE
 
 #ifdef PHONE_ANDROID
 
@@ -150,6 +150,21 @@ Point3f PhoneCalibration::ToPhoneSpaceAsPercentage(Point3f coord)
 	//	x,y,z);
 
 	return Point3f(x / m_xLength,y,z / m_zLength);
+}
+
+Point3f PhoneCalibration::PhonePercentageToWorldSpace(Point2f percentage)
+{
+	percentage.x *= m_xLength;
+	percentage.y *= m_zLength;
+
+	// y in phone is z in world coords
+	// y is 0 in world coords
+	Point3f result = Point3f(0,0,0);
+	result = result +  Point3f(( m_unitX * percentage.x));
+	result = result + Point3f((m_unitZ * percentage.y));
+	result = m_origin + result;
+	cout << "phonePercentageToWorld phone: (" << percentage.x << "," << percentage.y << ") world: (" << result.x << "," << result.y << ")" << endl;
+	return result;
 }
 
 Point3f PhoneCalibration::ToPhoneSpace(Point3f coord)
