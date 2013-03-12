@@ -84,9 +84,19 @@ void updateUI()
 	std::sort(fingers.begin(), fingers.end(), fingerCompare);
 
 	CvScalar fingerColors[2] = {CV_RGB(255,0,0), CV_RGB(0,0,255)};
+
+	
+	vector<BlobPoint> blobs = _pmdCamera.GetBlobPoints();
+	for(vector<BlobPoint>::iterator i = blobs.begin(); i < blobs.end(); i++)
+	{
+		cvCircle(_distancesAndFingerLocation, i->pt, i->size, CV_RGB(0, 255, 0));
+	}
+
 	for(vector<Finger>::iterator i = fingers.begin(); i !=fingers.end(); i++)
 	{
-		cvCircle(_distancesAndFingerLocation, i->screenCoords, 10, fingerColors[i - fingers.begin()]);
+		cvCircle(_distancesAndFingerLocation, i->screenCoords, 10, fingerColors[i->id % 2]);
+		cvCircle(_distancesAndFingerLocation, i->blobCenter, 3, fingerColors[i->id % 2], 3);
+		cvLine(_distancesAndFingerLocation, i->blobCenter, i->screenCoords, fingerColors[i->id % 2]);
 	}
 
 	cvCircle(_distancesAndFingerLocation, _pmdCamera.WorldToScreenSpace(_phoneCalibration->GetPhoneLowerLeft()), 3, Scalar(255, 0,0));

@@ -17,7 +17,7 @@
 const int g_numFramesForBackgroundSubtraction = 50;
 const int g_minBlobSize = 200;
 const int g_maxBlobSize = 1000000;
-const float g_fingerScreenSmoothing = 0.0f;
+const float g_fingerScreenSmoothing = 0.5f;
 const float g_fingerWorldSmoothing = 0.7f;
 const float g_convexHullStdDevDistances = 0.018;
 const float g_convexHullStDevCenterDst = 5;
