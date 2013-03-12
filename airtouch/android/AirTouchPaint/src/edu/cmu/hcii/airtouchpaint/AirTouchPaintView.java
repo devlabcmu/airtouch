@@ -116,7 +116,6 @@ public class AirTouchPaintView extends AirTouchViewBase {
 
 	private Command getCommand()
 	{
-		if(m_lastTouchPoint != null) return Command.RECT;
 		Map<Integer, Result> gestureResults = m_betweenTouchRecognizer.getGestureResults();
 		// if either finger has recognized caret
 		for (Entry<Integer, Result> result : gestureResults.entrySet()) {
@@ -144,6 +143,7 @@ public class AirTouchPaintView extends AirTouchViewBase {
 			m_currentObject = null;
 			return;
 		}
+		
 		if(m_currentObject != null)
 		{
 			m_currentObject.onTouchDown(event);
@@ -152,7 +152,6 @@ public class AirTouchPaintView extends AirTouchViewBase {
 			if(command == Command.RECT)
 			{
 				undo();
-//				m_currentObject = new Rectangle((float)m_lastTouchPoint.X, (float)m_lastTouchPoint.Y, event.getX(), event.getY(), this);
 				m_currentObject = new RectangleCrop(this, (float)m_lastTouchPoint.X, (float)m_lastTouchPoint.Y, event.getX(), event.getY());
 			} else if(command == Command.STROKE)
 			{
@@ -179,28 +178,24 @@ public class AirTouchPaintView extends AirTouchViewBase {
 		if(m_currentObject != null){
 			m_currentObject.onTouchUp(event);
 		}
+		final AirTouchPaintView me = this;
 		m_afterTouchTimer.schedule(new TimerTask(){
-
+		
 			@Override
 			public void run() {
 				// TODO Auto-generated method stub
 				Map<Integer, Result> gestureResults = m_afterTouchRecognizer.getGestureResults();
 				// if either finger has recognized caret
 				for (Entry<Integer, Result> result : gestureResults.entrySet()) {
-					if(result.getValue().Name.contains("finger") && result.getValue().Score > 0.8)
+					if(result.getValue().Name.contains("finger") && result.getValue().Score > 0.8 && m_lastObject != null)
 					{
 						Log.i(LOG_TAG, "finger lifted detected!");
-//						if(m_lastObject != null){
-//							undo();
-//							if(m_lastObject.getColor() == Color.BLACK)
-//							{
-//								m_lastObject.setColor(Color.WHITE);
-//							}else
-//							{
-//								m_lastObject.setColor(Color.BLACK);
-//							}
-//							m_lastObject.draw(m_canvas);
-//						}
+						if(m_lastObject instanceof Stroke)
+						{
+							undo();
+							m_currentObject = new StrokeCrop(me, (Stroke)m_lastObject);
+							m_lastObject = null;
+						}
 					}
 					postInvalidate();
 				}

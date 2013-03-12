@@ -14,7 +14,11 @@ public class Stroke extends GraphicalObject {
 	}
 
 	private Path m_path = new Path();
-
+	public Path getPath()
+	{
+		return m_path;
+	}
+	
 	@Override
 	public void draw(Canvas c) {
 		c.drawPath(m_path, m_paint);

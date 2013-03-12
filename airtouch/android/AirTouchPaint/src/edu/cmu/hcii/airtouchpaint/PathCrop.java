@@ -100,5 +100,11 @@ public abstract class PathCrop extends GraphicalObject {
 		}
 	}
 
-
+	@Override
+	public void onTouchUp(MotionEvent e) {
+		if(m_state == CropState.Canceling)
+		{
+			m_parent.commitObject();
+		}
+	}
 }

@@ -47,12 +47,4 @@ public class RectangleCrop extends PathCrop {
 			m_yTranslate = m_startMoveLocation.Y + e.getY() - m_startMovePoint.Y;
 		}
 	}
-	
-	@Override
-	public void onTouchUp(MotionEvent e) {
-		if(m_state == CropState.Canceling)
-		{
-			m_parent.commitObject();
-		}
-	}
 }
