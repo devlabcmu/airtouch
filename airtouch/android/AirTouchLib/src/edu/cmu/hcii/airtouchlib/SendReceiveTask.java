@@ -46,8 +46,8 @@ public class SendReceiveTask extends AsyncTask<Void, Void, Boolean>
 	@Override
 	protected Boolean doInBackground(Void... params) {
 		try {
-			_server._outToServer.writeBytes(_outMessage);
-
+			 _server._outToServer.writeBytes(_outMessage);
+//			_server._outToServer.writeBytes("finger");
 			int nleft = PMDConstants.PMD_FINGER_ONLY_DATA_SIZE;
 			int totalReceived = 0;
 

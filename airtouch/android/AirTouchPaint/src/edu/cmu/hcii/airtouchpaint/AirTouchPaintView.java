@@ -30,9 +30,7 @@ import edu.cmu.hcii.airtouchlib.AirTouchRecognizer;
 import edu.cmu.hcii.airtouchlib.AirTouchRecognizer.AirTouchType;
 import edu.cmu.hcii.airtouchlib.AirTouchViewBase;
 import edu.cmu.hcii.airtouchlib.FingerLiftedRecognizer;
-import edu.cmu.hcii.airtouchlib.PMDDataHandler;
 import edu.cmu.hcii.airtouchlib.PMDFinger;
-import edu.cmu.hcii.airtouchlib.SendReceiveTask;
 
 public class AirTouchPaintView extends AirTouchViewBase {
 	enum Command {STROKE, RECT, CLEAR, CLIP};
@@ -50,16 +48,6 @@ public class AirTouchPaintView extends AirTouchViewBase {
 		paint.setColor(Color.LTGRAY);
 		g_shadowPaint = paint;
 		
-		paint = new Paint();
-		paint.setColor(Color.MAGENTA);
-		paint.setStyle(Style.STROKE);
-		g_gestureBrushes.put(AirTouchPoint.TouchType.TOUCH_DOWN, paint);
-
-		paint = new Paint();
-		paint.setColor(Color.GREEN);
-		paint.setStyle(Style.STROKE);
-		g_gestureBrushes.put(AirTouchPoint.TouchType.TOUCH_MOVE, paint);
-
 		paint = new Paint();
 		paint.setColor(Color.BLUE);
 		paint.setStyle(Style.STROKE);
@@ -117,12 +105,12 @@ public class AirTouchPaintView extends AirTouchViewBase {
 		m_beforeTouchRecognizer.loadGestureSet("circle");
 		m_betweenTouchRecognizer.loadGestureSet("caret");
 		
-		defaultPaintBrush.setColor(Color.WHITE);
-		_airTouchRecognizer.setAirTouchType(AirTouchType.BETWEEN_TOUCHES);
+		g_defaultPaintBrush.setColor(Color.WHITE);
+		m_airTouchRecognizer.setAirTouchType(AirTouchType.BETWEEN_TOUCHES);
 		
-		_airTouchRecognizers.add(m_beforeTouchRecognizer);
-		_airTouchRecognizers.add(m_betweenTouchRecognizer);
-		_airTouchRecognizers.add(m_afterTouchRecognizer);
+		m_airTouchRecognizers.add(m_beforeTouchRecognizer);
+		m_airTouchRecognizers.add(m_betweenTouchRecognizer);
+		m_airTouchRecognizers.add(m_afterTouchRecognizer);
 	}
 	
 
@@ -164,6 +152,11 @@ public class AirTouchPaintView extends AirTouchViewBase {
 			m_currentObject = null;
 		}
 		updateLastPoint(event);
+	}
+	
+	public Bitmap getBackgroundBitmap()
+	{
+		return m_background;
 	}
 	
 	protected void onTouchMove(MotionEvent event)
@@ -233,15 +226,15 @@ public class AirTouchPaintView extends AirTouchViewBase {
 	
 	protected void drawFingersInAir(Canvas canvas)
 	{
-		for (int i = 0; i < _dataFromServer.fingers.length; i++) {
-			if(_dataFromServer.fingers[i] == null) continue;
+		for (int i = 0; i < m_dataFromServer.fingers.length; i++) {
+			if(m_dataFromServer.fingers[i] == null) continue;
 
-			if(_dataFromServer.fingers[i].id >= 0)
+			if(m_dataFromServer.fingers[i].id >= 0)
 			{
 
-				PMDFinger p = phoneToScreen(_dataFromServer.fingers[i]);
+				PMDFinger p = phoneToScreen(m_dataFromServer.fingers[i]);
 
-				TouchType type = _dataFromServer.fingers[i].id % 2 == 0 ? TouchType.AIR_MOVE1 : TouchType.AIR_MOVE2;
+				TouchType type = m_dataFromServer.fingers[i].id % 2 == 0 ? TouchType.AIR_MOVE1 : TouchType.AIR_MOVE2;
 				g_shadowPaint.setAlpha((int)(1 - 255 * Math.max(0, Math.min(1, p.z) ) ));
 
 				canvas.drawCircle(p.x, p.y, p.z * 500,g_shadowPaint);	
@@ -287,13 +280,13 @@ public class AirTouchPaintView extends AirTouchViewBase {
 		if(m_currentObject != null)
 			m_currentObject.draw(canvas);
 		
-		if(_showTouches) drawTouchPoints(canvas);
+		if(m_showTouches) drawTouchPoints(canvas);
 
-		if(_showFingersInAir &&  _dataFromServer !=null) drawFingersInAir(canvas);
+		if(m_showFingersInAir &&  m_dataFromServer !=null) drawFingersInAir(canvas);
 			
-		if(_showAirGestures) _airTouchRecognizer.drawGesture(canvas, g_gestureBrushes);
+		if(m_showAirGestures) m_airTouchRecognizer.drawGesture(canvas, g_gestureBrushes);
 			
-		if(_showDebugText) drawDebugText(canvas);
+		if(m_showDebugText) drawDebugText(canvas);
 	}
 	
 	private void undo()
@@ -308,8 +301,8 @@ public class AirTouchPaintView extends AirTouchViewBase {
 
 	private void toggleDebug()
 	{
-		_showAirGestures = !_showAirGestures;
-		_showDebugText = !_showDebugText;
+		m_showAirGestures = !m_showAirGestures;
+		m_showDebugText = !m_showDebugText;
 	}
 	
 	public void volumePressed()

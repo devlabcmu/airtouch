@@ -35,70 +35,70 @@ public class AirTouchViewBase extends View implements PMDDataHandler {
 	static String TAG = "AirTouch.AirTouchViewBase";
 
 	// static variables
-	private static Map<AirTouchPoint.TouchType, Paint> paintBrushes = new HashMap<AirTouchPoint.TouchType, Paint>();
-	protected static Paint defaultPaintBrush;
-	protected static Paint textPaintBrush;
+	private static Map<AirTouchPoint.TouchType, Paint> g_paintBrushes = new HashMap<AirTouchPoint.TouchType, Paint>();
+	protected static Paint g_defaultPaintBrush;
+	protected static Paint g_textPaintBrush;
 
 	// Networking
-	protected PMDServerConnection _connection;
-	protected PMDSendData _dataFromServer;
-	protected boolean _stopNetworkConnection = false;
+	protected PMDServerConnection m_connection;
+	protected PMDSendData m_dataFromServer;
+	protected boolean m_stopNetworkConnection = false;
 
 	protected Timer _timer;
 
 	// UI
-	private Map<Integer, AirTouchPoint> _touchMap = new HashMap<Integer, AirTouchPoint>();
-	protected Object _touchMapLock = new Object();
-	protected String _errorText;
-	protected RectF _touchDrawRect = new RectF();
+	private Map<Integer, AirTouchPoint> m_touchMap = new HashMap<Integer, AirTouchPoint>();
+	protected Object m_touchMapLock = new Object();
+	protected String m_errorText;
+	protected RectF m_touchDrawRect = new RectF();
 
 
 	// Show debug info
-	public boolean _showTouches = false;
-	public boolean _showFingersInAir = true;
-	public boolean _showAirGestures = true;
-	public boolean _showDebugText = true;
+	public boolean m_showTouches = false;
+	public boolean m_showFingersInAir = true;
+	public boolean m_showAirGestures = true;
+	public boolean m_showDebugText = true;
 
 
 	// Gestures
-	protected List<AirTouchRecognizer> _airTouchRecognizers = new ArrayList<AirTouchRecognizer>();
-	protected  AirTouchDollarRecognizer _airTouchRecognizer;
+	protected List<AirTouchRecognizer> m_airTouchRecognizers = new ArrayList<AirTouchRecognizer>();
+	protected  AirTouchDollarRecognizer m_airTouchRecognizer;
 
 	static
 	{
-		defaultPaintBrush = new Paint();
-		defaultPaintBrush.setColor(Color.BLACK);
-		defaultPaintBrush.setTextSize(40);
+		g_defaultPaintBrush = new Paint();
+		g_defaultPaintBrush.setColor(Color.BLACK);
+		g_defaultPaintBrush.setTextSize(40);
 
-		textPaintBrush = new Paint();
-		textPaintBrush.setColor(Color.RED);
-		textPaintBrush.setTextSize(40);
+		g_textPaintBrush = new Paint();
+		g_textPaintBrush.setColor(Color.RED);
+		g_textPaintBrush.setTextSize(40);
 
 		Paint paint;
 
 		paint = new Paint();
 		paint.setColor(Color.MAGENTA);
 		paint.setStyle(Style.STROKE);
-		paintBrushes.put(AirTouchPoint.TouchType.TOUCH_DOWN, paint);
+		g_paintBrushes.put(AirTouchPoint.TouchType.TOUCH_DOWN, paint);
 
 		paint = new Paint();
 		paint.setColor(Color.GREEN);
 		paint.setStyle(Style.STROKE);
-		paintBrushes.put(AirTouchPoint.TouchType.TOUCH_MOVE, paint);
+		g_paintBrushes.put(AirTouchPoint.TouchType.TOUCH_MOVE, paint);
 
 		paint = new Paint();
 		paint.setColor(Color.BLUE);
 		paint.setStrokeCap(Cap.ROUND);
 		paint.setStyle(Style.STROKE);
 		paint.setStrokeWidth(5);
-		paintBrushes.put(AirTouchPoint.TouchType.AIR_MOVE1, paint);
+		g_paintBrushes.put(AirTouchPoint.TouchType.AIR_MOVE1, paint);
 
 		paint = new Paint();
 		paint.setColor(Color.RED);
 		paint.setStrokeCap(Cap.ROUND);
 		paint.setStyle(Style.STROKE);
 		paint.setStrokeWidth(5);
-		paintBrushes.put(AirTouchPoint.TouchType.AIR_MOVE2, paint);
+		g_paintBrushes.put(AirTouchPoint.TouchType.AIR_MOVE2, paint);
 
 	}
 
@@ -116,7 +116,7 @@ public class AirTouchViewBase extends View implements PMDDataHandler {
 
 	public void setServerConnection(PMDServerConnection c)
 	{
-		_connection = c;
+		m_connection = c;
 	}
 
 	public PMDFinger phoneToScreen(PMDFinger f)
@@ -139,18 +139,18 @@ public class AirTouchViewBase extends View implements PMDDataHandler {
 	{
 		Paint paint;
 
-		synchronized(_touchMapLock) {
+		synchronized(m_touchMapLock) {
 
-			for(AirTouchPoint tp : _touchMap.values()) {
+			for(AirTouchPoint tp : m_touchMap.values()) {
 				canvas.save();
 
 				canvas.translate(tp.x, tp.y);
-				paint = paintBrushes.get(tp.type);
-				if(paint == null) paint = defaultPaintBrush;
-				_touchDrawRect.set(
+				paint = g_paintBrushes.get(tp.type);
+				if(paint == null) paint = g_defaultPaintBrush;
+				m_touchDrawRect.set(
 						-TOUCH_SCALE, -TOUCH_SCALE,
 						TOUCH_SCALE, TOUCH_SCALE);
-				canvas.drawOval(_touchDrawRect, paint);
+				canvas.drawOval(m_touchDrawRect, paint);
 
 				canvas.restore();
 			}
@@ -159,19 +159,19 @@ public class AirTouchViewBase extends View implements PMDDataHandler {
 
 	protected void drawFingersInAir(Canvas canvas)
 	{
-		for (int i = 0; i < _dataFromServer.fingers.length; i++) {
-			if(_dataFromServer.fingers[i] == null) continue;
+		for (int i = 0; i < m_dataFromServer.fingers.length; i++) {
+			if(m_dataFromServer.fingers[i] == null) continue;
 
-			if(_dataFromServer.fingers[i].id >= 0)
+			if(m_dataFromServer.fingers[i].id >= 0)
 			{
 
-				PMDFinger p = phoneToScreen(_dataFromServer.fingers[i]);
+				PMDFinger p = phoneToScreen(m_dataFromServer.fingers[i]);
 
-				TouchType type = _dataFromServer.fingers[i].id % 2 == 0 ? TouchType.AIR_MOVE1 : TouchType.AIR_MOVE2;
-				paintBrushes.get(type).setAlpha((int)(1 - 255 * Math.max(0, Math.min(1, p.z) ) ));
+				TouchType type = m_dataFromServer.fingers[i].id % 2 == 0 ? TouchType.AIR_MOVE1 : TouchType.AIR_MOVE2;
+				g_paintBrushes.get(type).setAlpha((int)(1 - 255 * Math.max(0, Math.min(1, p.z) ) ));
 
-				canvas.drawCircle(p.x, p.y, p.z * 500, paintBrushes.get(type));	
-				paintBrushes.get(type).setAlpha(1);
+				canvas.drawCircle(p.x, p.y, p.z * 500, g_paintBrushes.get(type));	
+				g_paintBrushes.get(type).setAlpha(1);
 			}
 		} 
 	}
@@ -182,18 +182,18 @@ public class AirTouchViewBase extends View implements PMDDataHandler {
 
 		canvas.translate(20, 50);
 		// Draw any errors
-		if(_errorText != null) 
+		if(m_errorText != null) 
 		{
-			canvas.drawText(_errorText, 0, 0, textPaintBrush);
+			canvas.drawText(m_errorText, 0, 0, g_textPaintBrush);
 		}
 		canvas.translate(0,50);
-		canvas.drawText(String.format("pmd data fps: %.2f", _pmdFPS), 0, 0, defaultPaintBrush);
+		canvas.drawText(String.format("pmd data fps: %.2f", _pmdFPS), 0, 0, g_defaultPaintBrush);
 		canvas.translate(0,50);
-		canvas.drawText(_airTouchRecognizer.getAirTouchType().toString(), 0, 0, defaultPaintBrush);
-		for (Entry<Integer, Result> result : _airTouchRecognizer.getGestureResults().entrySet())
+		canvas.drawText(m_airTouchRecognizer.getAirTouchType().toString(), 0, 0, g_defaultPaintBrush);
+		for (Entry<Integer, Result> result : m_airTouchRecognizer.getGestureResults().entrySet())
 		{
 			canvas.translate(0, 50);
-			canvas.drawText(String.format("%s score: %.2f", result.getValue().Name, result.getValue().Score),0,0,defaultPaintBrush);
+			canvas.drawText(String.format("%s score: %.2f", result.getValue().Name, result.getValue().Score),0,0,g_defaultPaintBrush);
 
 		}
 		canvas.restore();
@@ -204,20 +204,20 @@ public class AirTouchViewBase extends View implements PMDDataHandler {
 
 
 		// Draw touch points
-		if(_showTouches) drawTouchPoints(canvas);
+		if(m_showTouches) drawTouchPoints(canvas);
 
-		if(_showFingersInAir &&  _dataFromServer !=null) drawFingersInAir(canvas);
+		if(m_showFingersInAir &&  m_dataFromServer !=null) drawFingersInAir(canvas);
 
-		if(_showAirGestures) _airTouchRecognizer.drawGesture(canvas, paintBrushes);
+		if(m_showAirGestures) m_airTouchRecognizer.drawGesture(canvas, g_paintBrushes);
 
-		if(_showDebugText) drawDebugText(canvas);
+		if(m_showDebugText) drawDebugText(canvas);
 
 	}
 
 	@Override
 	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
 		super.onSizeChanged(w, h, oldw, oldh);
-		for (AirTouchRecognizer r : _airTouchRecognizers) {
+		for (AirTouchRecognizer r : m_airTouchRecognizers) {
 			r.setScreenHeight(h);
 			r.setScreenWidth(w);
 		}
@@ -237,7 +237,7 @@ public class AirTouchViewBase extends View implements PMDDataHandler {
 		{
 		case MotionEvent.ACTION_DOWN:
 			type = AirTouchPoint.TouchType.TOUCH_DOWN;
-			for (AirTouchRecognizer r : _airTouchRecognizers) {
+			for (AirTouchRecognizer r : m_airTouchRecognizers) {
 				r.onTouchDown(event);
 			}
 
@@ -246,7 +246,7 @@ public class AirTouchViewBase extends View implements PMDDataHandler {
 		case MotionEvent.ACTION_UP:
 			performClick();
 			type = AirTouchPoint.TouchType.TOUCH_UP;
-			for (AirTouchRecognizer r : _airTouchRecognizers) {
+			for (AirTouchRecognizer r : m_airTouchRecognizers) {
 				r.onTouchUp(event);
 			}
 			_lastTouchUp = new PointF(event.getX(), event.getY());
@@ -266,21 +266,21 @@ public class AirTouchViewBase extends View implements PMDDataHandler {
 
 			float x = event.getX(i);
 			float y = event.getY(i);
-			synchronized(_touchMapLock)
+			synchronized(m_touchMapLock)
 			{
 				if(action != MotionEvent.ACTION_UP)
 				{
-					_touchMap.put(id, new AirTouchPoint(x, y, type));	
+					m_touchMap.put(id, new AirTouchPoint(x, y, type));	
 				} 
 				else 
 				{
-					if(_touchMap.containsKey(id)){
-						_touchMap.remove(id);
+					if(m_touchMap.containsKey(id)){
+						m_touchMap.remove(id);
 					}
 				}				
 			}
 		}
-		if(action == MotionEvent.ACTION_UP && _airTouchRecognizer.getAirTouchType() == AirTouchType.AFTER_TOUCH)
+		if(action == MotionEvent.ACTION_UP && m_airTouchRecognizer.getAirTouchType() == AirTouchType.AFTER_TOUCH)
 			invalidate();
 		else
 			postInvalidateDelayed(AirTouchRecognizer.AFTER_TOUCH_TIMEOUT_MS * 2);
@@ -294,13 +294,13 @@ public class AirTouchViewBase extends View implements PMDDataHandler {
 	@Override
 	protected void onAttachedToWindow() {
 		super.onAttachedToWindow();
-		_errorText = null;
+		m_errorText = null;
 
 		// TODO: load a gesture set from file
-		_airTouchRecognizer = new AirTouchDollarRecognizer(700, AirTouchType.BEFORE_TOUCH);
+		m_airTouchRecognizer = new AirTouchDollarRecognizer(700, AirTouchType.BEFORE_TOUCH);
 		// try loading default gesture set
-		_airTouchRecognizer.loadGestureSet("default");
-		_airTouchRecognizers.add(_airTouchRecognizer);
+		m_airTouchRecognizer.loadGestureSet("default");
+		m_airTouchRecognizers.add(m_airTouchRecognizer);
 
 		//		am.close();
 		beginReceivingData();
@@ -322,8 +322,8 @@ public class AirTouchViewBase extends View implements PMDDataHandler {
 					message = "fp " + lastX + " " + lastY;
 							_lastTouchUp = null;
 				}
-				SendReceiveTask toExecute =new SendReceiveTask(_connection, message ,  me);
-				for (AirTouchRecognizer r : _airTouchRecognizers) {
+				SendReceiveTask toExecute =new SendReceiveTask(m_connection, message ,  me);
+				for (AirTouchRecognizer r : m_airTouchRecognizers) {
 					toExecute.addHandler(r);
 				}
 				toExecute.execute();
@@ -336,11 +336,11 @@ public class AirTouchViewBase extends View implements PMDDataHandler {
 
 	public void stop()
 	{
-		_stopNetworkConnection = true;
+		m_stopNetworkConnection = true;
 		if(_timer != null)
 			_timer.cancel();
-		if(_connection != null)
-			new DisconnectTask(_connection).execute();
+		if(m_connection != null)
+			new DisconnectTask(m_connection).execute();
 	}
 
 	@Override
@@ -348,8 +348,8 @@ public class AirTouchViewBase extends View implements PMDDataHandler {
 		super.onDetachedFromWindow();
 
 		// garbage collect the pmd data
-		_dataFromServer = null;
-		_stopNetworkConnection = true;
+		m_dataFromServer = null;
+		m_stopNetworkConnection = true;
 		// stop sending and receiving data
 		// send disconnect message?
 	}
@@ -381,7 +381,7 @@ public class AirTouchViewBase extends View implements PMDDataHandler {
 
 	@Override
 	public void newPMDData(PMDSendData data) {
-		_dataFromServer = data;
+		m_dataFromServer = data;
 		updateFPS();
 		postInvalidate();
 	}
@@ -396,7 +396,7 @@ public class AirTouchViewBase extends View implements PMDDataHandler {
 
 	public AirTouchDollarRecognizer getAirTouchRecognizer()
 	{
-		return _airTouchRecognizer;
+		return m_airTouchRecognizer;
 	}
 
 

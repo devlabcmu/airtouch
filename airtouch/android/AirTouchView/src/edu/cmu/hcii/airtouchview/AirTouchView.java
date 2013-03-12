@@ -36,6 +36,6 @@ public class AirTouchView extends AirTouchViewBase{
 	protected void onAttachedToWindow() {
 		super.onAttachedToWindow();
 		
-		_errorText = null;
+		m_errorText = null;
 	}
 }
