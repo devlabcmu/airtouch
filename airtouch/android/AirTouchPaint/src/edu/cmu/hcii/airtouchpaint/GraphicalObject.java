@@ -24,5 +24,15 @@ public abstract class GraphicalObject {
 	protected AirTouchPaintView m_parent;
 	public abstract void onTouchDown(MotionEvent e);
 	public abstract void onTouchMove(MotionEvent e);
+	
+	public void setColor(int color)
+	{
+		g_defaultPaint.setColor(color);
+	}
+	
+	public int getColor()
+	{
+		return g_defaultPaint.getColor();
+	}
 
 }

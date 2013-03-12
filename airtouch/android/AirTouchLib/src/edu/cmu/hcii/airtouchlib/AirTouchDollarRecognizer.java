@@ -25,7 +25,7 @@ public class AirTouchDollarRecognizer extends AirTouchRecognizer {
 	// Gestures
 	DollarRecognizer m_dollarRecognizer;
 	Map<Integer, Vector<Point>> m_dollarPoints = new HashMap<Integer, Vector<Point>>();
-	Map<Integer, Result> m_gestureResults = new HashMap<Integer, Result>();
+	
 	
 	static File g_gestureFileRoot;
 	
@@ -119,7 +119,6 @@ public class AirTouchDollarRecognizer extends AirTouchRecognizer {
 				m_dollarPoints.put(path.getKey(), newpts);
 			}
 		}
-		Log.i(LOG_TAG, "recognizing");
 	}
 	
 	public DollarRecognizer getDollarRecognizer()
@@ -134,16 +133,10 @@ public class AirTouchDollarRecognizer extends AirTouchRecognizer {
 	
 	@Override
 	protected void clearGestureData() {
-		Log.i(LOG_TAG, "clearing gesture data");
-		m_gestureResults.clear();
+		
 		m_dollarPoints.clear();
 	}
-	
-	public Map<Integer, Result> getGestureResults()
-	{
-		return m_gestureResults;
-	}
-	
+
 	public Map<Integer, Vector<Point>> getDollarPoints()
 	{
 		return m_dollarPoints;

@@ -5,6 +5,8 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import lx.interaction.dollar.Result;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
@@ -24,6 +26,9 @@ public abstract class AirTouchRecognizer implements PMDDataHandler {
 	public static final long BETWEEN_TOUCH_TIMEOUT_MS = 1000;
 	public static final long AFTER_TOUCH_TIMEOUT_MS = 1000;
 	public static final String LOG_TAG = "AirTouch.AirTouchRecognizer";
+	
+	
+	protected Map<Integer, Result> m_gestureResults = new HashMap<Integer, Result>();
 	
 	public enum AirTouchType
 	{
@@ -149,6 +154,7 @@ public abstract class AirTouchRecognizer implements PMDDataHandler {
 			m_gestureBuffer.clear();
 			
 		}
+		m_gestureResults.clear();
 		clearGestureData();
 		
 	}
@@ -249,5 +255,10 @@ public abstract class AirTouchRecognizer implements PMDDataHandler {
 		m_screenHeight = screenHeight;
 	}
 
+	
+	public Map<Integer, Result> getGestureResults()
+	{
+		return m_gestureResults;
+	}
 	
 }

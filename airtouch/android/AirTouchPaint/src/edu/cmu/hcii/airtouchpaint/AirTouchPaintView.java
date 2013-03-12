@@ -20,59 +20,61 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Paint.Cap;
 import android.graphics.Paint.Style;
-import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import edu.cmu.hcii.airtouchlib.AirTouchDollarRecognizer;
 import edu.cmu.hcii.airtouchlib.AirTouchPoint;
 import edu.cmu.hcii.airtouchlib.AirTouchPoint.TouchType;
+import edu.cmu.hcii.airtouchlib.AirTouchRecognizer;
 import edu.cmu.hcii.airtouchlib.AirTouchRecognizer.AirTouchType;
 import edu.cmu.hcii.airtouchlib.AirTouchViewBase;
+import edu.cmu.hcii.airtouchlib.FingerLiftedRecognizer;
 import edu.cmu.hcii.airtouchlib.PMDDataHandler;
 import edu.cmu.hcii.airtouchlib.PMDFinger;
 import edu.cmu.hcii.airtouchlib.SendReceiveTask;
 
 public class AirTouchPaintView extends AirTouchViewBase {
+	enum Command {STROKE, RECT, CLEAR, CLIP};
+
 	static String LOG_TAG = "AirTouchPaintView";
-	protected static Map<AirTouchPoint.TouchType, Paint> gestureBrushes = new HashMap<AirTouchPoint.TouchType, Paint>();
-	static Paint shadowPaint;
+	protected static Map<AirTouchPoint.TouchType, Paint> g_gestureBrushes = new HashMap<AirTouchPoint.TouchType, Paint>();
+	static Paint g_shadowPaint;
+	static final int UNDO_HISTORY_SIZE = 5;
+
 	static
 	{
 		Paint paint;
 
 		paint = new Paint();
 		paint.setColor(Color.LTGRAY);
-		shadowPaint = paint;
+		g_shadowPaint = paint;
 		
 		paint = new Paint();
 		paint.setColor(Color.MAGENTA);
 		paint.setStyle(Style.STROKE);
-		gestureBrushes.put(AirTouchPoint.TouchType.TOUCH_DOWN, paint);
+		g_gestureBrushes.put(AirTouchPoint.TouchType.TOUCH_DOWN, paint);
 
 		paint = new Paint();
 		paint.setColor(Color.GREEN);
 		paint.setStyle(Style.STROKE);
-		gestureBrushes.put(AirTouchPoint.TouchType.TOUCH_MOVE, paint);
+		g_gestureBrushes.put(AirTouchPoint.TouchType.TOUCH_MOVE, paint);
 
 		paint = new Paint();
 		paint.setColor(Color.BLUE);
 		paint.setStyle(Style.STROKE);
 		paint.setStrokeCap(Cap.ROUND);
 		paint.setStrokeWidth(5);
-		gestureBrushes.put(AirTouchPoint.TouchType.AIR_MOVE1, paint);
+		g_gestureBrushes.put(AirTouchPoint.TouchType.AIR_MOVE1, paint);
 
 		paint = new Paint();
 		paint.setColor(Color.RED);
 		paint.setStyle(Style.STROKE);
 		paint.setStrokeCap(Cap.ROUND);
 		paint.setStrokeWidth(5);
-		gestureBrushes.put(AirTouchPoint.TouchType.AIR_MOVE2, paint);
+		g_gestureBrushes.put(AirTouchPoint.TouchType.AIR_MOVE2, paint);
 
 	}
-	enum Command {STROKE, RECT, CLEAR};
-	static final int UNDO_HISTORY_SIZE = 5;
-
 	
 	LinkedList<Bitmap> m_bitmapHistory = new LinkedList<Bitmap>();
 	Bitmap m_bitmap;
@@ -86,8 +88,12 @@ public class AirTouchPaintView extends AirTouchViewBase {
 	// very simple one-level view
 	
 	GraphicalObject m_currentObject;
+	GraphicalObject m_lastObject;
 	
-	// 
+	
+	// after touch
+	Timer m_afterTouchTimer = new Timer();
+	
 	public AirTouchPaintView(Context context) {
 		super(context);
 	}
@@ -100,15 +106,16 @@ public class AirTouchPaintView extends AirTouchViewBase {
 		super(context, attrs, defStyle);
 	}
 	
-	protected  AirTouchDollarRecognizer _beforeTouchRecognizer = new AirTouchDollarRecognizer(700, AirTouchType.BEFORE_TOUCH);
-	protected  AirTouchDollarRecognizer _betweenTouchRecognizer = new AirTouchDollarRecognizer(700, AirTouchType.BETWEEN_TOUCHES);
+	protected  AirTouchDollarRecognizer m_beforeTouchRecognizer = new AirTouchDollarRecognizer(700, AirTouchType.BEFORE_TOUCH);
+	protected  AirTouchDollarRecognizer m_betweenTouchRecognizer = new AirTouchDollarRecognizer(700, AirTouchType.BETWEEN_TOUCHES);
+	protected FingerLiftedRecognizer m_afterTouchRecognizer = new FingerLiftedRecognizer(700, AirTouchType.AFTER_TOUCH);
 	
 	@Override
 	protected void onAttachedToWindow() {
 		// TODO Auto-generated method stub
 		super.onAttachedToWindow();
-		_beforeTouchRecognizer.loadGestureSet("circle");
-		_betweenTouchRecognizer.loadGestureSet("caret");
+		m_beforeTouchRecognizer.loadGestureSet("circle");
+		m_betweenTouchRecognizer.loadGestureSet("caret");
 		
 		defaultPaintBrush.setColor(Color.WHITE);
 		_airTouchRecognizer.setAirTouchType(AirTouchType.BETWEEN_TOUCHES);
@@ -122,7 +129,7 @@ public class AirTouchPaintView extends AirTouchViewBase {
 		// begin sending and receiving data
 		TimerTask task = new TimerTask() {
 			public void run() {
-				new SendReceiveTask(_connection, true, me, _airTouchRecognizer, _beforeTouchRecognizer,_betweenTouchRecognizer).execute();
+				new SendReceiveTask(_connection, true, me, _airTouchRecognizer, m_beforeTouchRecognizer,m_betweenTouchRecognizer, m_afterTouchRecognizer).execute();
 
 			}
 		};
@@ -132,13 +139,13 @@ public class AirTouchPaintView extends AirTouchViewBase {
 	
 	private Command getCommand()
 	{
-		Map<Integer, Result> gestureResults = _betweenTouchRecognizer.getGestureResults();
+		Map<Integer, Result> gestureResults = m_betweenTouchRecognizer.getGestureResults();
 		// if either finger has recognized caret
 		for (Entry<Integer, Result> result : gestureResults.entrySet()) {
 			if(result.getValue().Name.contains("caret") && result.getValue().Score > 0.8) return Command.RECT;
 		}
 		
-		gestureResults = _beforeTouchRecognizer.getGestureResults();
+		gestureResults = m_beforeTouchRecognizer.getGestureResults();
 		// if either finger has recognized caret
 		for (Entry<Integer, Result> result : gestureResults.entrySet()) {
 			if(result.getValue().Name.contains("circle") && result.getValue().Score > 0.8) return Command.CLEAR;
@@ -150,8 +157,9 @@ public class AirTouchPaintView extends AirTouchViewBase {
 	@Override
 	protected void onTouchDown(MotionEvent event)
 	{
-		_beforeTouchRecognizer.onTouchDown(event);
-		_betweenTouchRecognizer.onTouchDown(event);
+		m_beforeTouchRecognizer.onTouchDown(event);
+		m_betweenTouchRecognizer.onTouchDown(event);
+		m_afterTouchRecognizer.onTouchDown(event);
 		Command command = getCommand();
 		if(command == Command.RECT)
 		{
@@ -182,15 +190,45 @@ public class AirTouchPaintView extends AirTouchViewBase {
 	
 	protected void onTouchUp(MotionEvent event)
 	{
-		_beforeTouchRecognizer.onTouchUp(event);
-		_betweenTouchRecognizer.onTouchUp(event);
+		m_beforeTouchRecognizer.onTouchUp(event);
+		m_betweenTouchRecognizer.onTouchUp(event);
+		m_afterTouchRecognizer.onTouchUp(event);
 		if(m_currentObject != null)
 		{
 			addBitmapToHistory();
 			// rasterize the current object
 			m_currentObject.draw(m_canvas);
 		}
+		m_lastObject = m_currentObject;
 		m_currentObject = null;
+		m_afterTouchTimer.schedule(new TimerTask(){
+
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				Map<Integer, Result> gestureResults = m_afterTouchRecognizer.getGestureResults();
+				// if either finger has recognized caret
+				for (Entry<Integer, Result> result : gestureResults.entrySet()) {
+					if(result.getValue().Name.contains("finger") && result.getValue().Score > 0.8)
+					{
+						Log.i(LOG_TAG, "finger lifted detected!");
+						if(m_lastObject != null){
+							undo();
+							if(m_lastObject.getColor() == Color.BLACK)
+							{
+								m_lastObject.setColor(Color.WHITE);
+							}else
+							{
+								m_lastObject.setColor(Color.BLACK);
+							}
+							m_lastObject.draw(m_canvas);
+						}
+					}
+					postInvalidate();
+				}
+			}
+			
+		}, AirTouchRecognizer.AFTER_TOUCH_TIMEOUT_MS );
 	}
 	
 	private void addBitmapToHistory()
@@ -221,10 +259,10 @@ public class AirTouchPaintView extends AirTouchViewBase {
 				PMDFinger p = phoneToScreen(_dataFromServer.fingers[i]);
 
 				TouchType type = _dataFromServer.fingers[i].id % 2 == 0 ? TouchType.AIR_MOVE1 : TouchType.AIR_MOVE2;
-				shadowPaint.setAlpha((int)(1 - 255 * Math.max(0, Math.min(1, p.z) ) ));
+				g_shadowPaint.setAlpha((int)(1 - 255 * Math.max(0, Math.min(1, p.z) ) ));
 
-				canvas.drawCircle(p.x, p.y, p.z * 500,shadowPaint);	
-				shadowPaint.setAlpha(1);
+				canvas.drawCircle(p.x, p.y, p.z * 500,g_shadowPaint);	
+				g_shadowPaint.setAlpha(1);
 			}
 		} 
 	}
@@ -270,7 +308,7 @@ public class AirTouchPaintView extends AirTouchViewBase {
 
 		if(_showFingersInAir &&  _dataFromServer !=null) drawFingersInAir(canvas);
 			
-		if(_showAirGestures) _airTouchRecognizer.drawGesture(canvas, gestureBrushes);
+		if(_showAirGestures) _airTouchRecognizer.drawGesture(canvas, g_gestureBrushes);
 			
 		if(_showDebugText) drawDebugText(canvas);
 	}
@@ -299,11 +337,11 @@ public class AirTouchPaintView extends AirTouchViewBase {
 	@Override
 	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
 		super.onSizeChanged(w, h, oldw, oldh);
-		_beforeTouchRecognizer.setScreenHeight(h);
-		_beforeTouchRecognizer.setScreenWidth(w);
+		m_beforeTouchRecognizer.setScreenHeight(h);
+		m_beforeTouchRecognizer.setScreenWidth(w);
 		
-		_betweenTouchRecognizer.setScreenHeight(h);
-		_betweenTouchRecognizer.setScreenWidth(w);
+		m_betweenTouchRecognizer.setScreenHeight(h);
+		m_betweenTouchRecognizer.setScreenWidth(w);
 	}
 	
 
