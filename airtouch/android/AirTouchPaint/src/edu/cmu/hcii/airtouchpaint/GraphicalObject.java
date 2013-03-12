@@ -20,10 +20,17 @@ public abstract class GraphicalObject {
 	}
 	protected Paint m_paint = g_defaultPaint;
 
+	public GraphicalObject(AirTouchPaintView parent)
+	{
+		m_parent = parent;
+	}
+	
 	public abstract void draw(Canvas c);
+	public abstract void drawCommit(Canvas c);
 	protected AirTouchPaintView m_parent;
 	public abstract void onTouchDown(MotionEvent e);
 	public abstract void onTouchMove(MotionEvent e);
+	public abstract void onTouchUp(MotionEvent e);
 	
 	public void setColor(int color)
 	{

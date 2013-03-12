@@ -116,6 +116,7 @@ public class AirTouchPaintView extends AirTouchViewBase {
 
 	private Command getCommand()
 	{
+		if(m_lastTouchPoint != null) return Command.RECT;
 		Map<Integer, Result> gestureResults = m_betweenTouchRecognizer.getGestureResults();
 		// if either finger has recognized caret
 		for (Entry<Integer, Result> result : gestureResults.entrySet()) {
@@ -135,30 +136,36 @@ public class AirTouchPaintView extends AirTouchViewBase {
 	protected void onTouchDown(MotionEvent event)
 	{
 		Command command = getCommand();
-		if(command == Command.RECT)
-		{
-			undo();
-			m_currentObject = new Rectangle((float)m_lastTouchPoint.X, (float)m_lastTouchPoint.Y, event.getX(), event.getY());
-		} else if(command == Command.STROKE)
-		{
-			m_currentObject = new Stroke();	
-			// check if we are supposed to be making a rectangle
-			m_currentObject.onTouchDown(event);
-		} else if(command == Command.CLEAR)
+		if(command == Command.CLEAR)
 		{
 			addBitmapToHistory();
 			if(m_background != null)
 				m_canvas.drawBitmap(m_background, 0,0, new Paint());
 			m_currentObject = null;
+			return;
 		}
+		if(m_currentObject != null)
+		{
+			m_currentObject.onTouchDown(event);
+		} else
+		{
+			if(command == Command.RECT)
+			{
+				undo();
+//				m_currentObject = new Rectangle((float)m_lastTouchPoint.X, (float)m_lastTouchPoint.Y, event.getX(), event.getY(), this);
+				m_currentObject = new RectangleCrop(this, (float)m_lastTouchPoint.X, (float)m_lastTouchPoint.Y, event.getX(), event.getY());
+			} else if(command == Command.STROKE)
+			{
+				m_currentObject = new Stroke(this);	
+				// check if we are supposed to be making a rectangle
+				m_currentObject.onTouchDown(event);
+			} 
+		}
+
 		updateLastPoint(event);
 	}
 	
-	public Bitmap getBackgroundBitmap()
-	{
-		return m_background;
-	}
-	
+
 	protected void onTouchMove(MotionEvent event)
 	{
 		if(m_currentObject != null){
@@ -169,14 +176,9 @@ public class AirTouchPaintView extends AirTouchViewBase {
 	
 	protected void onTouchUp(MotionEvent event)
 	{
-		if(m_currentObject != null)
-		{
-			addBitmapToHistory();
-			// rasterize the current object
-			m_currentObject.draw(m_canvas);
+		if(m_currentObject != null){
+			m_currentObject.onTouchUp(event);
 		}
-		m_lastObject = m_currentObject;
-		m_currentObject = null;
 		m_afterTouchTimer.schedule(new TimerTask(){
 
 			@Override
@@ -188,17 +190,17 @@ public class AirTouchPaintView extends AirTouchViewBase {
 					if(result.getValue().Name.contains("finger") && result.getValue().Score > 0.8)
 					{
 						Log.i(LOG_TAG, "finger lifted detected!");
-						if(m_lastObject != null){
-							undo();
-							if(m_lastObject.getColor() == Color.BLACK)
-							{
-								m_lastObject.setColor(Color.WHITE);
-							}else
-							{
-								m_lastObject.setColor(Color.BLACK);
-							}
-							m_lastObject.draw(m_canvas);
-						}
+//						if(m_lastObject != null){
+//							undo();
+//							if(m_lastObject.getColor() == Color.BLACK)
+//							{
+//								m_lastObject.setColor(Color.WHITE);
+//							}else
+//							{
+//								m_lastObject.setColor(Color.BLACK);
+//							}
+//							m_lastObject.draw(m_canvas);
+//						}
 					}
 					postInvalidate();
 				}
@@ -206,6 +208,24 @@ public class AirTouchPaintView extends AirTouchViewBase {
 			
 		}, AirTouchRecognizer.AFTER_TOUCH_TIMEOUT_MS );
 	}
+	
+	public void commitObject()
+	{
+		if(m_currentObject != null)
+		{
+			addBitmapToHistory();
+			// rasterize the current object
+			m_currentObject.drawCommit(m_canvas);
+		}
+		m_lastObject = m_currentObject;
+		m_currentObject = null;
+	}
+	
+	public Bitmap getBackgroundBitmap()
+	{
+		return m_background;
+	}
+	
 	
 	private void addBitmapToHistory()
 	{
