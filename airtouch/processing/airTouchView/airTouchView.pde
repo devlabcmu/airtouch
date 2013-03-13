@@ -81,7 +81,7 @@ void getFingerData() {
 void drawTopView()
 {
   fill(phoneColor2);
-  rect(-20, -50, PHONE_WIDTH + 40, PHONE_HEIGHT + 100, 50);
+  rect(-20, -20, PHONE_WIDTH + 40, PHONE_HEIGHT + 100, 50);
   fill(phoneColor1);
   rect(0, 0, PHONE_WIDTH, PHONE_HEIGHT, 50);
   fill(fingerColor);
@@ -102,7 +102,7 @@ void drawSideView()
     for(int i = 0; i < _fingers.length; i++) {
     if(_fingers[i].id <0 ) continue;
     float x = _fingers[i].x * PHONE_WIDTH;
-    float d = _fingers[i].y / PHONE_HEIGHT_M * PHONE_HEIGHT;
+    float d = _fingers[i].y / PHONE_HEIGHT_M * PHONE_HEIGHT * 2;
     ellipse(x,-d,FINGER_WIDTH,FINGER_HEIGHT);
   }
 }
@@ -117,7 +117,7 @@ void draw() {
   drawTopView();
   popMatrix();
   pushMatrix();
-  translate(width / 2, height / 2);
+  translate(width / 2, height / 2 + 200);
   drawSideView();
   popMatrix();
 }

@@ -113,7 +113,7 @@ void updateUI()
 	// to do: use consistent method calls (all 2.1 or all 1.*)
 	Mat img = _distancesAndFingerLocation;
 	putText(img, str.str(), cvPoint(10,20), FONT_HERSHEY_COMPLEX_SMALL, 1.0f,CV_RGB(255,0,0)) ;
-	cvShowImage ("Server", _distancesAndFingerLocation);
+	cvShowImage ("Depth View", _distancesAndFingerLocation);
 
 	cvWaitKey (1);
 }
@@ -391,6 +391,8 @@ int main(int argc, char* argv[])
 	{
 		networkThread = CreateThread(NULL, 0, doNetworkCommunication, NULL, 0, 0);
 	}
+
+	cvNamedWindow("Depth View", CV_WINDOW_NORMAL);
 
 	while(_stayAlive)
 	{
