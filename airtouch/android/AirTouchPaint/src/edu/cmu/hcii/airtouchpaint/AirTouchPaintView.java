@@ -288,7 +288,7 @@ public class AirTouchPaintView extends AirTouchViewBase {
 		Log.i(LOG_TAG, "initializing bitmap...");
 		m_bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
 		m_canvas = new Canvas(m_bitmap);
-		m_background = getBitmapFromAsset(getContext(), "jumping.jpg");
+		m_background = getBitmapFromAsset(getContext(), "julia.jpg");
 		if(m_background != null)
 			m_canvas.drawBitmap(m_background, 0,0, new Paint());
 	}
