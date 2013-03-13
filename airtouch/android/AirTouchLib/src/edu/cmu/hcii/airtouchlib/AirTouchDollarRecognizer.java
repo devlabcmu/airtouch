@@ -9,25 +9,30 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Vector;
 
+import edu.cmu.hcii.airtouchlib.AirTouchPoint.TouchType;
+
 import lx.interaction.dollar.DollarRecognizer;
 import lx.interaction.dollar.Point;
 import lx.interaction.dollar.Rectangle;
 import lx.interaction.dollar.Result;
 import lx.interaction.dollar.Utils;
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.os.Environment;
 import android.util.Log;
 
 public class AirTouchDollarRecognizer extends AirTouchRecognizer {
 	static final String LOG_TAG="AirTouch.AirTouchDollarRecognizer";
 	static String GESTURES_PATH="/atgest";
-	
+	static final float SCREEN_HEIGHT_M = 0.135f;
 	static double MIN_GESTURE_AREA = 5000;
 	// Gestures
-	DollarRecognizer m_dollarRecognizer;
-	Map<Integer, Vector<Point>> m_dollarPoints = new HashMap<Integer, Vector<Point>>();
+	protected DollarRecognizer m_dollarRecognizer;
+	protected Map<Integer, Vector<Point>> m_dollarPoints = new HashMap<Integer, Vector<Point>>();
 	
+	private boolean m_isDepthGesture;
 	
-	static File g_gestureFileRoot;
+	protected static File g_gestureFileRoot;
 	
 	public AirTouchDollarRecognizer(long bufferDuration, AirTouchType type) {
 		super(bufferDuration, type);
@@ -109,9 +114,15 @@ public class AirTouchDollarRecognizer extends AirTouchRecognizer {
 			Vector<Point> newpts = new Vector<Point>();
 
 			for (PMDFinger f : path.getValue()) {
-				if(f.id >= 0)
-				//					Log.i(LOG_TAG, "width is " + m_screenWidth + " height " + m_screenHeight + " adding for dollar: " + f.x  + ", " + f.z );
-					newpts.add(new Point(f.x * m_screenWidth, f.z * m_screenHeight));
+				if(f.id >= 0){
+					if(m_isDepthGesture){
+						newpts.add(new Point(f.x * m_screenWidth, f.y / SCREEN_HEIGHT_M  * m_screenHeight));
+					} else
+					{
+						newpts.add(new Point(f.x * m_screenWidth, f.z * m_screenHeight));	
+					}
+					
+				}
 			}
 			Rectangle r = Utils.BoundingBox(newpts);
 			if(r.Width * r.Height > MIN_GESTURE_AREA){
@@ -121,6 +132,29 @@ public class AirTouchDollarRecognizer extends AirTouchRecognizer {
 		}
 	}
 	
+	/**
+	 * Draw debug info for the gesture
+	 */
+	public void drawGesture(Canvas canvas, Map<AirTouchPoint.TouchType, Paint> paintBrushes)
+	{
+		for (Entry<Integer, Vector<Point>> paths : m_dollarPoints.entrySet()) {
+			gesturePath.reset();
+			TouchType type = paths.getKey() % 2 == 0 ? TouchType.AIR_MOVE1 : TouchType.AIR_MOVE2;
+
+			boolean first = true;
+			for (Point p : paths.getValue()) {
+				if(first){
+					first = false;
+					gesturePath.moveTo((float)p.X, (float)p.Y);
+				} else
+				{
+					gesturePath.lineTo((float)p.X, (float)p.Y);
+				}
+			}
+			paintBrushes.get(type).setAlpha(255);
+			canvas.drawPath(gesturePath, paintBrushes.get(type));
+		}	
+	}
 	public DollarRecognizer getDollarRecognizer()
 	{
 		return m_dollarRecognizer;
@@ -141,6 +175,15 @@ public class AirTouchDollarRecognizer extends AirTouchRecognizer {
 	{
 		return m_dollarPoints;
 	}
+
+	public boolean isDepthGesture() {
+		return m_isDepthGesture;
+	}
+
+	public void setDepthGesture(boolean isDepthGesture) {
+		m_isDepthGesture = isDepthGesture;
+	}
+	
 	
 
 }

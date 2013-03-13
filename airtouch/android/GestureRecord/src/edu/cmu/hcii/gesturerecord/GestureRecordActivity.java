@@ -1,17 +1,19 @@
 package edu.cmu.hcii.gesturerecord;
 
-import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.widget.CheckBox;
 import android.widget.FrameLayout;
 import android.widget.TextView;
+import edu.cmu.hcii.airtouchlib.AirTouchDollarRecognizer;
 import edu.cmu.hcii.airtouchlib.AirTouchMainActivityBase;
-import edu.cmu.hcii.airtouchlib.AirTouchViewBase;
-import edu.cmu.hcii.gesturerecord.R;
 
 public class GestureRecordActivity  extends AirTouchMainActivityBase {
 	static final String LOG_TAG="AirTouch.GestureRecordActivity";
+	
+	
+	
 	public void viewFingerDataClicked(View v)
 	{
 		if(!_canStart){
@@ -26,7 +28,9 @@ public class GestureRecordActivity  extends AirTouchMainActivityBase {
 		if(frame == null)
 			Log.e(LOG_TAG, "airtouchframe is null!");
 		
+	
 		frame.addView(_airTouchView);
+		
 	}
 	
 	public void saveClicked(View v)
@@ -35,6 +39,23 @@ public class GestureRecordActivity  extends AirTouchMainActivityBase {
 		// filename will be gesture + timestamp + xml
 		String gestureName = ((TextView)findViewById(R.id.gestureNameText1)).getText().toString();
 		_airTouchView.getAirTouchRecognizer().saveBufferToGesture(gestureName);
+	}
+	
+	public void checkClicked(View v)
+	{
+		boolean vertical = ((CheckBox)findViewById(R.id.checkBoxVertical)).isChecked() ;
+		if(vertical)
+		{	
+			_airTouchView.getAirTouchRecognizer().getDollarRecognizer().clearTemplates();
+			_airTouchView.getAirTouchRecognizer().loadGestureSet("updown");
+			_airTouchView.getAirTouchRecognizer().setBufferDurationMs(700);
+		}else
+		{
+			_airTouchView.getAirTouchRecognizer().getDollarRecognizer().clearTemplates();
+			_airTouchView.getAirTouchRecognizer().loadGestureSet("default");
+			_airTouchView.getAirTouchRecognizer().setBufferDurationMs(700);
+		}
+		((AirTouchDollarRecognizer)_airTouchView.getAirTouchRecognizer()).setDepthGesture( vertical );
 	}
 	
 	@Override

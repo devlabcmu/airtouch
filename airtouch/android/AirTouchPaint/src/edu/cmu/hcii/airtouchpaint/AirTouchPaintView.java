@@ -96,7 +96,7 @@ public class AirTouchPaintView extends AirTouchViewBase {
 	
 	protected  AirTouchDollarRecognizer m_beforeTouchRecognizer = new AirTouchDollarRecognizer(700, AirTouchType.BEFORE_TOUCH);
 	protected  AirTouchDollarRecognizer m_betweenTouchRecognizer = new AirTouchDollarRecognizer(700, AirTouchType.BETWEEN_TOUCHES);
-	protected FingerLiftedRecognizer m_afterTouchRecognizer = new FingerLiftedRecognizer(700, AirTouchType.AFTER_TOUCH);
+	protected FingerLiftedRecognizer m_afterTouchRecognizer = new FingerLiftedRecognizer(1000, AirTouchType.AFTER_TOUCH);
 	
 	@Override
 	protected void onAttachedToWindow() {
@@ -104,9 +104,18 @@ public class AirTouchPaintView extends AirTouchViewBase {
 		super.onAttachedToWindow();
 		m_beforeTouchRecognizer.loadGestureSet("circle");
 		m_betweenTouchRecognizer.loadGestureSet("caret");
+		// m_betweenTouchRecognizer.setDepthGesture(true);
 		
+//		m_afterTouchRecognizer.setDepthGesture(true);
+//		m_afterTouchRecognizer.getDollarRecognizer().clearTemplates();
+//		m_afterTouchRecognizer.loadGestureSet("updown");
+//		
 		g_defaultPaintBrush.setColor(Color.WHITE);
 		m_airTouchRecognizer.setAirTouchType(AirTouchType.BETWEEN_TOUCHES);
+//		m_airTouchRecognizer.setDepthGesture(true);
+//		m_airTouchRecognizer.setBufferDurationMs(1000);
+		m_airTouchRecognizer.getDollarRecognizer().clearTemplates();
+		m_airTouchRecognizer.loadGestureSet("caret");
 		
 		m_airTouchRecognizers.add(m_beforeTouchRecognizer);
 		m_airTouchRecognizers.add(m_betweenTouchRecognizer);
@@ -119,7 +128,7 @@ public class AirTouchPaintView extends AirTouchViewBase {
 		Map<Integer, Result> gestureResults = m_betweenTouchRecognizer.getGestureResults();
 		// if either finger has recognized caret
 		for (Entry<Integer, Result> result : gestureResults.entrySet()) {
-			if(result.getValue().Name.contains("caret") && result.getValue().Score > 0.8) return Command.RECT;
+			if(result.getValue().Name.contains("caret") && result.getValue().Score > 0.85) return Command.RECT;
 		}
 		
 		gestureResults = m_beforeTouchRecognizer.getGestureResults();
@@ -187,7 +196,7 @@ public class AirTouchPaintView extends AirTouchViewBase {
 				Map<Integer, Result> gestureResults = m_afterTouchRecognizer.getGestureResults();
 				// if either finger has recognized caret
 				for (Entry<Integer, Result> result : gestureResults.entrySet()) {
-					if(result.getValue().Name.contains("finger") && result.getValue().Score > 0.8 && m_lastObject != null)
+					if(result.getValue().Name.contains("lifted") && result.getValue().Score > 0.8 && m_lastObject != null)
 					{
 						Log.i(LOG_TAG, "finger lifted detected!");
 						if(m_lastObject instanceof Stroke)
@@ -218,7 +227,7 @@ public class AirTouchPaintView extends AirTouchViewBase {
 	
 	public Bitmap getBackgroundBitmap()
 	{
-		return m_background;
+		return m_bitmap;
 	}
 	
 	

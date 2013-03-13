@@ -94,6 +94,11 @@ public class DollarRecognizer
 	}
 	
 
+	public void clearTemplates()
+	{
+		Templates.clear();
+	}
+	
 	void loadTemplatesCircles()
 	{
 		Templates.addElement(loadTemplate("circle CCW", TemplateData.circlePointsCCW));
