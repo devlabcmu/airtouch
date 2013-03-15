@@ -1,8 +1,10 @@
 package edu.cmu.hcii.airtouchlib;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
-import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -14,21 +16,28 @@ public class SendReceiveTask extends AsyncTask<Void, Void, Boolean>
 	static final String TAG ="SendReceiveTask";
 	public class PMDSendData {
 		public PMDFinger[] fingers = new PMDFinger[2]; 
-		public float[] buffer = new float[PMDConstants.PMD_IMAGE_SIZE]; // 19800 * 4 bytes
+		public long timestamp;
 	}
 	
 
 	private final PMDServerConnection _server;
-	private final PMDDataHandler _handler;
-	private boolean _getOnlyFingerData;
+	private final List<PMDDataHandler> _handlers = new ArrayList<PMDDataHandler>();
 	static final boolean OUTPUT_BITS_DEBUG = false;
 	private PMDSendData _dataFromServer = new PMDSendData();
+	byte[] _lMsg = new byte[PMDConstants.PMD_FINGER_ONLY_DATA_SIZE];
+	String _outMessage = "gimme";
 	
-	public SendReceiveTask(PMDServerConnection server, PMDDataHandler handler, boolean fingersOnly) {
+	public SendReceiveTask(PMDServerConnection server, String message, PMDDataHandler ... handlers) {
 		this._server = server;
-		_handler = handler;
-		_getOnlyFingerData = fingersOnly;
+		for(int i = 0; i < handlers.length; i++)
+			addHandler(handlers[i]);
 		_dataFromServer = new PMDSendData();
+		_outMessage = message;
+	}
+	
+	public void addHandler(PMDDataHandler handler)
+	{
+		_handlers.add(handler);
 	}
 	@Override
 	protected void onPreExecute() {
@@ -37,47 +46,46 @@ public class SendReceiveTask extends AsyncTask<Void, Void, Boolean>
 	@Override
 	protected Boolean doInBackground(Void... params) {
 		try {
-			if(_getOnlyFingerData)
-			{
-				_server._outToServer.writeBytes("finger");
-			} else 
-			{
-				_server._outToServer.writeBytes("gimme");
-			}
-			byte[] lMsg = new byte[PMDConstants.PMD_SEND_DATA_SIZE];
-			int nleft = PMDConstants.PMD_SEND_DATA_SIZE;
-			if(_getOnlyFingerData) nleft = PMDConstants.PMD_FINGER_ONLY_DATA_SIZE;
+			 _server._outToServer.writeBytes(_outMessage);
+//			_server._outToServer.writeBytes("finger");
+			int nleft = PMDConstants.PMD_FINGER_ONLY_DATA_SIZE;
 			int totalReceived = 0;
 
 			do{
 				if (nleft == 0) break;
 				int nReceived = 0;
 
-				nReceived = _server._inFromServer.read(lMsg, totalReceived, nleft);				
+				nReceived = _server._inFromServer.read(_lMsg, totalReceived, nleft);				
 				if(nReceived <= 0) break;
 				totalReceived += nReceived;
 				nleft -= nReceived;
 			} while (true);
-			updatePMDData(lMsg);
+			updatePMDData(_lMsg);
 		} catch (IOException e) {
-			Log.v(TAG, e.getMessage());
+			Log.i(TAG, e.getMessage());
 			return false;
 		}
 		return true;
 	}
 	@Override
 	protected void onPostExecute(Boolean succeeded) {
-		//Log.v(TAG, "in post execute");
+		//Log.i(TAG, "in post execute");
 		// if we failed, then we should disconnect and go back to the home page
 		if(!succeeded) {
 			// todo: update UI somehow with an error
-			_handler.OnSendReceiveTaskFailed("ERROR: couldn't communicate with server. Please go back and try again.");
+			for (PMDDataHandler handler : _handlers) 
+				handler.onSendReceiveTaskFailed("ERROR: couldn't communicate with server. Please go back and try again.");	
+			
 			// this.airTouchView._errorText = "ERROR: couldn't communicate with server. Please go back and try again.";
 			// this.airTouchView.postInvalidate();
 			new DisconnectTask(_server).execute();
 			return;
 		}
-		_handler.NewPMDData(_dataFromServer);
+		for (PMDDataHandler handler : _handlers) 
+			handler.newPMDData(_dataFromServer);
+		
+		_dataFromServer = null;
+		_lMsg = null;
 	}
 	
 	//
@@ -94,7 +102,7 @@ public class SendReceiveTask extends AsyncTask<Void, Void, Boolean>
 	public void updatePMDData(byte[] in)
 	{
 		
-
+		long now = System.currentTimeMillis();
 		for (int i = 0; i < _dataFromServer.fingers.length; i++) 
 		{
 			_dataFromServer.fingers[i] = new PMDFinger();
@@ -102,16 +110,11 @@ public class SendReceiveTask extends AsyncTask<Void, Void, Boolean>
 			_dataFromServer.fingers[i].x = getFloatInByteArray(in, i * 16 + 4);
 			_dataFromServer.fingers[i].y = getFloatInByteArray(in, i * 16 + 8);
 			_dataFromServer.fingers[i].z = getFloatInByteArray(in, i * 16 + 12);
+			_dataFromServer.fingers[i].timestamp = now;
 		}
 		
-		if(!_getOnlyFingerData)
-		{
-			for (int i = 0; i < PMDConstants.PMD_IMAGE_SIZE; i++) {
-				_dataFromServer.buffer[i] = getFloatInByteArray(in, 24 + i * 4);
-			}	
-		}
+		_dataFromServer.timestamp = now;
 		
-
 		if(OUTPUT_BITS_DEBUG){
 			// if we want we can output the raw bits of the finger x, y, z positions.
 			for (int i = 0; i < 3; i++) {
@@ -125,10 +128,10 @@ public class SendReceiveTask extends AsyncTask<Void, Void, Boolean>
 					}
 					sb.append( " ");
 				}
-				Log.v(TAG, String.format("i: %d, bits: %s\n", i, sb.reverse().toString()));
+				Log.i(TAG, String.format("i: %d, bits: %s\n", i, sb.reverse().toString()));
 			}
 		}
-//		Log.v(TAG, String.format("%.2f, %.2f, %.2f", _dataFromServer.fingers[0].x, _dataFromServer.fingers[0].y, _dataFromServer.fingers[0].z));
+//		Log.i(TAG, String.format("%.2f, %.2f, %.2f", _dataFromServer.fingers[0].x, _dataFromServer.fingers[0].y, _dataFromServer.fingers[0].z));
 	}
 	
 	/**

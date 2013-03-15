@@ -1,14 +1,18 @@
 package lx.interaction.dollar;
 
-import java.util.*;
+import java.io.File;
+import java.util.Vector;
+
+import android.util.Log;
 
 public class DollarRecognizer
 {
+	static final String LOG_TAG = "DollarRecognizer";
 	//
 	// Recognizer class constants
 	//
 	int NumTemplates = 16;
-	public static int NumPoints = 64;
+	public static int NumPoints = 40;
 	public static double SquareSize = 250.0;
 	double HalfDiagonal = 0.5 * Math.sqrt(250.0 * 250.0 + 250.0 * 250.0);
 	double AngleRange = 45.0;
@@ -27,10 +31,14 @@ public class DollarRecognizer
 	
 	public DollarRecognizer()
 	{
-		this(GESTURES_SIMPLE);
 	}
 
 	public DollarRecognizer(int gestureSet)
+	{
+		loadTemplates(gestureSet);
+	}
+	
+	public void loadTemplates(int gestureSet)
 	{
 		switch(gestureSet)
 		{
@@ -43,6 +51,16 @@ public class DollarRecognizer
 			case GESTURES_CIRCLES:
 				loadTemplatesCircles();	break;
 		}
+	}
+	
+	public void loadTemplates(File[] inputs)
+	{
+		for (File input : inputs) {
+			Template loaded = Utils.loadTemplateFromXml(input);
+			if(loaded != null)
+				Templates.addElement(loaded);
+		}
+		Log.i(LOG_TAG, "Templates size is " + Templates.size());
 	}
 	
 	void loadTemplatesDefault()
@@ -76,6 +94,11 @@ public class DollarRecognizer
 	}
 	
 
+	public void clearTemplates()
+	{
+		Templates.clear();
+	}
+	
 	void loadTemplatesCircles()
 	{
 		Templates.addElement(loadTemplate("circle CCW", TemplateData.circlePointsCCW));

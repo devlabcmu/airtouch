@@ -5,8 +5,9 @@
 #include "PMDCamera.h"
 #include "PMDUtils.h"
 #include "PMDOptions.h"
+#include <regex>
 
-// #define NETWORK_DEBUG
+//#define NETWORK_DEBUG
 
 /* Globar vars */
 // Sent over network
@@ -24,6 +25,7 @@ IplImage* _distancesAndFingerLocation;
 void welcomeMessage();
 
 bool _stayAlive = true;
+Point2f _groundTruth = Point2f(0,0);
 
 // FPS
 time_t _fpsStart, _fpsEnd;
@@ -82,14 +84,25 @@ void updateUI()
 	std::sort(fingers.begin(), fingers.end(), fingerCompare);
 
 	CvScalar fingerColors[2] = {CV_RGB(255,0,0), CV_RGB(0,0,255)};
+
+	
+	vector<BlobPoint> blobs = _pmdCamera.GetBlobPoints();
+	for(vector<BlobPoint>::iterator i = blobs.begin(); i < blobs.end(); i++)
+	{
+		cvCircle(_distancesAndFingerLocation, i->pt, i->size, CV_RGB(0, 255, 0));
+	}
+
 	for(vector<Finger>::iterator i = fingers.begin(); i !=fingers.end(); i++)
 	{
-		cvCircle(_distancesAndFingerLocation, i->screenCoords, 10, fingerColors[i - fingers.begin()]);
+		cvCircle(_distancesAndFingerLocation, i->screenCoords, 10, fingerColors[i->id % 2]);
+		cvCircle(_distancesAndFingerLocation, i->blobCenter, 3, fingerColors[i->id % 2], 3);
+		cvLine(_distancesAndFingerLocation, i->blobCenter, i->screenCoords, fingerColors[i->id % 2]);
 	}
 
 	cvCircle(_distancesAndFingerLocation, _pmdCamera.WorldToScreenSpace(_phoneCalibration->GetPhoneLowerLeft()), 3, Scalar(255, 0,0));
 	cvCircle(_distancesAndFingerLocation, _pmdCamera.WorldToScreenSpace(_phoneCalibration->GetPhoneUpperLeft()), 3, Scalar(0, 255,0));
 	cvCircle(_distancesAndFingerLocation, _pmdCamera.WorldToScreenSpace(_phoneCalibration->GetPhoneUpperRight()), 3, Scalar(0, 0,255));
+	cvCircle(_distancesAndFingerLocation, _groundTruth, 3, Scalar(255, 0,255));
 
 	cvFlip (_distancesAndFingerLocation, _distancesAndFingerLocation, -1);
 
@@ -100,7 +113,7 @@ void updateUI()
 	// to do: use consistent method calls (all 2.1 or all 1.*)
 	Mat img = _distancesAndFingerLocation;
 	putText(img, str.str(), cvPoint(10,20), FONT_HERSHEY_COMPLEX_SMALL, 1.0f,CV_RGB(255,0,0)) ;
-	cvShowImage ("Server", _distancesAndFingerLocation);
+	cvShowImage ("Depth View", _distancesAndFingerLocation);
 
 	cvWaitKey (1);
 }
@@ -182,14 +195,32 @@ bool communicateWithClient(SOCKET* hClient)
 		// make sure to lock it so it doesn't get overridden in the middle
 		if(command == 'f')
 		{
+			
+			string received = string(_fromClient.buffer);
+			smatch m;
+			regex e ("\\s(0\\.[0-9]+)\\s(0\\.[0-9]+)");
+
+			if(regex_search(received, m, e))
+			{
+				/*cout << "regex match: ";
+				for(int i = 0; i < m.length(); i++)
+				{
+					cout << i << ": " <<  m[i] << " ";
+				}
+				
+				cout << endl;*/
+				float fingerX = atof(m[1].str().c_str());
+				float fingerY = atof(m[2].str().c_str());
+				cout << "phone: (" << fingerX << "," << fingerY << ")" << endl;
+				// convert phone to world
+				_pmdCamera.SetGroundTruthFromPhone(Point2f(fingerX, fingerY));
+				_groundTruth =  _pmdCamera.GetFingers()[0].screenCoords;
+			}
+			
 			// only send the finger data
 			WaitForSingleObject(_pmdDataMutex, INFINITE);
 			hr = sendData(*hClient, (char*)&_pmdData, sizeof(PMDFingerData), 0);	
 			ReleaseMutex(_pmdDataMutex);
-
-#ifdef NETWORK_DEBUG
-			cout << "sent finger data "<< endl;
-#endif
 
 		} else
 		{
@@ -360,6 +391,8 @@ int main(int argc, char* argv[])
 	{
 		networkThread = CreateThread(NULL, 0, doNetworkCommunication, NULL, 0, 0);
 	}
+
+	cvNamedWindow("Depth View", CV_WINDOW_NORMAL);
 
 	while(_stayAlive)
 	{

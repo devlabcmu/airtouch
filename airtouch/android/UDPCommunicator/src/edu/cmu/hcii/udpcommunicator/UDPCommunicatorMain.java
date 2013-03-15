@@ -80,15 +80,15 @@ public class UDPCommunicatorMain extends Activity {
 			_serverAddr = InetAddress.getByName(ipStr);
 		} catch (UnknownHostException e) {
 
-			Log.v(TAG, e.getMessage());
+			Log.i(TAG, e.getMessage());
 			return;
 		} catch (SocketException e)
 		{
-			Log.v(TAG, e.getMessage());
+			Log.i(TAG, e.getMessage());
 			return;
 		} 
 
-    	Log.v(TAG, "connection established to port " + portStr + " and ip " + ipStr);
+    	Log.i(TAG, "connection established to port " + portStr + " and ip " + ipStr);
     	new ReceiveStringTask().execute();
     	_statusTextView.setText("Connected");
     }
@@ -123,7 +123,7 @@ public class UDPCommunicatorMain extends Activity {
     	@Override
     	protected void onPreExecute() {
     		super.onPreExecute();
-    		Log.v(TAG, "receiving on port " + _serverPort + "...");
+    		Log.i(TAG, "receiving on port " + _serverPort + "...");
     	}
 		@Override
 		protected String doInBackground(Void... params) {
@@ -137,14 +137,14 @@ public class UDPCommunicatorMain extends Activity {
 				_socket.receive(dp);
 			}catch (InterruptedIOException e)
 			{
-				Log.v(TAG,"receive timeout, restarting...");
+				Log.i(TAG,"receive timeout, restarting...");
 				return null;
 			}catch (IOException e) {
-				Log.v(TAG, "error receiving data " + e.getMessage());
+				Log.i(TAG, "error receiving data " + e.getMessage());
 				return null;
 			} 
 			result = new String(lMsg, 0, dp.getLength());
-			Log.v(TAG, "UDP packet received " + result);
+			Log.i(TAG, "UDP packet received " + result);
 			return result;
 		}
 		@Override
@@ -168,7 +168,7 @@ public class UDPCommunicatorMain extends Activity {
 		protected Boolean doInBackground(String... params) {
 	    	if(_socket == null)
 	    	{
-	    		Log.v(TAG, "Error: Tried to send string but socket was null");
+	    		Log.i(TAG, "Error: Tried to send string but socket was null");
 	    		return false;
 
 	    	}
@@ -179,7 +179,7 @@ public class UDPCommunicatorMain extends Activity {
 				try {
 					_socket.send(dp);
 				} catch (IOException e) {
-					Log.v(TAG, "error sending string: " + e.getMessage());
+					Log.i(TAG, "error sending string: " + e.getMessage());
 					return false;
 				}				
 			}

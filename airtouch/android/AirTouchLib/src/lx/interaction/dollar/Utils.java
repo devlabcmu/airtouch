@@ -1,12 +1,32 @@
 package lx.interaction.dollar;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Enumeration;
+import java.util.Vector;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.TransformerFactoryConfigurationError;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
+import android.util.Log;
+
 //TODO: Most of the code here could be significantly optimized. This was a quick port from the C# version of the library
 
-import java.util.Vector;
-import java.util.Enumeration;
 
 public class Utils
 {	 
+	static final String LOG_TAG="Utils";
 	public static Vector<Point>Resample(Vector<Point> points, int n)
 	{		
 		double I = PathLength(points) / (n - 1); // interval length
@@ -18,6 +38,8 @@ public class Utils
 		
 		Vector<Point> dstPts = new Vector<Point>(n);
 		dstPts.addElement(srcPts.elementAt(0));	//assumes that srcPts.size() > 0
+		
+		
 		
 		for (int i = 1; i < srcPts.size(); i++)
 		{
@@ -284,7 +306,77 @@ public class Utils
 		return distance / path1.size();
 	}
 
+	public static DOMSource gestureToDOMSource(Vector<Point> points, String name)
+	{
+		Document doc = null;
+		try {
+			doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+		} catch (ParserConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		Element root = doc.createElement("Gesture");
+		root.setAttribute("Name", name);
+		root.setAttribute("NumPts", "" + points.size());
+		doc.appendChild(root);
+		for (Point point : points) {
+			Element pt = doc.createElement("Point");
+			pt.setAttribute("X", "" + point.X);
+			pt.setAttribute("Y", "" + point.Y);
+			root.appendChild(pt);
+		}
+		return new DOMSource(doc);
+	}
 	
+	public static void writeGestureToStream(Vector<Point> points, String name, StreamResult s)
+	{
+		try {
+			TransformerFactory.newInstance().newTransformer().transform(gestureToDOMSource(points, name), s);
+		} catch (TransformerConfigurationException e) {
+			Log.e(LOG_TAG, e.getMessage());
+		} catch (TransformerException e) {
+			Log.e(LOG_TAG, e.getMessage());
+		} catch (TransformerFactoryConfigurationError e) {
+			Log.e(LOG_TAG, e.getMessage());
+		}
+	}
+	
+	public static void writeGestureToFile(Vector<Point> points, String name, File f)
+	{
+		Log.i(LOG_TAG, "Writing gesture " + name + " with " + points.size() + " points to file " + f.getAbsolutePath());
+		if(!f.exists())
+			try {
+				f.createNewFile();
+			} catch (IOException e) {
+				Log.e(LOG_TAG, e.getMessage());
+			}
+		writeGestureToStream(points, name, new StreamResult(f));
+	}
 
-
+	public static Template loadTemplateFromXml(File f)
+	{
+		Log.i(LOG_TAG, "Loading template " + f.getAbsolutePath());
+		Document doc;
+		try {
+			doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(f);
+			doc.getDocumentElement().normalize();
+			Vector<Point> resultPoints = new Vector<Point>();
+			NodeList points = doc.getElementsByTagName("Point");
+			for (int i = 0; i < points.getLength(); i++) {
+				Element e = (Element) points.item(i);
+				resultPoints.add(new Point(Float.parseFloat(e.getAttribute("X")), Float.parseFloat(e.getAttribute("Y")) ));
+			}
+			
+			return new Template(doc.getDocumentElement().getAttribute("Name"), resultPoints);
+			
+		} catch (SAXException e) {
+			Log.e(LOG_TAG, e.getMessage());
+		} catch (IOException e) {
+			Log.e(LOG_TAG, e.getMessage());
+		} catch (ParserConfigurationException e) {
+			Log.e(LOG_TAG, e.getMessage());
+		}
+		
+		return null;
+	}
 }
