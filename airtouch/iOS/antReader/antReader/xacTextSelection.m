@@ -7,7 +7,7 @@
 //
 
 #import "xacTextSelection.h"
-#define TEXT_SEL_TIME_OUT 1000
+
 
 
 @implementation xacTextSelection
@@ -60,7 +60,7 @@ int counterTextSel = TEXT_SEL_TIME_OUT;
             {   NSLog(@"HIGH_UP"); _selectionEnabled = true;    }
             break;
         case TS_HIGH_UP:
-            [self dynmSelect];
+//            [self dynmSelect];
             if(height < MIN_HEIGHT * 1.5) tmpState = TS_LOW_AGAIN;
             // maybe add a time out
             if(_textSelState != tmpState) NSLog(@"LOW_AGAIN");
@@ -103,6 +103,7 @@ int counterTextSel = TEXT_SEL_TIME_OUT;
             _textSelState = TS_DEFAULT;
     _pntAirSelStart = CGPointMake(xAir, yAir);
     counterTextSel = 0;
+    
 }
 
 - (void) finishSelection: (CGPoint) pntTouch

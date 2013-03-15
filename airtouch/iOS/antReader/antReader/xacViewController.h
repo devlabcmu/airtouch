@@ -13,12 +13,16 @@
 #import "xacUIBehavior.h"
 #import "xacUIFade.h"
 #import "xacUIScroll.h"
+#import "xacUIShadow.h"
 #import "xacTextSelection.h"
+#import "xacUIHelp.h"
 //#import "xacConstants.h"
 
 #define DO_CONTEXT_MENU     TRUE
 #define DO_SCROLLING        TRUE
 #define DO_TEXT_SELECTION   TRUE
+#define SHOW_FINGER_SHADOW  TRUE
+#define DO_TOOLTIP          TRUE
 
 @interface xacViewController : UIViewController
 
@@ -38,10 +42,13 @@ enum TextSelInteractState
 @property (weak, nonatomic) IBOutlet UIView *ctrlView;
 @property (weak, nonatomic) IBOutlet UITextView *textView;
 @property (weak, nonatomic) IBOutlet UIScrollView *scrollView;
+@property (strong, nonatomic) IBOutlet UIView *mainView;
 
 @property xacUIFade* uiFade;
 @property xacUIScroll* uiScroll;
 @property xacTextSelection* uiTextSel;
+@property xacUIShadow* uiShadow;
+@property xacUIHelp* uiHelp;
 @property enum TextSelInteractState textSelIntState;
 
 @property (weak, nonatomic) IBOutlet UIButton *btnSettings;

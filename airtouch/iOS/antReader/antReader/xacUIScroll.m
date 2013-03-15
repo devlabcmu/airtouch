@@ -20,19 +20,33 @@ float thrsLow = 0.005;
 
 long counter = 0;
 
-enum ScrollState tmpScrollState = DEFAULT;
+enum ScrollState tmpScrollState = S_DEFAULT;
+
+NSMutableArray* imagesToast;
 
 @implementation xacUIScroll
 
-- (id) init
+- (id) init :(UIView*)parent
 {
     self = [super init];
-    _scrollState = DEFAULT;
+    _parent = parent;
+    _scrollState = S_DEFAULT;
     [NSTimer scheduledTimerWithTimeInterval:SCROLL_FREQ
                                      target:self
                                    selector:@selector(manuallyScroll)
                                    userInfo:nil
                                     repeats:YES];
+    
+    float widthToast = WIDTH_SCREEN * 0.8;
+    float heightToast = widthToast * 0.667;
+    float xToast = (WIDTH_SCREEN - widthToast) * 0.5;
+    float yToast = (HEIGHT_SCREEN - heightToast) * 0.5;
+    _uiToast = [[xacUIToast alloc] initWithFrame:CGRectMake(xToast, yToast, widthToast, heightToast)];
+    [_uiToast setBackgroundColor:[UIColor colorWithRed:255 green:255 blue:255 alpha:0]];
+    _uiToast.alpha = 0;
+    [_parent addSubview: _uiToast];
+    imagesToast = [@[@"speed1.png", @"speed2.png", @"speed3.png", @"speed-down-1.png", @"speed-down-2.png", @"speed-down-3.png"] mutableCopy];
+    
     return self;
 }
 
@@ -41,36 +55,123 @@ float lastY = -1;
 float lastY2 = -1;
 float thisY = -1;
 float height = -1;
+
+int counterScroll = SCROLL_TIME_OUT;
+float heightEnhancement = 1;
+
+#define MIN_ENHANCEMENT 1
+#define MAX_ENHANCEMENT 3
+
 - (void) update:(float)x :(float)y :(float)z
 {
-    thisY = fabs(thisY - lastY2) > HEIGHT_SCREEN / 2 ? thisY : y;
-    lastY2 = thisY;
-    rate *= 0.99;
-    height = z;
+    heightEnhancement = MIN_ENHANCEMENT + (MAX_ENHANCEMENT - MIN_ENHANCEMENT) * (z - MIN_HEIGHT) / (MAX_HEIGHT - MIN_HEIGHT);
+    _uiToast.alpha *= 0.99;
 }
 
--(void) printState
+- (void) update2:(float)x :(float)y :(float)z
 {
-    NSString* strState = @"";
+//    thisY = fabs(thisY - lastY2) > HEIGHT_SCREEN / 2 ? thisY : y;
+//    lastY2 = thisY;
+//    rate *= 0.99;
+//    height = z;
+    
+    if(!_scrollStarted) return;
+    
+    if(counterScroll >= SCROLL_TIME_OUT)
+    {
+        _scrollState = S_DEFAULT;
+        if(counterScroll == SCROLL_TIME_OUT)
+        {
+            NSLog(@"scroll time out...");
+            counterScroll++;
+        }
+        return;
+    }
+    else    counterScroll++;
+    
+    float height = z;
+    enum ScrollState tmpState = _scrollState;
     switch (_scrollState) {
-        case MIDDLE:
-            strState = @"middle";
+        case S_DEFAULT:
+            if(height < THRES_LOW) tmpState = S_LOW;
+            if(_scrollState != tmpState) NSLog(@"LOW");
             break;
-        case LOW:
-            strState = @"low";
+        case S_LOW:
+            if(height > THRES_HIGH_UP) tmpState = S_HIGH_UP;
+            if(_scrollState != tmpState)
+            {   NSLog(@"HIGH_UP");     }
             break;
-        case HIGH:
-            strState = @"high";
+        case S_HIGH_UP:
+            //            [self dynmSelect];
+            counterScroll--;
+            _scrollEnabled = NO;
+            if(height < MIN_HEIGHT * 1.5) tmpState = S_LOW_AGAIN;
+            // maybe add a time out
+            if(_scrollState != tmpState) NSLog(@"LOW_AGAIN");
             break;
-        case LOW_AGAIN:
-            strState = @"low again";
-        case DEFAULT:
-            strState = @"default";
+        case S_LOW_AGAIN:
+//            _scrollEnabled = false;
+            _scrollOffset *= 0.9;
+            break;
         default:
             break;
     }
-    NSLog(@"%@", strState);
+    
+    _scrollState = tmpState;
+    
+//    [self manuallyScroll];
+
 }
+
+-(void) manuallyScroll
+{
+    float topEdge = _scrollView.contentOffset.y;
+    if(topEdge <= 0)
+    {
+        return;
+    }
+    
+    float bottomEdge = _scrollView.contentOffset.y + _scrollView.frame.size.height;
+    if (bottomEdge >= _scrollView.contentSize.height) {
+        return;
+    }
+
+    /*--- do the scrolling ---*/
+    if(_scrollEnabled)
+    {
+        rateBase = fabs(_scrollOffset) * SCALE_SCROLL_SPEED;
+        dirScroll = _scrollOffset > 0 ? 1 : -1;
+        _contentOffset +=  rateBase * dirScroll * heightEnhancement;
+        
+        //        scrollHeight += offsetScroll;
+        
+        CGPoint bottomOffset = CGPointMake(0, _contentOffset);
+        [_scrollView setContentOffset:bottomOffset animated:NO];
+//        dispatch_async(dispatch_get_main_queue(), ^{
+//            [_scrollView setContentOffset:bottomOffset animated:NO];
+//        });
+        
+        //        NSLog(@"%@", [NSString stringWithFormat:@"%f, %f", _contentOffset, _scrollView.contentOffset.y]);
+        
+        int idxToastNew = (int)(3 * (heightEnhancement - MIN_ENHANCEMENT) / (MAX_ENHANCEMENT - MIN_ENHANCEMENT) - 0.1);
+        int idxOff = dirScroll > 0 ? 0 : 3;
+        [_uiToast setDisplay:[UIImage imageNamed:imagesToast[idxToastNew + idxOff]]];
+        
+        if(idxToastNew != idxToast)
+        {
+//            if(_uiToast.alpha < 0.001)
+            {
+                [_uiToast toastOut:0.5];
+            }
+        }
+        else
+        {
+            _uiToast.alpha *= 0.99;
+        }
+        idxToast = idxToastNew;
+    }
+}
+int idxToast = -1;
 
 - (void) setState:(enum ScrollState)state
 {
@@ -78,45 +179,6 @@ float height = -1;
     tmpScrollState = state;
 }
 
-float scrollHeight = 0;
-float rate = 0;
-- (void) manuallyScroll2
-{
-    if(lastY > 0 && thisY > 0 && fabs(thisY - lastY) >= THRS_Y)
-    {
-        float offsetScroll = 0 ;
-        
-        if(_scrollState == LOW)
-        {
-            offsetScroll = -[self sign :(thisY - lastY)] * fabs(thisY - lastY) * .05 * rate;
-
-        }
-        else if(_scrollState == HIGH)
-        {
-            offsetScroll = fabs(thisY - HEIGHT_SCREEN * 0.5) * 0.02 * rate;
-            offsetScroll = thisY > HEIGHT_SCREEN * 0.9 ? -offsetScroll : offsetScroll;
-            
-//            if(fabs(offsetScroll) < 20)
-//            {
-//                offsetScroll = 0;
-//            }
-            NSLog(@"%@", [NSString stringWithFormat:@"%f, %f", thisY, offsetScroll]);
-
-        }
-        
-
-        
-        scrollHeight += offsetScroll;
-        CGPoint bottomOffset = CGPointMake(0, scrollHeight);
-        [_scrollView setContentOffset:bottomOffset animated:NO];
-    }
-    else
-    {
-//        NSLog(@"%@", [NSString stringWithFormat:@"%.0f, %.0f", lastY, thisY]);
-    }
-    lastY = thisY;
-    
-}
 
 - (float) sign :(float)num
 {
@@ -127,108 +189,109 @@ float rate = 0;
 
 //bool scrollEnabled = NO;
 int dirScroll = 0;
-- (void) startScrolling :(float)offset
+- (void) startScrolling
 {
 //    if(height > MAX_HEIGHT / 10)
     {
-    _scrollEnabled = YES;
+        _scrollStarted = TRUE;
+    _scrollEnabled = NO;
     //    scrollHeight = pntOffset.y + _scrollView.layer.bounds.size.height;// * thisY > HEIGHT_SCREEN * 0.9 ? 1 : -1;
-    dirScroll = offset > 0 ? 1 : -1;//thisY > HEIGHT_SCREEN * 0.75 ? 1 : -1;
-    rateBase = fabs(offset) * 0.5;
-    offsetScroll = 0;
+//    dirScroll = _offset > 0 ? 1 : -1;//thisY > HEIGHT_SCREEN * 0.75 ? 1 : -1;
+    
+//    _contentOffset = _scrollView.contentOffset.y;
+        counterScroll = 0;
+        _scrollState = S_DEFAULT;
     }
 }
 
 
 float rateBase = 0;
-float minScrollOffset = 0;
-float offsetScroll = 0;
-
-- (void) manuallyScroll
-{
-    [self doManuallyScroll1];
-}
-
-- (void) doManuallyScroll1
-{
-    float topEdge = _scrollView.contentOffset.y;
-    if(topEdge <= 0)
-    {
-        _scrollEnabled = NO;
-        counter = 0;
-        minScrollOffset = 0;
-    }
-    
-    float bottomEdge = _scrollView.contentOffset.y + _scrollView.frame.size.height;
-    if (bottomEdge >= _scrollView.contentSize.height) {
-//        NSLog(@"reach end!");
-        _scrollEnabled = NO;
-        counter = 0;
-        minScrollOffset = 0;
-    }
-    
-   if(counter >= TIME_OUT)
-    {
-        _scrollEnabled = NO;
-        counter = 0;
-        minScrollOffset = 0;
-    }
-    
-    if(height > MAX_HEIGHT * 2)
-    {
-        _scrollEnabled = NO;
-        counter = 0;
-        minScrollOffset = 0;
-        return;
-    }
-    
-    if(counter > 0)
-    {
-        if(height < MAX_HEIGHT / 10)
-        {
-            _scrollEnabled = NO;
-            counter = 0;
-            minScrollOffset = 0;
-        }
-    }
-    
-    if(_scrollEnabled)
-    {
-        CGPoint pntOffset = [_scrollView.layer.presentationLayer bounds].origin;
-        scrollHeight = pntOffset.y;
-//        float tmpScroll = rateBase * height / MAX_HEIGHT;
-//        offsetScroll = offsetScroll * 0.9 + tmpScroll * 0.1;
-        offsetScroll = rateBase * (height - MIN_HEIGHT) / (MAX_HEIGHT - MIN_HEIGHT);
-        offsetScroll = MAX(0, offsetScroll);
-        offsetScroll = MIN(offsetScroll, rateBase);
-        
-        if(offsetScroll <= minScrollOffset)
-        {
-            offsetScroll = 0;
-            counter++;
-            minScrollOffset *= 0.9;
-        }
-        else
-        {
-//            minScrollOffset *= 1.1;
-//            minScrollOffset = minScrollOffset > rateBase / 2 ? minScrollOffset : minScrollOffset * 1.01;
-            
-            
-            float rate = 0.9;
-            minScrollOffset = minScrollOffset * rate + offsetScroll * (1 - rate);
-            
-            offsetScroll *= dirScroll;//thisY > HEIGHT_SCREEN * 0.75 ? -1 : 1;
-//            NSLog(@"%@", [NSString stringWithFormat:@"%f, %f, %f", minScrollOffset, offsetScroll, thisY]);
-            scrollHeight += offsetScroll;
-            CGPoint bottomOffset = CGPointMake(0, scrollHeight);
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [_scrollView setContentOffset:bottomOffset animated:NO];
-            });
-        }
-    }
-}
+//float minScrollOffset = 0;
 
 @end
+//- (void) manuallyScroll
+//{
+//    [self doManuallyScroll1];
+//}
+//
+//- (void) doManuallyScroll1
+//{
+//    float topEdge = _scrollView.contentOffset.y;
+//    if(topEdge <= 0)
+//    {
+//        _scrollEnabled = NO;
+//        counter = 0;
+//        minScrollOffset = 0;
+//    }
+//    
+//    float bottomEdge = _scrollView.contentOffset.y + _scrollView.frame.size.height;
+//    if (bottomEdge >= _scrollView.contentSize.height) {
+////        NSLog(@"reach end!");
+//        _scrollEnabled = NO;
+//        counter = 0;
+//        minScrollOffset = 0;
+//    }
+//    
+//   if(counter >= TIME_OUT)
+//    {
+//        _scrollEnabled = NO;
+//        counter = 0;
+//        minScrollOffset = 0;
+//    }
+//    
+//    if(height > MAX_HEIGHT * 2)
+//    {
+//        _scrollEnabled = NO;
+//        counter = 0;
+//        minScrollOffset = 0;
+//        return;
+//    }
+//    
+//    if(counter > 0)
+//    {
+//        if(height < MAX_HEIGHT / 10)
+//        {
+//            _scrollEnabled = NO;
+//            counter = 0;
+//            minScrollOffset = 0;
+//        }
+//    }
+//    
+//    if(_scrollEnabled)
+//    {
+//        CGPoint pntOffset = [_scrollView.layer.presentationLayer bounds].origin;
+//        scrollHeight = pntOffset.y;
+////        float tmpScroll = rateBase * height / MAX_HEIGHT;
+////        offsetScroll = offsetScroll * 0.9 + tmpScroll * 0.1;
+//        offsetScroll = rateBase * (height - MIN_HEIGHT) / (MAX_HEIGHT - MIN_HEIGHT);
+//        offsetScroll = MAX(0, offsetScroll);
+//        offsetScroll = MIN(offsetScroll, rateBase);
+//        
+//        if(offsetScroll <= minScrollOffset)
+//        {
+//            offsetScroll = 0;
+//            counter++;
+//            minScrollOffset *= 0.9;
+//        }
+//        else
+//        {
+////            minScrollOffset *= 1.1;
+////            minScrollOffset = minScrollOffset > rateBase / 2 ? minScrollOffset : minScrollOffset * 1.01;
+//            
+//            
+//            float rate = 0.9;
+//            minScrollOffset = minScrollOffset * rate + offsetScroll * (1 - rate);
+//            
+//            offsetScroll *= dirScroll;//thisY > HEIGHT_SCREEN * 0.75 ? -1 : 1;
+////            NSLog(@"%@", [NSString stringWithFormat:@"%f, %f, %f", minScrollOffset, offsetScroll, thisY]);
+//            scrollHeight += offsetScroll;
+//            CGPoint bottomOffset = CGPointMake(0, scrollHeight);
+//            dispatch_async(dispatch_get_main_queue(), ^{
+//                [_scrollView setContentOffset:bottomOffset animated:NO];
+//            });
+//        }
+//    }
+//}
 
 
 //
@@ -344,3 +407,64 @@ float offsetScroll = 0;
 ////
 ////        }
 ////    }
+
+//-(void) printState
+//{
+//    NSString* strState = @"";
+//    switch (_scrollState) {
+//        case MIDDLE:
+//            strState = @"middle";
+//            break;
+//        case LOW:
+//            strState = @"low";
+//            break;
+//        case HIGH:
+//            strState = @"high";
+//            break;
+//        case LOW_AGAIN:
+//            strState = @"low again";
+//        case DEFAULT:
+//            strState = @"default";
+//        default:
+//            break;
+//    }
+//    NSLog(@"%@", strState);
+//}
+
+//float scrollHeight = 0;
+//float rate = 0;
+//- (void) manuallyScroll2
+//{
+//    if(lastY > 0 && thisY > 0 && fabs(thisY - lastY) >= THRS_Y)
+//    {
+//        float offsetScroll = 0 ;
+//
+//        if(_scrollState == S_LOW)
+//        {
+//            offsetScroll = -[self sign :(thisY - lastY)] * fabs(thisY - lastY) * .05 * rate;
+//
+//        }
+//        else if(_scrollState == S_HIGH_UP)
+//        {
+//            offsetScroll = fabs(thisY - HEIGHT_SCREEN * 0.5) * 0.02 * rate;
+//            offsetScroll = thisY > HEIGHT_SCREEN * 0.9 ? -offsetScroll : offsetScroll;
+//
+////            if(fabs(offsetScroll) < 20)
+////            {
+////                offsetScroll = 0;
+////            }
+//            NSLog(@"%@", [NSString stringWithFormat:@"%f, %f", thisY, offsetScroll]);
+//
+//        }
+//
+//        scrollHeight += offsetScroll;
+//        CGPoint bottomOffset = CGPointMake(0, scrollHeight);
+//        [_scrollView setContentOffset:bottomOffset animated:NO];
+//    }
+//    else
+//    {
+////        NSLog(@"%@", [NSString stringWithFormat:@"%.0f, %.0f", lastY, thisY]);
+//    }
+//    lastY = thisY;
+//
+//}

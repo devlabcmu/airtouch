@@ -179,18 +179,25 @@ long cntFrames;
                 if(len) {
                     
                     PMDData* tmpData = (PMDData*)buf;
+                    
+                    int idx = tmpData->fingers[0].y > tmpData->fingers[1].y ? 0 : 1;
+//                    int idx = 0;
 
-                    int idData = tmpData->fingers[0].id;
-                    float xFloat = tmpData->fingers[0].x;
-                    float yFloat = tmpData->fingers[0].y;
-                    float zFloat = tmpData->fingers[0].z;
+                    int idData = tmpData->fingers[idx].id;
+                    float xFloat = tmpData->fingers[idx].x;
+                    float yFloat = tmpData->fingers[idx].y;
+                    float zFloat = tmpData->fingers[idx].z;
                     
-//                    [_atp updateRawData:xFloat :yFloat :zFloat];
                     [_airData update:xFloat :yFloat :zFloat];
+                    if(xFloat == 0 && yFloat == 0 && zFloat == 0)
+                    {
+                        _airData.isValid = false;
+                    }
+                    else
+                    {
+                        _airData.isValid = true;
+                    }
                     
-                    // debug routines
-//                    NSString *dataStr = [NSString stringWithFormat:@"%f, %f, %f", _atp.caliX, _atp.caliY, _atp.caliZ];
-//                    NSString *dataStr = [NSString stringWithFormat:@"%f, %f, %f, %f", _atp.rawXMin, xFloat, _atp.rawXMax, _atp.caliX];
                     NSString *dataStr = [NSString stringWithFormat:@"%d, %f, %f, %f", idData, xFloat, yFloat, zFloat];
                     if(DO_DEBUG) NSLog(@"%@", dataStr);
                     

@@ -9,7 +9,7 @@
 #import "xacViewController.h"
 #define BASE_RADIUS 25
 #define PORT 10000
-#define IP_CMU "128.237.113.190"
+#define IP_CMU "128.237.226.182"
 #define IP_874 "192.168.8.112"
 #define REQUEST_FREQUENCY 0.01
 #define AIR_BUFFER_SIZE 128
@@ -63,16 +63,27 @@ bool doGestureRecognition = true;
                                    userInfo:nil
                                     repeats:YES];
     
-    _circleView = [[UIView alloc] initWithFrame:CGRectMake(0,0,0,0)];
-    _circleView.alpha = 0;
-    _circleView.layer.cornerRadius = 0;
-    _circleView.backgroundColor = [UIColor redColor];
+    _recognizer = [[GLGestureRecognizer alloc] init];
+	NSData *jsonData = [NSData dataWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"Gestures" ofType:@"json"]];
+    
+    BOOL ok;
+	NSError *error;
+	ok = [_recognizer loadTemplatesFromJsonData:jsonData error:&error];
+	if (!ok)
+	{
+		NSLog(@"Error loading gestures: %@", error);
+        //		self.caption = @"Error loading gestures.";
+		return;
+	}
+
+//    _circleView = [[UIView alloc] initWithFrame:CGRectMake(0,0,0,0)];
+//    _circleView.alpha = 0;
+//    _circleView.layer.cornerRadius = 0;
+//    _circleView.backgroundColor = [UIColor redColor];
+    _uiShadow = [[xacUIShadow alloc] init: _mainView];
     
     _curveView = [[xacCurve alloc] initWithFrame:CGRectMake(0, 0, widthScreen, heightScreen)];
     [_curveView setBackgroundColor: [UIColor colorWithRed:255 green:255 blue:255 alpha:0]];
-    
-    
-    
     
     
     _imageRoll = [[xacImageRoll alloc] init];
@@ -120,30 +131,31 @@ bool doGestureRecognition = true;
         float heightRatio = [self crop:airCoord.rawY :0 :MAX_HEIGHT] / MAX_HEIGHT;
         float radius = (1 + heightRatio) * BASE_RADIUS;
         
-        _circleView.alpha = 0.75 * (1 - heightRatio) + 0.25;
-        _circleView.frame = CGRectMake(0, 0, 2 * radius, 2 * radius);
-        _circleView.layer.cornerRadius = radius;
-        [_circleView setCenter:CGPointMake(xCenter, yCenter)];
+//        _circleView.alpha = 0.75 * (1 - heightRatio) + 0.25;
+//        _circleView.frame = CGRectMake(0, 0, 2 * radius, 2 * radius);
+//        _circleView.layer.cornerRadius = radius;
+//        [_circleView setCenter:CGPointMake(xCenter, yCenter)];
         
         // visualize as trace
         
-        if(cntrTime % 5 == 0)
+        if(cntrTime % 10 == 0)
         {
             
-//            xBuf[ptrBuf] = xCenter;
-//            yBuf[ptrBuf] = yCenter;
-//            ptrBuf++;
-//            
-//            if(ptrBuf >= NUM_POINTS)
-//            {
-//                [_curveView updateCurve:xBuf[0] :yBuf[0] :xBuf[1] :yBuf[1] :xBuf[2] :yBuf[2]];
-//                //                [_curveView setNeedsDisplay];
-//                ptrBuf = 0;
-//            }
+            xBuf[ptrBuf] = xCenter;
+            yBuf[ptrBuf] = yCenter;
+            ptrBuf++;
+            
+            if(ptrBuf >= NUM_POINTS)
+            {
+                [_curveView updateCurve:xBuf[0] :yBuf[0] :xBuf[1] :yBuf[1] :xBuf[2] :yBuf[2]];
+                //                [_curveView setNeedsDisplay];
+                ptrBuf = 0;
+            }
             
             if(doGestureRecognition)
             {
                 [_recognizer addAirPoint:CGPointMake(xCenter, yCenter)];
+//                NSLog(@"%f, %f", xCenter, yCenter);
             }
             
             
@@ -155,8 +167,19 @@ bool doGestureRecognition = true;
         
 //        NSString* strFPS = [NSString stringWithFormat:@"fps: %d", _stream.fps];
 //        [_lbFPS setText:strFPS];
+        
+        [self updateUI];
                 
     }
+}
+
+- (void) updateUI
+{
+    xacVector* airCoord = _airData.vecRaw;
+    float xCenter = [self crop: airCoord.rawX * WIDTH_SCREEN: 0: WIDTH_SCREEN];
+    float yCenter = [self crop: airCoord.rawZ * HEIGHT_SCREEN: 0: HEIGHT_SCREEN];
+    float height = [self crop:airCoord.rawY :0 :MAX_HEIGHT];
+    [_uiShadow update:xCenter :yCenter :height];
 }
 
 - (float) crop :(float) original :(float) lower :(float) higher
@@ -175,11 +198,12 @@ bool doGestureRecognition = true;
         _stream.port = PORT;
         
 //        // visualize as circle
+        [_uiShadow setVisibility:TRUE];
 //        [_mainView addSubview:_circleView];
 //        
 //        // visualize as trace
-//        [_mainView addSubview:_curveView];
-//        
+        [_mainView addSubview:_curveView];
+//
 //        // controls
 //        [_mainView addSubview:_ctrlView];
 //        [_ctrlView setBackgroundColor:[UIColor colorWithRed:255 green:255 blue:255 alpha:0]];
@@ -195,7 +219,7 @@ bool doGestureRecognition = true;
     else
     {
         [_stream sendStrToServer:@"d"];
-        [_circleView removeFromSuperview];
+//        [_circleView removeFromSuperview];
         [_curveView removeFromSuperview];
         _stream.isConnected = false;
         [_btnConnect setTitle:@"Connect" forState:UIControlStateNormal];
@@ -218,8 +242,8 @@ UIImageView* zoomedImgView;
             if(!inAction) [self processGestureData];
             [_recognizer resetTouches];
         }
-//        _curveView.alpha = 1.0;
-//        [_curveView setNeedsDisplay];
+        _curveView.alpha = 1.0;
+        [_curveView setNeedsDisplay];
     }
     
     UITouch* touch = [[event allTouches] anyObject];

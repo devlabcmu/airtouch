@@ -7,7 +7,7 @@
 //
 
 #import "xacCurve.h"
-#define LENGTH_CURVE 32
+#define LENGTH_CURVE kSamplePoints
 
 @implementation xacCurve
 
@@ -43,8 +43,8 @@ int ptrCurve;
 
 - (void)drawRect:(CGRect)rect {
     CGContextRef context = UIGraphicsGetCurrentContext();
-    CGContextSetLineWidth(context, 2.0);
-    CGContextSetStrokeColorWithColor(context, [UIColor blueColor].CGColor);
+    CGContextSetLineWidth(context, 5.0);
+    CGContextSetStrokeColorWithColor(context, [UIColor colorWithRed:255 green:0 blue:0 alpha:0.5].CGColor);
     CGContextBeginPath(context);
     
     int start = cntr < LENGTH_CURVE * 2 ? 0 : ptrCurve;
