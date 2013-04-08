@@ -15,6 +15,8 @@
 #import "GLGestureRecognizer+JSONTemplates.h"
 #import "xacImageRoll.h"
 #import "xacMenu.h"
+#import "xacUIShadow.h"
+#import "xacConstants.h"
 
 @interface xacViewController : UIViewController
 
@@ -32,12 +34,13 @@
 @property xacData* airData;
 
 @property xacCurve* curveView;
-@property UIView* circleView;
+//@property UIView* circleView;
 
 @property GLGestureRecognizer* recognizer;
 
 @property xacImageRoll* imageRoll;
 @property xacMenu* altMenu;
 
+@property xacUIShadow* uiShadow;
 
 @end

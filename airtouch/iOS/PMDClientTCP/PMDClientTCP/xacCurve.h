@@ -8,6 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import "xacData.h"
+#import "GLGestureRecognizer.h"
 
 @interface xacCurve : UIView
 

@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		15DA8E6416EBDA3900CD9031 /* xacUIToast.m in Sources */ = {isa = PBXBuildFile; fileRef = 15DA8E6316EBDA3900CD9031 /* xacUIToast.m */; };
+		15DA8E6816EBDBED00CD9031 /* double-arrow.png in Resources */ = {isa = PBXBuildFile; fileRef = 15DA8E6616EBDBED00CD9031 /* double-arrow.png */; };
+		15DA8E6916EBDBED00CD9031 /* magnifying-glass.png in Resources */ = {isa = PBXBuildFile; fileRef = 15DA8E6716EBDBED00CD9031 /* magnifying-glass.png */; };
+		15DA8E6C16EBE6C800CD9031 /* xacUIShadow.m in Sources */ = {isa = PBXBuildFile; fileRef = 15DA8E6B16EBE6C800CD9031 /* xacUIShadow.m */; };
+		15DA8E6F16EBE88800CD9031 /* xacUIBehavior.m in Sources */ = {isa = PBXBuildFile; fileRef = 15DA8E6E16EBE88800CD9031 /* xacUIBehavior.m */; };
 		15DB528416E7BFDC0083A6D6 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 15DB528316E7BFDC0083A6D6 /* UIKit.framework */; };
 		15DB528616E7BFDC0083A6D6 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 15DB528516E7BFDC0083A6D6 /* Foundation.framework */; };
 		15DB528816E7BFDC0083A6D6 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 15DB528716E7BFDC0083A6D6 /* CoreGraphics.framework */; };
@@ -32,6 +37,14 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		15DA8E6216EBDA3900CD9031 /* xacUIToast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xacUIToast.h; sourceTree = "<group>"; };
+		15DA8E6316EBDA3900CD9031 /* xacUIToast.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = xacUIToast.m; sourceTree = "<group>"; };
+		15DA8E6616EBDBED00CD9031 /* double-arrow.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "double-arrow.png"; sourceTree = "<group>"; };
+		15DA8E6716EBDBED00CD9031 /* magnifying-glass.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "magnifying-glass.png"; sourceTree = "<group>"; };
+		15DA8E6A16EBE6C800CD9031 /* xacUIShadow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = xacUIShadow.h; path = ../../antReader/antReader/xacUIShadow.h; sourceTree = "<group>"; };
+		15DA8E6B16EBE6C800CD9031 /* xacUIShadow.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = xacUIShadow.m; path = ../../antReader/antReader/xacUIShadow.m; sourceTree = "<group>"; };
+		15DA8E6D16EBE88800CD9031 /* xacUIBehavior.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = xacUIBehavior.h; path = ../../antReader/antReader/xacUIBehavior.h; sourceTree = "<group>"; };
+		15DA8E6E16EBE88800CD9031 /* xacUIBehavior.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = xacUIBehavior.m; path = ../../antReader/antReader/xacUIBehavior.m; sourceTree = "<group>"; };
 		15DB528016E7BFDC0083A6D6 /* antMap.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = antMap.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		15DB528316E7BFDC0083A6D6 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		15DB528516E7BFDC0083A6D6 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -86,6 +99,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		15DA8E6516EBDBE000CD9031 /* Images */ = {
+			isa = PBXGroup;
+			children = (
+				15DA8E6616EBDBED00CD9031 /* double-arrow.png */,
+				15DA8E6716EBDBED00CD9031 /* magnifying-glass.png */,
+			);
+			name = Images;
+			sourceTree = "<group>";
+		};
 		15DB527716E7BFDC0083A6D6 = {
 			isa = PBXGroup;
 			children = (
@@ -118,6 +140,7 @@
 		15DB528916E7BFDC0083A6D6 /* antMap */ = {
 			isa = PBXGroup;
 			children = (
+				15DA8E6516EBDBE000CD9031 /* Images */,
 				15DB52BC16E7C88D0083A6D6 /* $1Gesture */,
 				15DB52B816E7C5770083A6D6 /* UI */,
 				15DB52A616E7BFFA0083A6D6 /* Basics */,
@@ -164,6 +187,12 @@
 		15DB52B816E7C5770083A6D6 /* UI */ = {
 			isa = PBXGroup;
 			children = (
+				15DA8E6D16EBE88800CD9031 /* xacUIBehavior.h */,
+				15DA8E6E16EBE88800CD9031 /* xacUIBehavior.m */,
+				15DA8E6A16EBE6C800CD9031 /* xacUIShadow.h */,
+				15DA8E6B16EBE6C800CD9031 /* xacUIShadow.m */,
+				15DA8E6216EBDA3900CD9031 /* xacUIToast.h */,
+				15DA8E6316EBDA3900CD9031 /* xacUIToast.m */,
 				15DB52C316E7CAE40083A6D6 /* xacCurve.h */,
 				15DB52C416E7CAE40083A6D6 /* xacCurve.m */,
 				15DB52B916E7C80F0083A6D6 /* xacGesture.h */,
@@ -242,6 +271,8 @@
 				15DB529A16E7BFDC0083A6D6 /* Default-568h@2x.png in Resources */,
 				15DB529D16E7BFDC0083A6D6 /* MainStoryboard.storyboard in Resources */,
 				15DB52C716E7DB7E0083A6D6 /* Gestures.json in Resources */,
+				15DA8E6816EBDBED00CD9031 /* double-arrow.png in Resources */,
+				15DA8E6916EBDBED00CD9031 /* magnifying-glass.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -263,6 +294,9 @@
 				15DB52C116E7C8CA0083A6D6 /* GLGestureRecognizer.m in Sources */,
 				15DB52C216E7C8CA0083A6D6 /* GLGestureRecognizer+JSONTemplates.m in Sources */,
 				15DB52C516E7CAE40083A6D6 /* xacCurve.m in Sources */,
+				15DA8E6416EBDA3900CD9031 /* xacUIToast.m in Sources */,
+				15DA8E6C16EBE6C800CD9031 /* xacUIShadow.m in Sources */,
+				15DA8E6F16EBE88800CD9031 /* xacUIBehavior.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -385,6 +419,7 @@
 				15DB52A516E7BFDC0083A6D6 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

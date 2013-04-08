@@ -27,6 +27,16 @@
 		154BFE6916CAE11A00B4EFCF /* xacUIBehavior.m in Sources */ = {isa = PBXBuildFile; fileRef = 154BFE6816CAE11A00B4EFCF /* xacUIBehavior.m */; };
 		154BFE6C16CAE15C00B4EFCF /* xacUIFade.m in Sources */ = {isa = PBXBuildFile; fileRef = 154BFE6B16CAE15C00B4EFCF /* xacUIFade.m */; };
 		154BFE7016CB152900B4EFCF /* xacUIScroll.m in Sources */ = {isa = PBXBuildFile; fileRef = 154BFE6F16CB152900B4EFCF /* xacUIScroll.m */; };
+		15DA8E5816EAB20400CD9031 /* xacTooltip.m in Sources */ = {isa = PBXBuildFile; fileRef = 15DA8E5716EAB20400CD9031 /* xacTooltip.m */; };
+		15DA8E5B16EABFCD00CD9031 /* xacUIHelp.m in Sources */ = {isa = PBXBuildFile; fileRef = 15DA8E5A16EABFCD00CD9031 /* xacUIHelp.m */; };
+		15DA8E5E16EAC00D00CD9031 /* xacUIShadow.m in Sources */ = {isa = PBXBuildFile; fileRef = 15DA8E5D16EAC00D00CD9031 /* xacUIShadow.m */; };
+		15DA8E7916F3B1B400CD9031 /* speed1.png in Resources */ = {isa = PBXBuildFile; fileRef = 15DA8E7616F3B1B200CD9031 /* speed1.png */; };
+		15DA8E7A16F3B1B400CD9031 /* speed2.png in Resources */ = {isa = PBXBuildFile; fileRef = 15DA8E7716F3B1B300CD9031 /* speed2.png */; };
+		15DA8E7B16F3B1B400CD9031 /* speed3.png in Resources */ = {isa = PBXBuildFile; fileRef = 15DA8E7816F3B1B300CD9031 /* speed3.png */; };
+		15DA8E7E16F3B23700CD9031 /* xacUIToast.m in Sources */ = {isa = PBXBuildFile; fileRef = 15DA8E7D16F3B23700CD9031 /* xacUIToast.m */; };
+		15DA8E8216F3BC4900CD9031 /* speed-down-1.png in Resources */ = {isa = PBXBuildFile; fileRef = 15DA8E7F16F3BC4800CD9031 /* speed-down-1.png */; };
+		15DA8E8316F3BC4900CD9031 /* speed-down-2.png in Resources */ = {isa = PBXBuildFile; fileRef = 15DA8E8016F3BC4800CD9031 /* speed-down-2.png */; };
+		15DA8E8416F3BC4900CD9031 /* speed-down-3.png in Resources */ = {isa = PBXBuildFile; fileRef = 15DA8E8116F3BC4800CD9031 /* speed-down-3.png */; };
 		15E43E5916E52DEB00228CBC /* xacTextSelection.m in Sources */ = {isa = PBXBuildFile; fileRef = 15E43E5816E52DEB00228CBC /* xacTextSelection.m */; };
 /* End PBXBuildFile section */
 
@@ -63,6 +73,20 @@
 		154BFE6D16CB0BF700B4EFCF /* xacConstants.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = xacConstants.h; sourceTree = "<group>"; };
 		154BFE6E16CB152900B4EFCF /* xacUIScroll.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xacUIScroll.h; sourceTree = "<group>"; };
 		154BFE6F16CB152900B4EFCF /* xacUIScroll.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = xacUIScroll.m; sourceTree = "<group>"; };
+		15DA8E5616EAB20400CD9031 /* xacTooltip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xacTooltip.h; sourceTree = "<group>"; };
+		15DA8E5716EAB20400CD9031 /* xacTooltip.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = xacTooltip.m; sourceTree = "<group>"; };
+		15DA8E5916EABFCD00CD9031 /* xacUIHelp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xacUIHelp.h; sourceTree = "<group>"; };
+		15DA8E5A16EABFCD00CD9031 /* xacUIHelp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = xacUIHelp.m; sourceTree = "<group>"; };
+		15DA8E5C16EAC00D00CD9031 /* xacUIShadow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xacUIShadow.h; sourceTree = "<group>"; };
+		15DA8E5D16EAC00D00CD9031 /* xacUIShadow.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = xacUIShadow.m; sourceTree = "<group>"; };
+		15DA8E7616F3B1B200CD9031 /* speed1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = speed1.png; sourceTree = "<group>"; };
+		15DA8E7716F3B1B300CD9031 /* speed2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = speed2.png; sourceTree = "<group>"; };
+		15DA8E7816F3B1B300CD9031 /* speed3.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = speed3.png; sourceTree = "<group>"; };
+		15DA8E7C16F3B23700CD9031 /* xacUIToast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xacUIToast.h; sourceTree = "<group>"; };
+		15DA8E7D16F3B23700CD9031 /* xacUIToast.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = xacUIToast.m; sourceTree = "<group>"; };
+		15DA8E7F16F3BC4800CD9031 /* speed-down-1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "speed-down-1.png"; sourceTree = "<group>"; };
+		15DA8E8016F3BC4800CD9031 /* speed-down-2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "speed-down-2.png"; sourceTree = "<group>"; };
+		15DA8E8116F3BC4800CD9031 /* speed-down-3.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "speed-down-3.png"; sourceTree = "<group>"; };
 		15E43E5716E52DEB00228CBC /* xacTextSelection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xacTextSelection.h; sourceTree = "<group>"; };
 		15E43E5816E52DEB00228CBC /* xacTextSelection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = xacTextSelection.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -113,6 +137,12 @@
 		154BFE0C16C9C09900B4EFCF /* antReader */ = {
 			isa = PBXGroup;
 			children = (
+				15DA8E7F16F3BC4800CD9031 /* speed-down-1.png */,
+				15DA8E8016F3BC4800CD9031 /* speed-down-2.png */,
+				15DA8E8116F3BC4800CD9031 /* speed-down-3.png */,
+				15DA8E7616F3B1B200CD9031 /* speed1.png */,
+				15DA8E7716F3B1B300CD9031 /* speed2.png */,
+				15DA8E7816F3B1B300CD9031 /* speed3.png */,
 				154BFE6616CAE0DE00B4EFCF /* UI */,
 				154BFE6516CAE0C000B4EFCF /* Basics */,
 				154BFE3F16CAD98E00B4EFCF /* en.lproj */,
@@ -151,14 +181,16 @@
 		154BFE6516CAE0C000B4EFCF /* Basics */ = {
 			isa = PBXGroup;
 			children = (
+				15DA8E7C16F3B23700CD9031 /* xacUIToast.h */,
+				15DA8E7D16F3B23700CD9031 /* xacUIToast.m */,
 				154BFE5216CAD9AD00B4EFCF /* xacBuffer.h */,
-				154BFE5316CAD9AD00B4EFCF /* xacBuffer.m */,
 				154BFE5416CAD9AD00B4EFCF /* xacData.h */,
 				154BFE5516CAD9AD00B4EFCF /* xacData.m */,
 				154BFE5616CAD9AD00B4EFCF /* xacNetworkStreaming.h */,
 				154BFE5716CAD9AD00B4EFCF /* xacNetworkStreaming.m */,
 				154BFE5816CAD9AD00B4EFCF /* xacVector.h */,
 				154BFE5916CAD9AD00B4EFCF /* xacVector.m */,
+				154BFE5316CAD9AD00B4EFCF /* xacBuffer.m */,
 				154BFE6D16CB0BF700B4EFCF /* xacConstants.h */,
 			);
 			name = Basics;
@@ -175,6 +207,12 @@
 				154BFE6F16CB152900B4EFCF /* xacUIScroll.m */,
 				15E43E5716E52DEB00228CBC /* xacTextSelection.h */,
 				15E43E5816E52DEB00228CBC /* xacTextSelection.m */,
+				15DA8E5616EAB20400CD9031 /* xacTooltip.h */,
+				15DA8E5716EAB20400CD9031 /* xacTooltip.m */,
+				15DA8E5916EABFCD00CD9031 /* xacUIHelp.h */,
+				15DA8E5A16EABFCD00CD9031 /* xacUIHelp.m */,
+				15DA8E5C16EAC00D00CD9031 /* xacUIShadow.h */,
+				15DA8E5D16EAC00D00CD9031 /* xacUIShadow.m */,
 			);
 			name = UI;
 			sourceTree = "<group>";
@@ -237,6 +275,12 @@
 				154BFE4C16CAD98E00B4EFCF /* Default@2x.png in Resources */,
 				154BFE4D16CAD98E00B4EFCF /* InfoPlist.strings in Resources */,
 				154BFE4E16CAD98E00B4EFCF /* MainStoryboard.storyboard in Resources */,
+				15DA8E7916F3B1B400CD9031 /* speed1.png in Resources */,
+				15DA8E7A16F3B1B400CD9031 /* speed2.png in Resources */,
+				15DA8E7B16F3B1B400CD9031 /* speed3.png in Resources */,
+				15DA8E8216F3BC4900CD9031 /* speed-down-1.png in Resources */,
+				15DA8E8316F3BC4900CD9031 /* speed-down-2.png in Resources */,
+				15DA8E8416F3BC4900CD9031 /* speed-down-3.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -258,6 +302,10 @@
 				154BFE6C16CAE15C00B4EFCF /* xacUIFade.m in Sources */,
 				154BFE7016CB152900B4EFCF /* xacUIScroll.m in Sources */,
 				15E43E5916E52DEB00228CBC /* xacTextSelection.m in Sources */,
+				15DA8E5816EAB20400CD9031 /* xacTooltip.m in Sources */,
+				15DA8E5B16EABFCD00CD9031 /* xacUIHelp.m in Sources */,
+				15DA8E5E16EAC00D00CD9031 /* xacUIShadow.m in Sources */,
+				15DA8E7E16F3B23700CD9031 /* xacUIToast.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

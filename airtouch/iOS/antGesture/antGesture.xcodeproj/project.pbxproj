@@ -41,6 +41,7 @@
 		154BFEEC16D2F87200B4EFCF /* toronto01.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 154BFEE116D2F87200B4EFCF /* toronto01.jpg */; };
 		154BFEED16D2F87200B4EFCF /* vancouver00.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 154BFEE216D2F87200B4EFCF /* vancouver00.jpg */; };
 		154BFEF316D4182B00B4EFCF /* xacMenu.m in Sources */ = {isa = PBXBuildFile; fileRef = 154BFEF216D4182B00B4EFCF /* xacMenu.m */; };
+		15DA8E7416EF70AB00CD9031 /* xacUIShadow.m in Sources */ = {isa = PBXBuildFile; fileRef = 15DA8E7316EF70AB00CD9031 /* xacUIShadow.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -93,6 +94,9 @@
 		154BFEE216D2F87200B4EFCF /* vancouver00.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = vancouver00.jpg; path = antGesture/data/vancouver00.jpg; sourceTree = "<group>"; };
 		154BFEF116D4182B00B4EFCF /* xacMenu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xacMenu.h; sourceTree = "<group>"; };
 		154BFEF216D4182B00B4EFCF /* xacMenu.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = xacMenu.m; sourceTree = "<group>"; };
+		15DA8E7216EF70AB00CD9031 /* xacUIShadow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = xacUIShadow.h; path = ../../antReader/antReader/xacUIShadow.h; sourceTree = "<group>"; };
+		15DA8E7316EF70AB00CD9031 /* xacUIShadow.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = xacUIShadow.m; path = ../../antReader/antReader/xacUIShadow.m; sourceTree = "<group>"; };
+		15DA8E7516EF718300CD9031 /* xacConstants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = xacConstants.h; path = ../../antReader/antReader/xacConstants.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -187,6 +191,9 @@
 		154BFEB016D2937400B4EFCF /* Basics */ = {
 			isa = PBXGroup;
 			children = (
+				15DA8E7516EF718300CD9031 /* xacConstants.h */,
+				15DA8E7216EF70AB00CD9031 /* xacUIShadow.h */,
+				15DA8E7316EF70AB00CD9031 /* xacUIShadow.m */,
 				154BFEA216D2932B00B4EFCF /* xacCurve.h */,
 				154BFEA316D2932B00B4EFCF /* xacCurve.m */,
 				154BFEA416D2932B00B4EFCF /* xacData.h */,
@@ -322,6 +329,7 @@
 				154BFEBD16D2F25200B4EFCF /* xacImageRoll.m in Sources */,
 				154BFEC016D2F32600B4EFCF /* xacUIBehavior.m in Sources */,
 				154BFEF316D4182B00B4EFCF /* xacMenu.m in Sources */,
+				15DA8E7416EF70AB00CD9031 /* xacUIShadow.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -444,6 +452,7 @@
 				154BFE9F16D2906800B4EFCF /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
