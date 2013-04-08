@@ -5,9 +5,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Paint.Join;
 import android.graphics.Paint.Style;
-import android.graphics.RectF;
 import android.view.MotionEvent;
-import android.view.View;
 
 public abstract class GraphicalObject {
 	static Paint g_defaultPaint;
@@ -42,4 +40,5 @@ public abstract class GraphicalObject {
 		return g_defaultPaint.getColor();
 	}
 
+	
 }

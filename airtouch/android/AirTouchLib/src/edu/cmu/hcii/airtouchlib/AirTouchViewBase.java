@@ -67,8 +67,8 @@ public class AirTouchViewBase extends View implements PMDDataHandler {
 	static
 	{
 		g_defaultPaintBrush = new Paint();
-		g_defaultPaintBrush.setColor(Color.BLACK);
-		g_defaultPaintBrush.setTextSize(40);
+		g_defaultPaintBrush.setColor(Color.rgb(20, 20, 20));
+		g_defaultPaintBrush.setTextSize(72);
 
 		g_textPaintBrush = new Paint();
 		g_textPaintBrush.setColor(Color.RED);
@@ -87,16 +87,16 @@ public class AirTouchViewBase extends View implements PMDDataHandler {
 		g_paintBrushes.put(AirTouchPoint.TouchType.TOUCH_MOVE, paint);
 
 		paint = new Paint();
-		paint.setColor(Color.BLUE);
+		paint.setColor(Color.RED);
 		paint.setStrokeCap(Cap.ROUND);
-		paint.setStyle(Style.STROKE);
+		paint.setStyle(Style.FILL);
 		paint.setStrokeWidth(5);
 		g_paintBrushes.put(AirTouchPoint.TouchType.AIR_MOVE1, paint);
 
 		paint = new Paint();
 		paint.setColor(Color.RED);
 		paint.setStrokeCap(Cap.ROUND);
-		paint.setStyle(Style.STROKE);
+		paint.setStyle(Style.FILL);
 		paint.setStrokeWidth(5);
 		g_paintBrushes.put(AirTouchPoint.TouchType.AIR_MOVE2, paint);
 
@@ -186,19 +186,29 @@ public class AirTouchViewBase extends View implements PMDDataHandler {
 		{
 			canvas.drawText(m_errorText, 0, 0, g_textPaintBrush);
 		}
-		canvas.translate(0,50);
-		canvas.drawText(String.format("pmd data fps: %.2f", _pmdFPS), 0, 0, g_defaultPaintBrush);
-		canvas.translate(0,50);
+//		canvas.translate(0,80);
+//		canvas.drawText(String.format("tracking fps: %.2f", _pmdFPS), 0, 0, g_defaultPaintBrush);
+		canvas.translate(0,80);
 		canvas.drawText(m_airTouchRecognizer.getAirTouchType().toString(), 0, 0, g_defaultPaintBrush);
 		for (Entry<Integer, Result> result : m_airTouchRecognizer.getGestureResults().entrySet())
 		{
-			canvas.translate(0, 50);
+			if(result.getValue().Score < 0.8) continue;
+			canvas.translate(0, 80);
 			canvas.drawText(String.format("%s score: %.2f", result.getValue().Name, result.getValue().Score),0,0,g_defaultPaintBrush);
 
 		}
 		canvas.restore();
 	}
 
+	public void setDebugText(boolean value)
+	{
+		m_showDebugText = value;
+	}
+	public void setShowAirGestures(boolean value)
+	{
+		m_showAirGestures = value;
+	}
+	
 	protected void onDraw(Canvas canvas) {
 		canvas.drawRGB(255, 255, 255);
 

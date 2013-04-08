@@ -18,6 +18,7 @@ import lx.interaction.dollar.Result;
 import lx.interaction.dollar.Utils;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Paint.Style;
 import android.os.Environment;
 import android.util.Log;
 
@@ -152,7 +153,9 @@ public class AirTouchDollarRecognizer extends AirTouchRecognizer {
 				}
 			}
 			paintBrushes.get(type).setAlpha(255);
+			paintBrushes.get(type).setStyle(Style.STROKE);
 			canvas.drawPath(gesturePath, paintBrushes.get(type));
+			paintBrushes.get(type).setStyle(Style.FILL);
 		}	
 	}
 	public DollarRecognizer getDollarRecognizer()

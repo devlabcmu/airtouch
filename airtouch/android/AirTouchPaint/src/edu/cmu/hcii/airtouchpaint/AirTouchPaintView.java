@@ -45,7 +45,7 @@ public class AirTouchPaintView extends AirTouchViewBase {
 		Paint paint;
 
 		paint = new Paint();
-		paint.setColor(Color.LTGRAY);
+		paint.setColor(Color.RED);
 		g_shadowPaint = paint;
 		
 		paint = new Paint();
